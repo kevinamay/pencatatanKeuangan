@@ -185,17 +185,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
 
-          {/* Center/Right: Prominent Lottie Animation from LottieFiles & Actions */}
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            {/* Real LottieFiles Animation: Flying Wallet with Banknotes (Clean Borderless Floating) */}
-            <div className="relative flex items-center justify-center">
-              <LottieAnimation
-                type="wallet-coins"
-                className="w-36 h-36 sm:w-44 sm:h-44 filter drop-shadow-xl"
-              />
-            </div>
-
-            {/* Quick Action Buttons */}
+          {/* Center/Right: Action Buttons & Prominent Lottie Animation on the Right */}
+          <div className="flex flex-col-reverse sm:flex-row items-center gap-6">
+            {/* Quick Action Buttons (Left) */}
             <div className="flex flex-col gap-3 w-full sm:w-auto">
               <button
                 onClick={onOpenQuickAdd}
@@ -212,6 +204,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 Audit Rekonsiliasi
                 <ChevronRight className="w-4 h-4 text-[#FFD9D9]" />
               </button>
+            </div>
+
+            {/* Real LottieFiles Animation: Flying Wallet with Banknotes (Placed on the Right) */}
+            <div className="relative flex items-center justify-center flex-shrink-0">
+              <LottieAnimation
+                type="wallet-coins"
+                className="w-36 h-36 sm:w-44 sm:h-44 filter drop-shadow-xl"
+              />
             </div>
           </div>
         </div>
