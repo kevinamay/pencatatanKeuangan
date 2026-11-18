@@ -17,151 +17,19 @@ import {
   MoneyMarketProduct,
 } from "@/types/finance";
 
-// Storage keys untuk fallback lokal
+// Storage keys untuk fallback lokal (v2 tanpa data dummy)
 const LOCAL_STORAGE_KEYS = {
-  INCOMES: "keuangan_incomes_v1",
-  EXPENSES: "keuangan_expenses_v1",
-  SAVINGS: "keuangan_savings_v1",
-  MONEY_MARKET: "keuangan_money_market_v1",
+  INCOMES: "keuangan_incomes_v2",
+  EXPENSES: "keuangan_expenses_v2",
+  SAVINGS: "keuangan_savings_v2",
+  MONEY_MARKET: "keuangan_money_market_v2",
 };
 
-// Data Awal / Seed Demo realistis untuk langsung tampil memukau
-const DEFAULT_INCOMES: IncomeItem[] = [
-  {
-    id: "inc-1",
-    date: "2026-11-01",
-    month: "2026-11",
-    amount: 12500000,
-    category: "Gaji Pokok",
-    source: "PT Teknologi Indonesia",
-    note: "Gaji Pokok Bulan November 2026",
-    createdAt: Date.now() - 15 * 86400000,
-  },
-  {
-    id: "inc-2",
-    date: "2026-11-05",
-    month: "2026-11",
-    amount: 2500000,
-    category: "Freelance / Side Job",
-    source: "Proyek Desain Web UI",
-    note: "Pelunasan tahap 2",
-    createdAt: Date.now() - 11 * 86400000,
-  },
-];
-
-const DEFAULT_EXPENSES: ExpenseItem[] = [
-  {
-    id: "exp-1",
-    date: "2026-11-02",
-    month: "2026-11",
-    amount: 2800000,
-    category: "Tempat Tinggal (Sewa/KPR)",
-    note: "Sewa Apartemen & Maintenance",
-    createdAt: Date.now() - 14 * 86400000,
-  },
-  {
-    id: "exp-2",
-    date: "2026-11-04",
-    month: "2026-11",
-    amount: 1500000,
-    category: "Belanja Bulanan",
-    note: "Belanja dapur, sembako & perlengkapan rumah",
-    createdAt: Date.now() - 12 * 86400000,
-  },
-  {
-    id: "exp-3",
-    date: "2026-11-07",
-    month: "2026-11",
-    amount: 650000,
-    category: "Tagihan & Utilitas",
-    note: "Listrik PLN, WiFi Indihome & BPJS",
-    createdAt: Date.now() - 9 * 86400000,
-  },
-  {
-    id: "exp-4",
-    date: "2026-11-10",
-    month: "2026-11",
-    amount: 1200000,
-    category: "Makan & Minuman",
-    note: "Makan sehari-hari & kopi santai",
-    createdAt: Date.now() - 6 * 86400000,
-  },
-  {
-    id: "exp-5",
-    date: "2026-11-12",
-    month: "2026-11",
-    amount: 550000,
-    category: "Transportasi",
-    note: "Bensin kendaraan & bensin/kartu e-toll",
-    createdAt: Date.now() - 4 * 86400000,
-  },
-];
-
-const DEFAULT_SAVINGS: SavingsAllocation[] = [
-  {
-    id: "sav-1",
-    date: "2026-11-02",
-    month: "2026-11",
-    amount: 2000000,
-    targetType: "emergency",
-    accountName: "Tabungan Darurat BCA",
-    note: "Dana cadangan likuid keluarga",
-    createdAt: Date.now() - 14 * 86400000,
-  },
-  {
-    id: "sav-2",
-    date: "2026-11-03",
-    month: "2026-11",
-    amount: 3000000,
-    targetType: "money_market",
-    accountName: "Sucorinvest Pasar Uang (Bibit)",
-    note: "Investasi pasar uang bulanan otomatis",
-    createdAt: Date.now() - 13 * 86400000,
-  },
-  {
-    id: "sav-3",
-    date: "2026-11-06",
-    month: "2026-11",
-    amount: 1000000,
-    targetType: "goal",
-    accountName: "Target Liburan Akhir Tahun",
-    note: "Tabungan tujuan liburan",
-    createdAt: Date.now() - 10 * 86400000,
-  },
-];
-
-const DEFAULT_MONEY_MARKET: MoneyMarketProduct[] = [
-  {
-    id: "mm-1",
-    name: "Sucorinvest Sharia Money Market",
-    platform: "Bibit",
-    initialCapital: 18500000,
-    returnRatePa: 6.15,
-    startDate: "2026-05-10",
-    accumulatedReturn: 632500,
-    notes: "Imbal hasil stabil, bebas pajak & pencairan instan",
-    history: [
-      { id: "h1", date: "2026-05-10", type: "topup", amount: 10000000, note: "Setoran awal portofolio" },
-      { id: "h2", date: "2026-08-15", type: "topup", amount: 5500000, note: "Top up bonus proyek" },
-      { id: "h3", date: "2026-11-03", type: "topup", amount: 3000000, note: "Alokasi gaji November" },
-    ],
-    updatedAt: Date.now(),
-  },
-  {
-    id: "mm-2",
-    name: "Mandiri Pasar Uang Utama",
-    platform: "Bareksa",
-    initialCapital: 12000000,
-    returnRatePa: 5.75,
-    startDate: "2026-07-01",
-    accumulatedReturn: 287500,
-    notes: "Pengganti tabungan reguler untuk dana siaga 6 bulan",
-    history: [
-      { id: "h4", date: "2026-07-01", type: "topup", amount: 12000000, note: "Alokasi dana darurat" },
-    ],
-    updatedAt: Date.now(),
-  },
-];
+// Data Awal Bersih Tanpa Data Dummy (Clean Empty State)
+const DEFAULT_INCOMES: IncomeItem[] = [];
+const DEFAULT_EXPENSES: ExpenseItem[] = [];
+const DEFAULT_SAVINGS: SavingsAllocation[] = [];
+const DEFAULT_MONEY_MARKET: MoneyMarketProduct[] = [];
 
 // Helper: Format Rupiah
 export function formatRupiah(value: number | string | undefined | null): string {
@@ -282,7 +150,19 @@ export class FinanceStorage {
   public static initSync() {
     if (typeof window === "undefined") return;
 
-    // Pastikan localStorage terisi seed default jika kosong
+    // Bersihkan legacy dummy keys versi sebelumnya jika ada
+    [
+      "keuangan_incomes_v1",
+      "keuangan_expenses_v1",
+      "keuangan_savings_v1",
+      "keuangan_money_market_v1",
+    ].forEach((k) => {
+      try {
+        localStorage.removeItem(k);
+      } catch {}
+    });
+
+    // Pastikan localStorage terisi array kosong jika belum ada
     if (!localStorage.getItem(LOCAL_STORAGE_KEYS.INCOMES)) {
       setLocalData(LOCAL_STORAGE_KEYS.INCOMES, DEFAULT_INCOMES);
     }
@@ -303,13 +183,11 @@ export class FinanceStorage {
         collection(db, "incomes"),
         (snapshot) => {
           this.isFirebaseConnected = true;
-          if (!snapshot.empty) {
-            const list: IncomeItem[] = [];
-            snapshot.forEach((docSnap) => {
-              list.push({ id: docSnap.id, ...(docSnap.data() as Omit<IncomeItem, "id">) });
-            });
-            setLocalData(LOCAL_STORAGE_KEYS.INCOMES, list);
-          }
+          const list: IncomeItem[] = [];
+          snapshot.forEach((docSnap) => {
+            list.push({ id: docSnap.id, ...(docSnap.data() as Omit<IncomeItem, "id">) });
+          });
+          setLocalData(LOCAL_STORAGE_KEYS.INCOMES, list);
           this.notify();
         },
         (err) => {
@@ -324,13 +202,11 @@ export class FinanceStorage {
         collection(db, "expenses"),
         (snapshot) => {
           this.isFirebaseConnected = true;
-          if (!snapshot.empty) {
-            const list: ExpenseItem[] = [];
-            snapshot.forEach((docSnap) => {
-              list.push({ id: docSnap.id, ...(docSnap.data() as Omit<ExpenseItem, "id">) });
-            });
-            setLocalData(LOCAL_STORAGE_KEYS.EXPENSES, list);
-          }
+          const list: ExpenseItem[] = [];
+          snapshot.forEach((docSnap) => {
+            list.push({ id: docSnap.id, ...(docSnap.data() as Omit<ExpenseItem, "id">) });
+          });
+          setLocalData(LOCAL_STORAGE_KEYS.EXPENSES, list);
           this.notify();
         },
         (err) => {
@@ -344,13 +220,11 @@ export class FinanceStorage {
         collection(db, "savings"),
         (snapshot) => {
           this.isFirebaseConnected = true;
-          if (!snapshot.empty) {
-            const list: SavingsAllocation[] = [];
-            snapshot.forEach((docSnap) => {
-              list.push({ id: docSnap.id, ...(docSnap.data() as Omit<SavingsAllocation, "id">) });
-            });
-            setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, list);
-          }
+          const list: SavingsAllocation[] = [];
+          snapshot.forEach((docSnap) => {
+            list.push({ id: docSnap.id, ...(docSnap.data() as Omit<SavingsAllocation, "id">) });
+          });
+          setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, list);
           this.notify();
         },
         (err) => {
@@ -364,13 +238,11 @@ export class FinanceStorage {
         collection(db, "money_market"),
         (snapshot) => {
           this.isFirebaseConnected = true;
-          if (!snapshot.empty) {
-            const list: MoneyMarketProduct[] = [];
-            snapshot.forEach((docSnap) => {
-              list.push({ id: docSnap.id, ...(docSnap.data() as Omit<MoneyMarketProduct, "id">) });
-            });
-            setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, list);
-          }
+          const list: MoneyMarketProduct[] = [];
+          snapshot.forEach((docSnap) => {
+            list.push({ id: docSnap.id, ...(docSnap.data() as Omit<MoneyMarketProduct, "id">) });
+          });
+          setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, list);
           this.notify();
         },
         (err) => {
@@ -382,6 +254,15 @@ export class FinanceStorage {
       console.warn("Firebase init error, berjalan dalam mode lokal sinkron:", e);
       this.isFirebaseConnected = false;
     }
+  }
+
+  // Clear seluruh data (Reset Bersih)
+  public static async clearAllData(): Promise<void> {
+    setLocalData(LOCAL_STORAGE_KEYS.INCOMES, []);
+    setLocalData(LOCAL_STORAGE_KEYS.EXPENSES, []);
+    setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, []);
+    setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, []);
+    this.notify();
   }
 
   // --- INCOMES (GAJI / PEMASUKAN) ---
