@@ -187,15 +187,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           {/* Center/Right: Prominent Lottie Animation from LottieFiles & Actions */}
           <div className="flex flex-col sm:flex-row items-center gap-6">
-            {/* Real LottieFiles Animation: Flying Wallet with Banknotes */}
+            {/* Real LottieFiles Animation: Flying Wallet with Banknotes (Clean Borderless Floating) */}
             <div className="relative flex items-center justify-center">
-              <div className="absolute inset-0 bg-[#FFD9D9]/20 rounded-full blur-xl scale-110 pointer-events-none" />
-              <div className="relative p-2 rounded-3xl bg-white/10 backdrop-blur-xs border border-[#FFD9D9]/30 shadow-2xl">
-                <LottieAnimation
-                  type="wallet-coins"
-                  className="w-36 h-36 sm:w-44 sm:h-44"
-                />
-              </div>
+              <LottieAnimation
+                type="wallet-coins"
+                className="w-36 h-36 sm:w-44 sm:h-44 filter drop-shadow-xl"
+              />
             </div>
 
             {/* Quick Action Buttons */}

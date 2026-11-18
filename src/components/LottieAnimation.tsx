@@ -88,13 +88,12 @@ export const LottieAnimation: React.FC<LottieAnimationProps> = ({
     };
   }, [animPath]);
 
-  // Animated Vector Fallback with finance icons in #991213 & #FFD9D9 while loading or on error
+  // Animated Vector Fallback with finance icons in transparent floating container
   const renderFallback = () => {
     return (
       <div
-        className={`${className} flex items-center justify-center relative p-3 rounded-2xl bg-[#FFD9D9]/40 border border-[#991213]/20 shadow-inner`}
+        className={`${className} flex items-center justify-center relative p-1`}
       >
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-[#991213]/10 to-[#FFD9D9]/30 animate-pulse pointer-events-none" />
         {type === "piggy-bank" || type === "save-money" ? (
           <svg
             className="w-full h-full text-[#991213] animate-bounce"

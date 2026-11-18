@@ -484,7 +484,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                 <span className="text-xs uppercase font-black tracking-wider text-[#FFD9D9]">
                   Estimasi Hasil Akhir ({simYears} Tahun)
                 </span>
-                <div className="w-14 h-14 flex-shrink-0 bg-white/10 rounded-2xl p-1 border border-white/20">
+                <div className="w-14 h-14 flex-shrink-0">
                   <LottieAnimation type="chart-growth" className="w-full h-full" />
                 </div>
               </div>
