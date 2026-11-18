@@ -53,6 +53,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
   const [incomeSource, setIncomeSource] = useState<string>("");
 
   // Expense Specific
+  const [expenseTitle, setExpenseTitle] = useState<string>("");
   const [expenseCategory, setExpenseCategory] = useState<ExpenseCategory>(
     "Makan & Minuman"
   );
@@ -99,7 +100,8 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
           month,
           amount: parsedAmount,
           category: expenseCategory,
-          note: note.trim() || expenseCategory,
+          title: expenseTitle.trim() || expenseCategory,
+          note: note.trim(),
         });
         setSuccessMsg(`Pengeluaran ${formatRupiah(parsedAmount)} berhasil dicatat!`);
       } else if (activeType === "savings") {
@@ -119,6 +121,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
       setTimeout(() => {
         setAmount("");
         setNote("");
+        setExpenseTitle("");
         setIncomeSource("");
         setIsSubmitting(false);
         setSuccessMsg(null);
@@ -195,6 +198,23 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+          {/* Judul Pengeluaran (Tampil di atas nominal saat tab Pengeluaran aktif) */}
+          {activeType === "expense" && (
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Judul Pengeluaran
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Contoh: Makan Siang, Beli Baju, Servis Motor"
+                value={expenseTitle}
+                onChange={(e) => setExpenseTitle(e.target.value)}
+                className="w-full px-4 py-3 bg-[#FFF9F9] border border-[#FFD9D9] rounded-2xl text-sm sm:text-base font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#991213]/40 focus:bg-white placeholder:text-slate-400 placeholder:font-normal transition-all"
+              />
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               Nominal (Rp)

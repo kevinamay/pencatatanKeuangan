@@ -42,6 +42,7 @@ export interface ExpenseItem {
   month: string; // YYYY-MM
   amount: number;
   category: ExpenseCategory;
+  title?: string;
   note: string;
   createdAt: number;
 }

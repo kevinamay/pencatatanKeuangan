@@ -337,6 +337,7 @@ export class FinanceStorage {
       month: newItem.month,
       amount: newItem.amount,
       category: newItem.category,
+      title: newItem.title || "",
       note: newItem.note || "",
       createdAt: newItem.createdAt,
     })

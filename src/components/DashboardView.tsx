@@ -104,7 +104,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     ...currentExpenses.map((e) => ({
       ...e,
       type: "expense" as const,
-      title: e.note || e.category,
+      title: e.title || e.note || e.category,
       subtitle: e.category,
     })),
     ...currentSavings.map((s) => ({

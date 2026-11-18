@@ -56,7 +56,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
     ...monthExpenses.map((e) => ({
       ...e,
       txType: "expense" as const,
-      mainTitle: e.note || e.category,
+      mainTitle: e.title || e.note || e.category,
       categoryLabel: e.category,
     })),
     ...monthSavings.map((s) => ({
