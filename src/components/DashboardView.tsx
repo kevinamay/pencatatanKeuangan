@@ -24,12 +24,9 @@ import {
   SavingsAllocation,
   MoneyMarketProduct,
 } from "@/types/finance";
-import {
-  formatRupiah,
-  formatTanggalIndo,
-  calculateMoneyMarketProfit,
-} from "@/lib/storage";
+import { formatRupiah, formatTanggalIndo, calculateMoneyMarketProfit } from "@/lib/storage";
 import { LottieAnimation } from "@/components/LottieAnimation";
+import { DailyExpenseChart } from "@/components/DailyExpenseChart";
 
 interface DashboardViewProps {
   selectedMonth: string;
@@ -643,6 +640,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         )}
       </div>
+
+      {/* ============================================================== */}
+      {/* GRAFIK PENGELUARAN HARIAN (DISTRIBUSI BELANJA PER HARI)        */}
+      {/* ============================================================== */}
+      <DailyExpenseChart
+        expenses={expenses}
+        selectedMonth={selectedMonth}
+        onOpenQuickAdd={onOpenQuickAdd}
+      />
     </div>
   );
 };
