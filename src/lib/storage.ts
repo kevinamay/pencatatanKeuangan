@@ -277,27 +277,28 @@ export class FinanceStorage {
       createdAt: Date.now(),
     };
 
-    // Update Local
+    // Update Local segera (Instant Local-First)
     const current = this.getIncomes();
     const updated = [newItem, ...current];
     setLocalData(LOCAL_STORAGE_KEYS.INCOMES, updated);
     this.notify();
 
-    // Sync ke Firestore
-    try {
-      await addDoc(collection(db, "incomes"), {
-        date: newItem.date,
-        month: newItem.month,
-        amount: newItem.amount,
-        category: newItem.category,
-        source: newItem.source,
-        note: newItem.note || "",
-        createdAt: newItem.createdAt,
+    // Sync ke Firestore di latar belakang (Non-blocking)
+    addDoc(collection(db, "incomes"), {
+      date: newItem.date,
+      month: newItem.month,
+      amount: newItem.amount,
+      category: newItem.category,
+      source: newItem.source,
+      note: newItem.note || "",
+      createdAt: newItem.createdAt,
+    })
+      .then(() => {
+        this.isFirebaseConnected = true;
+      })
+      .catch((err) => {
+        console.warn("Sync cloud Firestore ditunda:", err.message);
       });
-      this.isFirebaseConnected = true;
-    } catch (err) {
-      console.warn("Sync cloud Firestore ditunda:", err);
-    }
   }
 
   public static async deleteIncome(id: string): Promise<void> {
@@ -305,12 +306,10 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.INCOMES, current);
     this.notify();
 
-    try {
-      if (!id.startsWith("inc-")) {
-        await deleteDoc(doc(db, "incomes", id));
-      }
-    } catch (err) {
-      console.warn("Hapus cloud ditunda:", err);
+    if (!id.startsWith("inc-")) {
+      deleteDoc(doc(db, "incomes", id)).catch((err) => {
+        console.warn("Hapus cloud ditunda:", err.message);
+      });
     }
   }
 
@@ -326,24 +325,27 @@ export class FinanceStorage {
       createdAt: Date.now(),
     };
 
+    // Update Local segera (Instant Local-First)
     const current = this.getExpenses();
     const updated = [newItem, ...current];
     setLocalData(LOCAL_STORAGE_KEYS.EXPENSES, updated);
     this.notify();
 
-    try {
-      await addDoc(collection(db, "expenses"), {
-        date: newItem.date,
-        month: newItem.month,
-        amount: newItem.amount,
-        category: newItem.category,
-        note: newItem.note || "",
-        createdAt: newItem.createdAt,
+    // Sync ke Firestore di latar belakang (Non-blocking)
+    addDoc(collection(db, "expenses"), {
+      date: newItem.date,
+      month: newItem.month,
+      amount: newItem.amount,
+      category: newItem.category,
+      note: newItem.note || "",
+      createdAt: newItem.createdAt,
+    })
+      .then(() => {
+        this.isFirebaseConnected = true;
+      })
+      .catch((err) => {
+        console.warn("Sync cloud ditunda:", err.message);
       });
-      this.isFirebaseConnected = true;
-    } catch (err) {
-      console.warn("Sync cloud ditunda:", err);
-    }
   }
 
   public static async deleteExpense(id: string): Promise<void> {
@@ -351,12 +353,10 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.EXPENSES, current);
     this.notify();
 
-    try {
-      if (!id.startsWith("exp-")) {
-        await deleteDoc(doc(db, "expenses", id));
-      }
-    } catch (err) {
-      console.warn("Hapus cloud ditunda:", err);
+    if (!id.startsWith("exp-")) {
+      deleteDoc(doc(db, "expenses", id)).catch((err) => {
+        console.warn("Hapus cloud ditunda:", err.message);
+      });
     }
   }
 
@@ -380,7 +380,6 @@ export class FinanceStorage {
     if (newItem.targetType === "money_market") {
       const mmList = this.getMoneyMarket();
       if (mmList.length > 0) {
-        // Tambahkan ke instrumen pertama atau cari yang cocok
         const targetMM = mmList.find((m) => m.name.toLowerCase().includes("pasar uang")) || mmList[0];
         targetMM.initialCapital += newItem.amount;
         targetMM.history = [
@@ -400,20 +399,22 @@ export class FinanceStorage {
 
     this.notify();
 
-    try {
-      await addDoc(collection(db, "savings"), {
-        date: newItem.date,
-        month: newItem.month,
-        amount: newItem.amount,
-        targetType: newItem.targetType,
-        accountName: newItem.accountName,
-        note: newItem.note || "",
-        createdAt: newItem.createdAt,
+    // Sync ke Firestore di latar belakang (Non-blocking)
+    addDoc(collection(db, "savings"), {
+      date: newItem.date,
+      month: newItem.month,
+      amount: newItem.amount,
+      targetType: newItem.targetType,
+      accountName: newItem.accountName,
+      note: newItem.note || "",
+      createdAt: newItem.createdAt,
+    })
+      .then(() => {
+        this.isFirebaseConnected = true;
+      })
+      .catch((err) => {
+        console.warn("Sync cloud ditunda:", err.message);
       });
-      this.isFirebaseConnected = true;
-    } catch (err) {
-      console.warn("Sync cloud ditunda:", err);
-    }
   }
 
   public static async deleteSavings(id: string): Promise<void> {
@@ -421,12 +422,10 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, current);
     this.notify();
 
-    try {
-      if (!id.startsWith("sav-")) {
-        await deleteDoc(doc(db, "savings", id));
-      }
-    } catch (err) {
-      console.warn("Hapus cloud ditunda:", err);
+    if (!id.startsWith("sav-")) {
+      deleteDoc(doc(db, "savings", id)).catch((err) => {
+        console.warn("Hapus cloud ditunda:", err.message);
+      });
     }
   }
 
@@ -458,12 +457,13 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, updated);
     this.notify();
 
-    try {
-      await addDoc(collection(db, "money_market"), newProduct);
-      this.isFirebaseConnected = true;
-    } catch (err) {
-      console.warn("Sync cloud ditunda:", err);
-    }
+    addDoc(collection(db, "money_market"), newProduct)
+      .then(() => {
+        this.isFirebaseConnected = true;
+      })
+      .catch((err) => {
+        console.warn("Sync cloud ditunda:", err.message);
+      });
   }
 
   public static async topUpMoneyMarket(
@@ -492,16 +492,14 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, current);
     this.notify();
 
-    try {
-      if (!id.startsWith("mm-")) {
-        await updateDoc(doc(db, "money_market", id), {
-          initialCapital: item.initialCapital,
-          history: item.history,
-          updatedAt: item.updatedAt,
-        });
-      }
-    } catch (err) {
-      console.warn("Sync topup cloud ditunda:", err);
+    if (!id.startsWith("mm-")) {
+      updateDoc(doc(db, "money_market", id), {
+        initialCapital: item.initialCapital,
+        history: item.history,
+        updatedAt: item.updatedAt,
+      }).catch((err) => {
+        console.warn("Sync topup cloud ditunda:", err.message);
+      });
     }
   }
 
@@ -510,12 +508,10 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, current);
     this.notify();
 
-    try {
-      if (!id.startsWith("mm-")) {
-        await deleteDoc(doc(db, "money_market", id));
-      }
-    } catch (err) {
-      console.warn("Hapus cloud ditunda:", err);
+    if (!id.startsWith("mm-")) {
+      deleteDoc(doc(db, "money_market", id)).catch((err) => {
+        console.warn("Hapus cloud ditunda:", err.message);
+      });
     }
   }
 }
