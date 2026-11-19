@@ -103,7 +103,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
       {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-[#FFD9D9] shadow-xs">
         <div>
-          <h2 className="text-xl font-black text-[#991213]">
+          <h2 className="text-xl font-black text-[#8B0000]">
             Kelola Catatan Transaksi ({selectedMonth})
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -123,7 +123,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                 alert("Seluruh data berhasil dibersihkan!");
               }
             }}
-            className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-2xl bg-[#FFF0F0] hover:bg-[#FFE0E0] border border-[#FFD9D9] text-[#991213] font-bold text-xs shadow-xs active:scale-95 transition-all"
+            className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-2xl bg-[#FFF0F0] hover:bg-[#FFE0E0] border border-[#FFD9D9] text-[#8B0000] font-bold text-xs shadow-xs active:scale-95 transition-all"
             title="Bersihkan Semua Data"
           >
             <Trash2 className="w-4 h-4 text-rose-600" />
@@ -132,7 +132,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
 
           <button
             onClick={onOpenQuickAdd}
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#991213] hover:bg-[#7f0e0f] text-white font-extrabold text-sm shadow-md shadow-[#991213]/25 active:scale-95 transition-all"
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#8B0000] hover:bg-[#700000] text-white font-extrabold text-sm shadow-md shadow-[#8B0000]/25 active:scale-95 transition-all"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Tambah Transaksi Baru</span>
@@ -148,8 +148,8 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             onClick={() => setActiveFilter("all")}
             className={`flex-1 md:flex-initial px-4 py-2 text-xs font-bold rounded-xl transition-all ${
               activeFilter === "all"
-                ? "bg-[#991213] text-white shadow-xs"
-                : "text-slate-700 hover:text-[#991213]"
+                ? "bg-[#8B0000] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#8B0000]"
             }`}
           >
             Semua ({allTransactions.length})
@@ -158,8 +158,8 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             onClick={() => setActiveFilter("income")}
             className={`flex-1 md:flex-initial px-4 py-2 text-xs font-bold rounded-xl transition-all ${
               activeFilter === "income"
-                ? "bg-[#991213] text-white shadow-xs"
-                : "text-slate-700 hover:text-[#991213]"
+                ? "bg-[#8B0000] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#8B0000]"
             }`}
           >
             Gaji / Masuk ({monthIncomes.length})
@@ -168,8 +168,8 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             onClick={() => setActiveFilter("expense")}
             className={`flex-1 md:flex-initial px-4 py-2 text-xs font-bold rounded-xl transition-all ${
               activeFilter === "expense"
-                ? "bg-[#991213] text-white shadow-xs"
-                : "text-slate-700 hover:text-[#991213]"
+                ? "bg-[#8B0000] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#8B0000]"
             }`}
           >
             Pengeluaran ({monthExpenses.length})
@@ -178,8 +178,8 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             onClick={() => setActiveFilter("savings")}
             className={`flex-1 md:flex-initial px-4 py-2 text-xs font-bold rounded-xl transition-all ${
               activeFilter === "savings"
-                ? "bg-[#991213] text-white shadow-xs"
-                : "text-slate-700 hover:text-[#991213]"
+                ? "bg-[#8B0000] text-white shadow-xs"
+                : "text-slate-700 hover:text-[#8B0000]"
             }`}
           >
             Tabungan ({monthSavings.length})
@@ -188,13 +188,13 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
 
         {/* Search input */}
         <div className="relative w-full md:w-72">
-          <Search className="w-4 h-4 text-[#991213] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#8B0000] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Cari transaksi atau kategori..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#FFD9D9] rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#991213]/40"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#FFD9D9] rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B0000]/40"
           />
         </div>
       </div>
@@ -219,10 +219,10 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                   <div
                     className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm flex-shrink-0 ${
                       tx.txType === "income"
-                        ? "bg-[#FFD9D9] text-[#991213]"
+                        ? "bg-[#FFD9D9] text-[#8B0000]"
                         : tx.txType === "expense"
                         ? "bg-rose-100 text-rose-700"
-                        : "bg-[#FFD9D9] text-[#991213]"
+                        : "bg-[#FFD9D9] text-[#8B0000]"
                     }`}
                   >
                     {tx.txType === "income" ? (
@@ -242,10 +242,10 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                       <span
                         className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
                           tx.txType === "income"
-                            ? "bg-[#FFD9D9] text-[#991213]"
+                            ? "bg-[#FFD9D9] text-[#8B0000]"
                             : tx.txType === "expense"
                             ? "bg-rose-100 text-rose-800"
-                            : "bg-[#FFD9D9] text-[#991213]"
+                            : "bg-[#FFD9D9] text-[#8B0000]"
                         }`}
                       >
                         {tx.categoryLabel}
@@ -263,10 +263,10 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                     <span
                       className={`text-sm sm:text-base font-black ${
                         tx.txType === "income"
-                          ? "text-[#991213]"
+                          ? "text-[#8B0000]"
                           : tx.txType === "expense"
                           ? "text-rose-600"
-                          : "text-[#991213]"
+                          : "text-[#8B0000]"
                       }`}
                     >
                       {tx.txType === "income" ? "+" : "-"}
@@ -284,7 +284,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setEditingTx(tx)}
-                      className="p-2 text-slate-400 hover:text-[#991213] hover:bg-[#FFF0F0] rounded-xl transition-all"
+                      className="p-2 text-slate-400 hover:text-[#8B0000] hover:bg-[#FFF0F0] rounded-xl transition-all"
                       title="Edit transaksi"
                     >
                       <Pencil className="w-4 h-4" />

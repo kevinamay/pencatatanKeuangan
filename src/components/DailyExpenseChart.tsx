@@ -149,15 +149,15 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#FFD9D9] text-[#991213] flex items-center justify-center font-bold shadow-xs">
-            <LineChart className="w-5 h-5 text-[#991213]" />
+          <div className="w-10 h-10 rounded-2xl bg-[#FFD9D9] text-[#8B0000] flex items-center justify-center font-bold shadow-xs">
+            <LineChart className="w-5 h-5 text-[#8B0000]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-black text-base sm:text-lg text-slate-900">
                 Grafik Pengeluaran Harian
               </h3>
-              <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[#991213] border border-[#FFD9D9]">
+              <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[#8B0000] border border-[#FFD9D9]">
                 {monthLabel}
               </span>
             </div>
@@ -168,7 +168,7 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
         </div>
 
         {/* Badge Label Garis Tren */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF0F0] rounded-xl border border-[#FFD9D9] text-[#991213] text-xs font-extrabold shadow-2xs self-start sm:self-auto">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF0F0] rounded-xl border border-[#FFD9D9] text-[#8B0000] text-xs font-extrabold shadow-2xs self-start sm:self-auto">
           <LineChart className="w-3.5 h-3.5" />
           <span>Garis Tren Harian</span>
         </div>
@@ -180,7 +180,7 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
           <span className="block text-[10px] uppercase font-bold text-slate-500">
             Total Pengeluaran Bulan Ini
           </span>
-          <span className="text-base sm:text-lg font-black text-[#991213]">
+          <span className="text-base sm:text-lg font-black text-[#8B0000]">
             {formatRupiah(totalExpense)}
           </span>
           <span className="block text-[10px] text-slate-400 font-medium mt-0.5">
@@ -216,7 +216,7 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
           <span className="block text-[10px] uppercase font-bold text-slate-500">
             Pengeluaran Tertinggi
           </span>
-          <span className="text-base sm:text-lg font-black text-[#991213]">
+          <span className="text-base sm:text-lg font-black text-[#8B0000]">
             {peakDay ? formatRupiah(peakDay.totalAmount) : "Rp 0"}
           </span>
           <span className="block text-[10px] text-amber-700 font-bold mt-0.5 truncate">
@@ -228,7 +228,7 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
       {/* Main Chart Canvas */}
       {monthExpenses.length === 0 ? (
         <div className="text-center py-14 px-4 bg-[#FFF9F9] rounded-2xl border border-dashed border-[#FFD9D9] space-y-3">
-          <div className="w-12 h-12 rounded-full bg-[#FFF0F0] text-[#991213] flex items-center justify-center mx-auto">
+          <div className="w-12 h-12 rounded-full bg-[#FFF0F0] text-[#8B0000] flex items-center justify-center mx-auto">
             <TrendingDown className="w-6 h-6" />
           </div>
           <div>
@@ -242,7 +242,7 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
           {onOpenQuickAdd && (
             <button
               onClick={onOpenQuickAdd}
-              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-[#991213] text-white text-xs font-black rounded-xl hover:bg-[#7f0e0f] transition-all"
+              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-[#8B0000] text-white text-xs font-black rounded-xl hover:bg-[#700000] transition-all"
             >
               <Receipt className="w-3.5 h-3.5" />
               + Catat Pengeluaran Sekarang
@@ -266,8 +266,8 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
                     x2="0"
                     y2="1"
                   >
-                    <stop offset="0%" stopColor="#991213" stopOpacity="0.4" />
-                    <stop offset="100%" stopColor="#991213" stopOpacity="0.0" />
+                    <stop offset="0%" stopColor="#8B0000" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="#8B0000" stopOpacity="0.0" />
                   </linearGradient>
                 </defs>
 
@@ -330,7 +330,7 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
                   <path
                     d={linePathD}
                     fill="none"
-                    stroke="#991213"
+                    stroke="#8B0000"
                     strokeWidth="3.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -356,7 +356,7 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
                         cx={pt.x}
                         cy={pt.y}
                         r={isHovered ? 7 : isPeak ? 6 : hasSpent ? 4.5 : 2.5}
-                        fill={hasSpent ? (isPeak ? "#f59e0b" : "#991213") : "#cbd5e1"}
+                        fill={hasSpent ? (isPeak ? "#f59e0b" : "#8B0000") : "#cbd5e1"}
                         stroke="#ffffff"
                         strokeWidth={hasSpent ? 2 : 1}
                         className="transition-all duration-150 hover:scale-125"
@@ -368,7 +368,7 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
                           x={pt.x}
                           y={svgHeight - 10}
                           textAnchor="middle"
-                          fill={isHovered ? "#991213" : "#64748b"}
+                          fill={isHovered ? "#8B0000" : "#64748b"}
                           fontSize="11"
                           fontWeight={isHovered || isPeak ? "900" : "600"}
                         >
@@ -388,7 +388,7 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
               <div
                 className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold flex-shrink-0 ${
                   activeDetailDay.totalAmount > 0
-                    ? "bg-[#FFD9D9] text-[#991213]"
+                    ? "bg-[#FFD9D9] text-[#8B0000]"
                     : "bg-slate-100 text-slate-400"
                 }`}
               >
@@ -399,7 +399,7 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
                   <span className="text-xs uppercase font-black text-slate-400">
                     Detail Hari Terpilih:
                   </span>
-                  <span className="text-sm font-black text-[#991213]">
+                  <span className="text-sm font-black text-[#8B0000]">
                     {formatTanggalIndo(activeDetailDay.dateStr)} ({activeDetailDay.dayName})
                   </span>
                   {peakDay?.day === activeDetailDay.day && activeDetailDay.totalAmount > 0 && (
@@ -436,7 +436,7 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
               <span className="block text-[10px] uppercase font-bold text-slate-400">
                 Total Belanja Hari Ini
               </span>
-              <span className="text-lg sm:text-xl font-black text-[#991213]">
+              <span className="text-lg sm:text-xl font-black text-[#8B0000]">
                 {formatRupiah(activeDetailDay.totalAmount)}
               </span>
             </div>

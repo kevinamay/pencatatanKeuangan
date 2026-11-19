@@ -146,7 +146,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* EXECUTIVE NEO-BANK HERO SECTION (FIXED DESIGN #1)              */}
       {/* Featuring Live LottieFiles Animation (Flying Wallet & Money)  */}
       {/* ============================================================== */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#991213] via-[#b51819] to-[#7f0e0f] text-white p-7 sm:p-9 shadow-2xl shadow-[#991213]/25 border border-[#991213]">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#8B0000] via-[#A00000] to-[#700000] text-white p-7 sm:p-9 shadow-2xl shadow-[#8B0000]/25 border border-[#8B0000]">
         {/* Soft background ambient flare */}
         <div className="absolute -top-24 -right-24 w-80 h-80 bg-[#FFD9D9]/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-60 h-60 bg-black/25 rounded-full blur-2xl pointer-events-none" />
@@ -154,8 +154,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
           {/* Left: Saldo Sisa Gaji & Financial Summary */}
           <div className="space-y-3 text-center lg:text-left max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFD9D9] text-[#991213] text-xs font-black shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 text-[#991213]" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFD9D9] text-[#8B0000] text-xs font-black shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-[#8B0000]" />
               <span>Executive Neo-Bank • Sistem Rekonsiliasi Keuangan</span>
             </div>
 
@@ -209,9 +209,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex flex-col gap-3 w-full sm:w-auto">
               <button
                 onClick={onOpenQuickAdd}
-                className="px-6 py-3.5 rounded-2xl bg-[#FFD9D9] hover:bg-white text-[#991213] font-black text-sm shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="px-6 py-3.5 rounded-2xl bg-[#FFD9D9] hover:bg-white text-[#8B0000] font-black text-sm shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
               >
-                <Coins className="w-4 h-4 text-[#991213]" />
+                <Coins className="w-4 h-4 text-[#8B0000]" />
                 + Catat Transaksi
               </button>
               <button
@@ -245,12 +245,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-xs font-black uppercase tracking-wider text-slate-500">
               Pemasukan Gaji Masuk
             </span>
-            <div className="w-11 h-11 rounded-2xl bg-[#FFD9D9] text-[#991213] flex items-center justify-center font-bold shadow-xs">
+            <div className="w-11 h-11 rounded-2xl bg-[#FFD9D9] text-[#8B0000] flex items-center justify-center font-bold shadow-xs">
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
           <div className="space-y-1">
-            <h3 className="text-3xl font-black text-[#991213] tracking-tight">
+            <h3 className="text-3xl font-black text-[#8B0000] tracking-tight">
               {formatRupiah(totalIncome)}
             </h3>
             <p className="text-xs text-slate-500 font-bold">
@@ -303,15 +303,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-xs font-black uppercase tracking-wider text-slate-500">
               Tabungan & Pasar Uang
             </span>
-            <div className="w-11 h-11 rounded-2xl bg-[#FFD9D9] text-[#991213] flex items-center justify-center font-bold shadow-xs">
+            <div className="w-11 h-11 rounded-2xl bg-[#FFD9D9] text-[#8B0000] flex items-center justify-center font-bold shadow-xs">
               <PiggyBank className="w-5 h-5" />
             </div>
           </div>
           <div className="space-y-1">
-            <h3 className="text-3xl font-black text-[#991213] tracking-tight">
+            <h3 className="text-3xl font-black text-[#8B0000] tracking-tight">
               {formatRupiah(totalSavings)}
             </h3>
-            <p className="text-xs font-bold text-[#991213]">
+            <p className="text-xs font-bold text-[#8B0000]">
               {savingsRate.toFixed(1)}% rasio tabungan bulanan
             </p>
           </div>
@@ -319,7 +319,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-slate-600">Target Ideal: Min 20%</span>
             <button
               onClick={() => onNavigateToTab("savings")}
-              className="text-[#991213] font-bold hover:underline inline-flex items-center gap-0.5"
+              className="text-[#8B0000] font-bold hover:underline inline-flex items-center gap-0.5"
             >
               Portofolio
               <ChevronRight className="w-3.5 h-3.5" />
@@ -335,7 +335,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-[#991213]" />
+              <ShieldCheck className="w-5 h-5 text-[#8B0000]" />
               <h2 className="text-lg sm:text-xl font-black text-slate-900">
                 Status Rekonsiliasi Gaji & Pengeluaran
               </h2>
@@ -349,7 +349,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="block text-[10px] uppercase font-black text-slate-400">
               Formula Rekonsiliasi
             </span>
-            <span className="text-xs font-black text-[#991213]">
+            <span className="text-xs font-black text-[#8B0000]">
               Gaji = Pengeluaran + Tabungan + Sisa Kas
             </span>
           </div>
@@ -368,7 +368,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div
               style={{ width: `${Math.min(100 - expenseRate, savingsRate)}%` }}
               title={`Tabungan: ${savingsRate.toFixed(1)}%`}
-              className="bg-[#991213] h-full transition-all duration-500 hover:opacity-90 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden"
+              className="bg-[#8B0000] h-full transition-all duration-500 hover:opacity-90 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden"
             >
               {savingsRate >= 12 ? `${savingsRate.toFixed(1)}%` : ""}
             </div>
@@ -400,10 +400,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3.5 h-3.5 rounded-full bg-[#991213]" />
+              <span className="w-3.5 h-3.5 rounded-full bg-[#8B0000]" />
               <span className="text-slate-600">
                 Alokasi Tabungan:{" "}
-                <strong className="text-[#991213]">
+                <strong className="text-[#8B0000]">
                   {formatRupiah(totalSavings)} ({savingsRate.toFixed(1)}%)
                 </strong>
               </span>
@@ -435,7 +435,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* ============================================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Card Sorotan Tabungan Pasar Uang with Lottie Animation */}
-        <div className="lg:col-span-1 rounded-3xl bg-gradient-to-br from-[#991213] via-[#851011] to-[#5e0809] text-white p-6 sm:p-7 shadow-xl shadow-[#991213]/20 border border-[#FFD9D9]/30 flex flex-col justify-between relative overflow-hidden">
+        <div className="lg:col-span-1 rounded-3xl bg-gradient-to-br from-[#8B0000] via-[#750000] to-[#500000] text-white p-6 sm:p-7 shadow-xl shadow-[#8B0000]/20 border border-[#FFD9D9]/30 flex flex-col justify-between relative overflow-hidden">
           {/* Subtle glow */}
           <div className="absolute top-0 right-0 w-48 h-48 bg-[#FFD9D9]/15 rounded-full blur-2xl pointer-events-none" />
 
@@ -445,7 +445,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <Landmark className="w-4 h-4" />
                 <span>Portofolio Pasar Uang</span>
               </div>
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-[#FFD9D9] text-[#991213]">
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-[#FFD9D9] text-[#8B0000]">
                 Imbal Hasil Aktif
               </span>
             </div>
@@ -494,10 +494,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="pt-6 relative z-10">
             <button
               onClick={() => onNavigateToTab("savings")}
-              className="w-full py-3.5 px-4 rounded-2xl bg-[#FFD9D9] hover:bg-white text-[#991213] font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-98"
+              className="w-full py-3.5 px-4 rounded-2xl bg-[#FFD9D9] hover:bg-white text-[#8B0000] font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-98"
             >
               Buka Halaman Tabungan & Pasar Uang
-              <ChevronRight className="w-4 h-4 text-[#991213]" />
+              <ChevronRight className="w-4 h-4 text-[#8B0000]" />
             </button>
           </div>
         </div>
@@ -507,7 +507,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <PieChart className="w-5 h-5 text-[#991213]" />
+                <PieChart className="w-5 h-5 text-[#8B0000]" />
                 <h3 className="font-black text-base sm:text-lg text-slate-900">
                   Distribusi Kategori Pengeluaran
                 </h3>
@@ -546,7 +546,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           style={{ width: `${percentage}%` }}
                           className={`h-full rounded-full ${
                             idx === 0
-                              ? "bg-[#991213]"
+                              ? "bg-[#8B0000]"
                               : idx === 1
                               ? "bg-rose-500"
                               : idx === 2
@@ -567,7 +567,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="pt-4 border-t border-[#FFD9D9] flex justify-end">
             <button
               onClick={() => onNavigateToTab("transactions")}
-              className="text-xs font-bold text-[#991213] hover:underline inline-flex items-center gap-1"
+              className="text-xs font-bold text-[#8B0000] hover:underline inline-flex items-center gap-1"
             >
               Lihat Detail Semua Transaksi
               <ChevronRight className="w-3.5 h-3.5" />
@@ -582,14 +582,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="rounded-3xl bg-white border border-[#FFD9D9] p-6 sm:p-7 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <Coins className="w-5 h-5 text-[#991213]" />
+            <Coins className="w-5 h-5 text-[#8B0000]" />
             <h3 className="font-black text-base sm:text-lg text-slate-900">
               Aktivitas Keuangan Terbaru ({selectedMonth})
             </h3>
           </div>
           <button
             onClick={() => onNavigateToTab("transactions")}
-            className="text-xs font-bold text-[#991213] hover:text-[#7f0e0f] inline-flex items-center gap-1"
+            className="text-xs font-bold text-[#8B0000] hover:text-[#700000] inline-flex items-center gap-1"
           >
             Lihat Semua Transaksi
             <ChevronRight className="w-3.5 h-3.5" />
@@ -611,10 +611,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <div
                     className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm ${
                       item.type === "income"
-                        ? "bg-[#FFD9D9] text-[#991213]"
+                        ? "bg-[#FFD9D9] text-[#8B0000]"
                         : item.type === "expense"
                         ? "bg-rose-100 text-rose-700"
-                        : "bg-[#FFD9D9] text-[#991213]"
+                        : "bg-[#FFD9D9] text-[#8B0000]"
                     }`}
                   >
                     {item.type === "income" ? (
@@ -640,10 +640,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <span
                       className={`text-sm sm:text-base font-black ${
                         item.type === "income"
-                          ? "text-[#991213]"
+                          ? "text-[#8B0000]"
                           : item.type === "expense"
                           ? "text-rose-600"
-                          : "text-[#991213]"
+                          : "text-[#8B0000]"
                       }`}
                     >
                       {item.type === "income" ? "+" : "-"}
@@ -661,7 +661,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setEditingTx(item)}
-                      className="p-1.5 text-slate-400 hover:text-[#991213] hover:bg-[#FFD9D9]/50 rounded-xl transition-all"
+                      className="p-1.5 text-slate-400 hover:text-[#8B0000] hover:bg-[#FFD9D9]/50 rounded-xl transition-all"
                       title="Edit transaksi"
                     >
                       <Pencil className="w-4 h-4" />

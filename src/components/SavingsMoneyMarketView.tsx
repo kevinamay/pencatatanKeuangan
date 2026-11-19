@@ -216,11 +216,11 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#991213] via-[#b51819] to-[#7f0e0f] text-white p-6 sm:p-8 shadow-xl shadow-[#991213]/20 border border-[#991213]">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#8B0000] via-[#A00000] to-[#700000] text-white p-6 sm:p-8 shadow-xl shadow-[#8B0000]/20 border border-[#8B0000]">
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2 max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFD9D9] text-[#991213] text-xs font-black shadow-xs">
-              <Landmark className="w-3.5 h-3.5 text-[#991213]" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFD9D9] text-[#8B0000] text-xs font-black shadow-xs">
+              <Landmark className="w-3.5 h-3.5 text-[#8B0000]" />
               <span>Portofolio Tabungan & Pasar Uang Terintegrasi</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
@@ -265,7 +265,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
         <div className="p-6 sm:p-7 rounded-3xl bg-white border border-[#FFD9D9] shadow-xs space-y-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#FFD9D9] text-[#991213] flex items-center justify-center font-bold">
+              <div className="w-9 h-9 rounded-xl bg-[#FFD9D9] text-[#8B0000] flex items-center justify-center font-bold">
                 <PiggyBank className="w-5 h-5" />
               </div>
               <div>
@@ -277,7 +277,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                 </p>
               </div>
             </div>
-            <span className="text-xs font-black px-3 py-1 bg-[#FFF0F0] border border-[#FFD9D9] rounded-full text-[#991213]">
+            <span className="text-xs font-black px-3 py-1 bg-[#FFF0F0] border border-[#FFD9D9] rounded-full text-[#8B0000]">
               {formatRupiah(totalSavingsAll)}
             </span>
           </div>
@@ -288,8 +288,8 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
               onClick={() => setSavingsFilter("all")}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
                 savingsFilter === "all"
-                  ? "bg-[#991213] text-white shadow-xs"
-                  : "text-slate-600 hover:text-[#991213]"
+                  ? "bg-[#8B0000] text-white shadow-xs"
+                  : "text-slate-600 hover:text-[#8B0000]"
               }`}
             >
               Semua ({savings.length})
@@ -298,8 +298,8 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
               onClick={() => setSavingsFilter("money_market")}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
                 savingsFilter === "money_market"
-                  ? "bg-[#991213] text-white shadow-xs"
-                  : "text-slate-600 hover:text-[#991213]"
+                  ? "bg-[#8B0000] text-white shadow-xs"
+                  : "text-slate-600 hover:text-[#8B0000]"
               }`}
             >
               Pasar Uang ({mmSavings.length})
@@ -308,8 +308,8 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
               onClick={() => setSavingsFilter("emergency")}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
                 savingsFilter === "emergency"
-                  ? "bg-[#991213] text-white shadow-xs"
-                  : "text-slate-600 hover:text-[#991213]"
+                  ? "bg-[#8B0000] text-white shadow-xs"
+                  : "text-slate-600 hover:text-[#8B0000]"
               }`}
             >
               Darurat ({emergencySavings.length})
@@ -318,8 +318,8 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
               onClick={() => setSavingsFilter("other")}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
                 savingsFilter === "other"
-                  ? "bg-[#991213] text-white shadow-xs"
-                  : "text-slate-600 hover:text-[#991213]"
+                  ? "bg-[#8B0000] text-white shadow-xs"
+                  : "text-slate-600 hover:text-[#8B0000]"
               }`}
             >
               Reguler & Target ({otherSavings.length})
@@ -335,7 +335,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                 {onOpenQuickAdd && (
                   <button
                     onClick={onOpenQuickAdd}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#991213] text-white text-xs font-bold hover:bg-[#7f0e0f] transition-all"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#8B0000] text-white text-xs font-bold hover:bg-[#700000] transition-all"
                   >
                     <PlusCircle className="w-3.5 h-3.5" />
                     + Catat Tabungan Baru
@@ -351,13 +351,13 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-xl bg-white shadow-xs border border-[#FFD9D9]/50 flex items-center justify-center flex-shrink-0 text-slate-700">
                       {item.targetType === "money_market" ? (
-                        <TrendingUp className="w-4 h-4 text-[#991213]" />
+                        <TrendingUp className="w-4 h-4 text-[#8B0000]" />
                       ) : item.targetType === "emergency" ? (
-                        <Shield className="w-4 h-4 text-[#991213]" />
+                        <Shield className="w-4 h-4 text-[#8B0000]" />
                       ) : item.targetType === "goal" ? (
-                        <Target className="w-4 h-4 text-[#991213]" />
+                        <Target className="w-4 h-4 text-[#8B0000]" />
                       ) : (
-                        <PiggyBank className="w-4 h-4 text-[#991213]" />
+                        <PiggyBank className="w-4 h-4 text-[#8B0000]" />
                       )}
                     </div>
                     <div className="min-w-0">
@@ -366,7 +366,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                       </h4>
                       <p className="text-[11px] text-slate-500 truncate">
                         {formatTanggalIndo(item.date)} •{" "}
-                        <span className="font-semibold text-[#991213]">
+                        <span className="font-semibold text-[#8B0000]">
                           {item.targetType === "money_market"
                             ? "Pasar Uang"
                             : item.targetType === "emergency"
@@ -381,7 +381,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="font-black text-[#991213] text-sm mr-1">
+                    <span className="font-black text-[#8B0000] text-sm mr-1">
                       {formatRupiah(item.amount)}
                     </span>
                     <button
@@ -397,7 +397,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                           note: item.note,
                         })
                       }
-                      className="p-1.5 text-slate-400 hover:text-[#991213] hover:bg-[#FFD9D9]/50 rounded-lg transition-all"
+                      className="p-1.5 text-slate-400 hover:text-[#8B0000] hover:bg-[#FFD9D9]/50 rounded-lg transition-all"
                       title="Edit Alokasi"
                     >
                       <Pencil className="w-4 h-4" />
@@ -427,7 +427,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
             <div className="pt-2 border-t border-[#FFD9D9]/60 flex justify-end">
               <button
                 onClick={onOpenQuickAdd}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#991213] hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8B0000] hover:underline"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
                 Tambah Alokasi Tabungan
@@ -440,7 +440,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
         <div className="p-6 sm:p-7 rounded-3xl bg-white border border-[#FFD9D9] shadow-xs space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#FFD9D9] text-[#991213] flex items-center justify-center font-bold">
+              <div className="w-9 h-9 rounded-xl bg-[#FFD9D9] text-[#8B0000] flex items-center justify-center font-bold">
                 <TrendingUp className="w-5 h-5" />
               </div>
               <div>
@@ -461,14 +461,14 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                   setInvestAmount("");
                   setInvestNote("");
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFF0F0] hover:bg-[#FFE0E0] text-[#991213] border border-[#FFD9D9] font-bold text-xs shadow-2xs active:scale-95 transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFF0F0] hover:bg-[#FFE0E0] text-[#8B0000] border border-[#FFD9D9] font-bold text-xs shadow-2xs active:scale-95 transition-all"
               >
                 <Coins className="w-3.5 h-3.5" />
                 <span>± Catat Investasi</span>
               </button>
               <button
                 onClick={() => setShowAddMMModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#991213] hover:bg-[#7f0e0f] text-white font-bold text-xs shadow-md shadow-[#991213]/20 active:scale-95 transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#8B0000] hover:bg-[#700000] text-white font-bold text-xs shadow-md shadow-[#8B0000]/20 active:scale-95 transition-all"
               >
                 <PlusCircle className="w-4 h-4" />
                 Tambah Produk
@@ -479,7 +479,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
           <div className="space-y-4">
             {displayMMProducts.length === 0 ? (
               <div className="py-12 px-4 text-center rounded-2xl bg-[#FFF9F9] border border-dashed border-[#FFD9D9] space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#FFD9D9] text-[#991213] flex items-center justify-center mx-auto font-bold">
+                <div className="w-12 h-12 rounded-2xl bg-[#FFD9D9] text-[#8B0000] flex items-center justify-center mx-auto font-bold">
                   <TrendingUp className="w-6 h-6" />
                 </div>
                 <div>
@@ -492,7 +492,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                 </div>
                 <button
                   onClick={() => setShowAddMMModal(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#991213] text-white font-bold text-xs hover:bg-[#7f0e0f] transition-all"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#8B0000] text-white font-bold text-xs hover:bg-[#700000] transition-all"
                 >
                   <PlusCircle className="w-4 h-4" />
                   Tambah Produk Sekarang
@@ -518,7 +518,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                           <h3 className="font-black text-slate-900 text-base">
                             {item.name}
                           </h3>
-                          <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-md bg-[#FFD9D9] text-[#991213]">
+                          <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-md bg-[#FFD9D9] text-[#8B0000]">
                             {item.platform}
                           </span>
                         </div>
@@ -531,7 +531,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                         <span className="text-xs text-slate-400 block font-semibold">
                           Nilai Saat Ini
                         </span>
-                        <span className="text-lg font-black text-[#991213]">
+                        <span className="text-lg font-black text-[#8B0000]">
                           {formatRupiah(calc.totalValue)}
                         </span>
                       </div>
@@ -550,7 +550,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                         <span className="text-[10px] text-slate-400 block font-semibold">
                           Imbal Hasil (% p.a.)
                         </span>
-                        <span className="font-black text-[#991213]">
+                        <span className="font-black text-[#8B0000]">
                           {item.returnRatePa}% /thn
                         </span>
                       </div>
@@ -587,7 +587,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                             setInvestAmount("");
                             setInvestNote("");
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-[#FFF0F0] hover:bg-[#FFE0E0] text-[#991213] border border-[#FFD9D9] font-bold text-xs shadow-xs transition-all flex items-center gap-1"
+                          className="px-3 py-1.5 rounded-lg bg-[#FFF0F0] hover:bg-[#FFE0E0] text-[#8B0000] border border-[#FFD9D9] font-bold text-xs shadow-xs transition-all flex items-center gap-1"
                           title="Investasi Keluar (Jual / Tarik)"
                         >
                           <ArrowDownRight className="w-3.5 h-3.5 text-rose-600" />
@@ -616,7 +616,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                               expandedHistoryId === item.id ? null : item.id
                             )
                           }
-                          className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 hover:text-[#991213] transition-colors"
+                          className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 hover:text-[#8B0000] transition-colors"
                         >
                           <History className="w-3.5 h-3.5 text-slate-400" />
                           <span>
@@ -687,7 +687,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
       {/* Simulator Compound Calculator */}
       <div className="p-6 sm:p-8 rounded-3xl bg-white border border-[#FFD9D9] shadow-xs space-y-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#FFD9D9] text-[#991213] flex items-center justify-center font-bold">
+          <div className="w-10 h-10 rounded-2xl bg-[#FFD9D9] text-[#8B0000] flex items-center justify-center font-bold">
             <Calculator className="w-5 h-5" />
           </div>
           <div>
@@ -707,7 +707,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-semibold">
                 <span className="text-slate-700">Modal Awal Setoran</span>
-                <span className="font-black text-[#991213]">
+                <span className="font-black text-[#8B0000]">
                   {formatRupiah(simCapital)}
                 </span>
               </div>
@@ -718,14 +718,14 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                 step="1000000"
                 value={simCapital}
                 onChange={(e) => setSimCapital(Number(e.target.value))}
-                className="w-full accent-[#991213] h-2 bg-[#FFD9D9] rounded-lg cursor-pointer"
+                className="w-full accent-[#8B0000] h-2 bg-[#FFD9D9] rounded-lg cursor-pointer"
               />
             </div>
 
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-semibold">
                 <span className="text-slate-700">Rutin Tambah Tiap Bulan (DCA)</span>
-                <span className="font-black text-[#991213]">
+                <span className="font-black text-[#8B0000]">
                   {formatRupiah(simMonthlyAdd)}
                 </span>
               </div>
@@ -736,7 +736,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                 step="500000"
                 value={simMonthlyAdd}
                 onChange={(e) => setSimMonthlyAdd(Number(e.target.value))}
-                className="w-full accent-[#991213] h-2 bg-[#FFD9D9] rounded-lg cursor-pointer"
+                className="w-full accent-[#8B0000] h-2 bg-[#FFD9D9] rounded-lg cursor-pointer"
               />
             </div>
 
@@ -744,7 +744,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs font-semibold">
                   <span className="text-slate-700">Tenor Investasi</span>
-                  <span className="font-black text-[#991213]">{simYears} Tahun</span>
+                  <span className="font-black text-[#8B0000]">{simYears} Tahun</span>
                 </div>
                 <input
                   type="range"
@@ -753,14 +753,14 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                   step="1"
                   value={simYears}
                   onChange={(e) => setSimYears(Number(e.target.value))}
-                  className="w-full accent-[#991213] h-2 bg-[#FFD9D9] rounded-lg cursor-pointer"
+                  className="w-full accent-[#8B0000] h-2 bg-[#FFD9D9] rounded-lg cursor-pointer"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs font-semibold">
                   <span className="text-slate-700">Imbal Hasil (% p.a.)</span>
-                  <span className="font-black text-[#991213]">{simRate}%</span>
+                  <span className="font-black text-[#8B0000]">{simRate}%</span>
                 </div>
                 <input
                   type="range"
@@ -769,14 +769,14 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                   step="0.1"
                   value={simRate}
                   onChange={(e) => setSimRate(Number(e.target.value))}
-                  className="w-full accent-[#991213] h-2 bg-[#FFD9D9] rounded-lg cursor-pointer"
+                  className="w-full accent-[#8B0000] h-2 bg-[#FFD9D9] rounded-lg cursor-pointer"
                 />
               </div>
             </div>
           </div>
 
           {/* Hasil Proyeksi Card with Lottie Chart Growth */}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-[#991213] via-[#851011] to-[#5e0809] text-white shadow-xl flex flex-col justify-between border border-[#FFD9D9]/30">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-[#8B0000] via-[#750000] to-[#500000] text-white shadow-xl flex flex-col justify-between border border-[#FFD9D9]/30">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs uppercase font-black tracking-wider text-[#FFD9D9]">
@@ -818,7 +818,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
       {showAddMMModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
           <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-[#FFD9D9] space-y-4">
-            <h3 className="text-lg font-black text-[#991213]">
+            <h3 className="text-lg font-black text-[#8B0000]">
               Tambah Produk Reksa Dana Pasar Uang
             </h3>
 
@@ -912,7 +912,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-[#991213] hover:bg-[#7f0e0f] font-bold text-xs text-white shadow-md shadow-[#991213]/20"
+                  className="flex-1 py-2.5 rounded-xl bg-[#8B0000] hover:bg-[#700000] font-bold text-xs text-white shadow-md shadow-[#8B0000]/20"
                 >
                   Simpan Produk
                 </button>
@@ -927,7 +927,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
           <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-[#FFD9D9] space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-[#FFD9D9]">
-              <h3 className="text-base font-black text-[#991213]">
+              <h3 className="text-base font-black text-[#8B0000]">
                 Catat Transaksi Investasi
               </h3>
               <button
@@ -1008,7 +1008,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                   {showInvestModal.mode === "tarik" && (
                     <span className="text-[11px] text-slate-500">
                       Maksimal pencairan:{" "}
-                      <span className="font-bold text-[#991213]">
+                      <span className="font-bold text-[#8B0000]">
                         {formatRupiah(
                           displayMMProducts.find(
                             (p) => p.id === showInvestModal.productId

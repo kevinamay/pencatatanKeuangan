@@ -77,7 +77,7 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
       {/* Top action bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white border border-[#FFD9D9] shadow-xs print:hidden">
         <div>
-          <h2 className="text-xl font-black text-[#991213]">
+          <h2 className="text-xl font-black text-[#8B0000]">
             Laporan Rekonsiliasi Keuangan Bulanan
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -98,7 +98,7 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
                 alert("Seluruh data berhasil dibersihkan!");
               }
             }}
-            className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-2xl bg-[#FFF0F0] hover:bg-[#FFE0E0] border border-[#FFD9D9] text-[#991213] font-bold text-xs shadow-xs active:scale-95 transition-all"
+            className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-2xl bg-[#FFF0F0] hover:bg-[#FFE0E0] border border-[#FFD9D9] text-[#8B0000] font-bold text-xs shadow-xs active:scale-95 transition-all"
             title="Bersihkan Semua Data"
           >
             <Trash2 className="w-4 h-4 text-rose-600" />
@@ -107,7 +107,7 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
 
           <button
             onClick={handlePrint}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-[#991213] hover:bg-[#7f0e0f] text-white font-black text-xs sm:text-sm shadow-md shadow-[#991213]/25 transition-all active:scale-95"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-[#8B0000] hover:bg-[#700000] text-white font-black text-xs sm:text-sm shadow-md shadow-[#8B0000]/25 transition-all active:scale-95"
           >
             <Printer className="w-4 h-4" />
             <span>Cetak / Simpan PDF</span>
@@ -124,7 +124,7 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
               <LottieAnimation type="chart-growth" className="w-full h-full" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-[#991213] tracking-tight">
+              <h1 className="text-2xl font-black text-[#8B0000] tracking-tight">
                 LEMBAR REKONSILIASI KEUANGAN
               </h1>
               <p className="text-xs font-black text-slate-500 mt-1 uppercase tracking-wider">
@@ -136,7 +136,7 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
             <span className="text-xs text-slate-400 block font-semibold">
               Bulan Alokasi
             </span>
-            <span className="text-lg font-black text-[#991213]">
+            <span className="text-lg font-black text-[#8B0000]">
               {selectedMonth}
             </span>
           </div>
@@ -146,7 +146,7 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
         <div
           className={`p-5 rounded-2xl border-2 flex items-center justify-between gap-4 ${
             remainingSalary > 0
-              ? "bg-[#FFF0F0] border-[#991213]"
+              ? "bg-[#FFF0F0] border-[#8B0000]"
               : remainingSalary === 0 && totalIncome > 0
               ? "bg-blue-50 border-blue-400"
               : "bg-rose-50 border-rose-400"
@@ -154,12 +154,12 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
         >
           <div className="flex items-center gap-3">
             {remainingSalary >= 0 ? (
-              <CheckCircle className="w-7 h-7 text-[#991213] flex-shrink-0" />
+              <CheckCircle className="w-7 h-7 text-[#8B0000] flex-shrink-0" />
             ) : (
               <AlertCircle className="w-7 h-7 text-rose-600 flex-shrink-0" />
             )}
             <div>
-              <h3 className="text-base font-black text-[#991213]">
+              <h3 className="text-base font-black text-[#8B0000]">
                 {remainingSalary > 0
                   ? "Status Rekonsiliasi: SURPLUS SEHAT"
                   : remainingSalary === 0 && totalIncome > 0
@@ -185,7 +185,7 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
 
         {/* Tabel Rincian Rekonsiliasi */}
         <div className="space-y-4">
-          <h3 className="text-xs font-black uppercase tracking-wider text-[#991213]">
+          <h3 className="text-xs font-black uppercase tracking-wider text-[#8B0000]">
             Audit Neraca Pemasukan vs Pengeluaran & Tabungan
           </h3>
 
@@ -202,16 +202,16 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
               <tbody className="divide-y divide-[#FFD9D9]/50 font-medium">
                 {/* 1. Gaji / Pemasukan */}
                 <tr className="bg-[#FFF0F0] font-bold">
-                  <td className="py-3 px-4 text-[#991213]">
+                  <td className="py-3 px-4 text-[#8B0000]">
                     [+] Total Gaji & Pemasukan Masuk
                   </td>
                   <td className="py-3 px-4 text-slate-600">
                     {currentIncomes.length} catatan
                   </td>
-                  <td className="py-3 px-4 text-right text-[#991213]">
+                  <td className="py-3 px-4 text-right text-[#8B0000]">
                     100.0%
                   </td>
-                  <td className="py-3 px-4 text-right text-[#991213] text-base font-black">
+                  <td className="py-3 px-4 text-right text-[#8B0000] text-base font-black">
                     {formatRupiah(totalIncome)}
                   </td>
                 </tr>
@@ -266,22 +266,22 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
 
                 {/* 4. Tabungan & Pasar Uang */}
                 <tr className="bg-[#FFF0F0] font-bold">
-                  <td className="py-3 px-4 text-[#991213]">
+                  <td className="py-3 px-4 text-[#8B0000]">
                     [-] Alokasi Tabungan & Pasar Uang
                   </td>
                   <td className="py-3 px-4 text-slate-600">
                     {currentSavings.length} pos simpanan
                   </td>
-                  <td className="py-3 px-4 text-right text-[#991213]">
+                  <td className="py-3 px-4 text-right text-[#8B0000]">
                     {savingsRate.toFixed(1)}%
                   </td>
-                  <td className="py-3 px-4 text-right text-[#991213] text-base font-black">
+                  <td className="py-3 px-4 text-right text-[#8B0000] text-base font-black">
                     ({formatRupiah(totalSavings)})
                   </td>
                 </tr>
 
                 {/* Sisa Gaji Bersih */}
-                <tr className="border-t-2 border-[#991213] font-black text-base bg-[#FFF9F9]">
+                <tr className="border-t-2 border-[#8B0000] font-black text-base bg-[#FFF9F9]">
                   <td className="py-4 px-4 text-slate-900">
                     [=] Sisa Gaji Tidak Terpakai (Net Cashflow)
                   </td>
@@ -294,7 +294,7 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
                   <td
                     className={`py-4 px-4 text-right text-lg font-black ${
                       remainingSalary >= 0
-                        ? "text-[#991213]"
+                        ? "text-[#8B0000]"
                         : "text-rose-600"
                     }`}
                   >
@@ -309,8 +309,8 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
         {/* Benchmark 50 / 30 / 20 Rule Assessment */}
         <div className="p-6 rounded-2xl bg-[#FFF9F9] border border-[#FFD9D9] space-y-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#991213]" />
-            <h4 className="font-black text-[#991213] text-base">
+            <Sparkles className="w-5 h-5 text-[#8B0000]" />
+            <h4 className="font-black text-[#8B0000] text-base">
               Evaluasi Benchmark Anggaran 50 / 30 / 20
             </h4>
           </div>
@@ -352,7 +352,7 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
               <span className="text-slate-500 block font-semibold">
                 Tabungan & Investasi (Target ≥ 20%)
               </span>
-              <span className="text-lg font-black text-[#991213] mt-1 block">
+              <span className="text-lg font-black text-[#8B0000] mt-1 block">
                 {savingsRate.toFixed(1)}%
               </span>
               <span

@@ -15,8 +15,8 @@ import {
 // Tab Loading Skeleton (Swiss Minimalist Theme)
 const ViewLoadingSkeleton = ({ title }: { title: string }) => (
   <div className="w-full py-16 flex flex-col items-center justify-center gap-3">
-    <div className="w-8 h-8 rounded-full border-2 border-[#FFD9D9] border-t-[#991213] animate-spin" />
-    <span className="text-xs font-semibold text-[#991213] tracking-wide uppercase">
+    <div className="w-8 h-8 rounded-full border-2 border-[#FFD9D9] border-t-[#8B0000] animate-spin" />
+    <span className="text-xs font-semibold text-[#8B0000] tracking-wide uppercase">
       {title}
     </span>
   </div>
@@ -167,12 +167,12 @@ export default function Home() {
       <footer className="mt-auto border-t border-[#FFD9D9] bg-white py-6 text-center text-xs text-slate-500 font-medium">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#991213]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#8B0000]" />
             <span className="font-bold text-slate-900 font-mono">FIN.PLAN</span>
             <span className="text-slate-400">| Swiss Minimalist Edition</span>
           </div>
           <p className="text-slate-400">
-            Realtime Firebase Cloud Database • Light Theme #991213 & #FFD9D9
+            Realtime Firebase Cloud Database • Light Theme #8B0000 & #FFD9D9
           </p>
         </div>
       </footer>

@@ -162,21 +162,21 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
         {/* Header Modal */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#FFD9D9] bg-[#FFF0F0]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#FFD9D9] text-[#991213] flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-lg bg-[#FFD9D9] text-[#8B0000] flex items-center justify-center font-bold">
               <Pencil className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-black text-[#991213]">
+                <h3 className="text-base sm:text-lg font-black text-[#8B0000]">
                   Edit Transaksi
                 </h3>
                 <span
                   className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
                     transaction.txType === "income"
-                      ? "bg-[#FFD9D9] text-[#991213]"
+                      ? "bg-[#FFD9D9] text-[#8B0000]"
                       : transaction.txType === "expense"
                       ? "bg-rose-100 text-rose-800"
-                      : "bg-[#FFD9D9] text-[#991213]"
+                      : "bg-[#FFD9D9] text-[#8B0000]"
                   }`}
                 >
                   {transaction.txType === "income"
@@ -191,7 +191,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-slate-400 hover:text-[#991213] hover:bg-[#FFD9D9]/50 transition-colors"
+            className="p-1.5 rounded-full text-slate-400 hover:text-[#8B0000] hover:bg-[#FFD9D9]/50 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -211,7 +211,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 placeholder="Contoh: Makan Siang, Beli Baju, Servis Motor"
                 value={expenseTitle}
                 onChange={(e) => setExpenseTitle(e.target.value)}
-                className="w-full px-4 py-3 bg-[#FFF9F9] border border-[#FFD9D9] rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#991213]/40 focus:bg-white placeholder:text-slate-400"
+                className="w-full px-4 py-3 bg-[#FFF9F9] border border-[#FFD9D9] rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B0000]/40 focus:bg-white placeholder:text-slate-400"
               />
             </div>
           )}
@@ -222,7 +222,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               Nominal (Rp)
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-[#991213] text-lg">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-[#8B0000] text-lg">
                 Rp
               </span>
               <input
@@ -234,11 +234,11 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                   const val = e.target.value.replace(/[^0-9]/g, "");
                   setAmount(val ? Number(val).toLocaleString("id-ID") : "");
                 }}
-                className="w-full pl-12 pr-4 py-3 bg-[#FFF9F9] border border-[#FFD9D9] rounded-2xl text-xl sm:text-2xl font-black text-[#991213] focus:outline-none focus:ring-2 focus:ring-[#991213]/40 focus:bg-white"
+                className="w-full pl-12 pr-4 py-3 bg-[#FFF9F9] border border-[#FFD9D9] rounded-2xl text-xl sm:text-2xl font-black text-[#8B0000] focus:outline-none focus:ring-2 focus:ring-[#8B0000]/40 focus:bg-white"
               />
             </div>
             {parsedAmount > 0 && (
-              <p className="mt-1.5 text-xs text-[#991213] font-black pl-1">
+              <p className="mt-1.5 text-xs text-[#8B0000] font-black pl-1">
                 Terbaca: {formatRupiah(parsedAmount)}
               </p>
             )}
@@ -254,7 +254,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#991213]/40 focus:bg-white"
+                className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B0000]/40 focus:bg-white"
               />
             </div>
 
@@ -268,7 +268,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                   onChange={(e) =>
                     setIncomeCategory(e.target.value as IncomeCategory)
                   }
-                  className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#991213]/40 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B0000]/40 focus:bg-white"
                 >
                   <option value="Gaji Pokok">Gaji Pokok</option>
                   <option value="Tunjangan">Tunjangan</option>
@@ -290,7 +290,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                   onChange={(e) =>
                     setExpenseCategory(e.target.value as ExpenseCategory)
                   }
-                  className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#991213]/40 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B0000]/40 focus:bg-white"
                 >
                   <option value="Makan & Minuman">Makan & Minuman</option>
                   <option value="Belanja Bulanan">Belanja Bulanan</option>
@@ -317,7 +317,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                   onChange={(e) =>
                     setSavingsTarget(e.target.value as SavingsTargetType)
                   }
-                  className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#991213]/40 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B0000]/40 focus:bg-white"
                 >
                   <option value="money_market">📈 Pasar Uang (Money Market)</option>
                   <option value="emergency">🛡️ Dana Darurat</option>
@@ -338,7 +338,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 placeholder="Contoh: PT ABC, Klien Proyek Web, dsb."
                 value={incomeSource}
                 onChange={(e) => setIncomeSource(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#991213]/40 focus:bg-white"
+                className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B0000]/40 focus:bg-white"
               />
             </div>
           )}
@@ -353,7 +353,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                 placeholder="Contoh: Sucorinvest Pasar Uang, Bank Jago Darurat, dll."
                 value={savingsAccount}
                 onChange={(e) => setSavingsAccount(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#991213]/40 focus:bg-white"
+                className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B0000]/40 focus:bg-white"
               />
             </div>
           )}
@@ -367,13 +367,13 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               placeholder="Catatan kecil (opsional)"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#991213]/40 focus:bg-white"
+              className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#8B0000]/40 focus:bg-white"
             />
           </div>
 
           {successMsg && (
-            <div className="flex items-center gap-2 p-3 bg-[#FFF0F0] border border-[#991213] rounded-xl text-[#991213] text-xs font-black animate-pulse">
-              <CheckCircle2 className="w-4 h-4 text-[#991213]" />
+            <div className="flex items-center gap-2 p-3 bg-[#FFF0F0] border border-[#8B0000] rounded-xl text-[#8B0000] text-xs font-black animate-pulse">
+              <CheckCircle2 className="w-4 h-4 text-[#8B0000]" />
               <span>{successMsg}</span>
             </div>
           )}
@@ -392,7 +392,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting || parsedAmount <= 0}
-              className={`flex-1 py-3.5 rounded-2xl font-black text-sm sm:text-base text-white shadow-lg transition-all active:scale-98 flex items-center justify-center gap-2 bg-gradient-to-r from-[#991213] via-[#b51819] to-[#7f0e0f] hover:from-[#7f0e0f] hover:to-[#991213] shadow-[#991213]/25 ${
+              className={`flex-1 py-3.5 rounded-2xl font-black text-sm sm:text-base text-white shadow-lg transition-all active:scale-98 flex items-center justify-center gap-2 bg-gradient-to-r from-[#8B0000] via-[#A00000] to-[#700000] hover:from-[#700000] hover:to-[#8B0000] shadow-[#8B0000]/25 ${
                 isSubmitting || parsedAmount <= 0 ? "opacity-60 cursor-not-allowed" : ""
               }`}
             >

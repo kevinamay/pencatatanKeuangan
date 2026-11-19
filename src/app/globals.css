@@ -3,8 +3,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --primary: #991213;
-  --primary-hover: #7f0e0f;
+  --primary: #8B0000;
+  --primary-hover: #700000;
   --secondary: #FFD9D9;
   --secondary-light: #FFF2F2;
   --background: #FFF9F9;
@@ -32,5 +32,5 @@ body {
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #991213;
+  background: #8B0000;
 }

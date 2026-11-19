@@ -25,7 +25,7 @@ interface LottieAnimationProps {
  * - Zero network overhead (0 KB external JSON requests)
  * - 0ms initial load time (Instant First Contentful Paint)
  * - 60 FPS smooth CSS keyframe animations
- * - Executive Neo-Bank aesthetic matching #991213 & #FFD9D9 theme
+ * - Executive Neo-Bank aesthetic matching #8B0000 & #FFD9D9 theme
  */
 export const LottieAnimation: React.FC<LottieAnimationProps> = ({
   type,
@@ -66,13 +66,13 @@ export const LottieAnimation: React.FC<LottieAnimationProps> = ({
 
           <defs>
             <linearGradient id="walletGrad" x1="15" y1="35" x2="105" y2="100" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#991213" />
-              <stop offset="0.6" stopColor="#7F0E0F" />
-              <stop offset="1" stopColor="#550A0B" />
+              <stop stopColor="#8B0000" />
+              <stop offset="0.6" stopColor="#700000" />
+              <stop offset="1" stopColor="#480000" />
             </linearGradient>
             <linearGradient id="walletFlapGrad" x1="50" y1="45" x2="105" y2="85" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#B31A1B" />
-              <stop offset="1" stopColor="#7F0E0F" />
+              <stop stopColor="#A00000" />
+              <stop offset="1" stopColor="#700000" />
             </linearGradient>
             <linearGradient id="noteGrad1" x1="20" y1="20" x2="70" y2="50" gradientUnits="userSpaceOnUse">
               <stop stopColor="#34D399" />
@@ -124,7 +124,7 @@ export const LottieAnimation: React.FC<LottieAnimationProps> = ({
 
             {/* Metallic Gold Lock Clasp */}
             <circle cx="56" cy="70" r="7" fill="url(#coinGrad)" stroke="#B45309" strokeWidth="1" />
-            <circle cx="56" cy="70" r="3" fill="#991213" />
+            <circle cx="56" cy="70" r="3" fill="#8B0000" />
             <circle cx="55" cy="69" r="1" fill="#FFFFFF" />
           </g>
 
@@ -206,17 +206,17 @@ export const LottieAnimation: React.FC<LottieAnimationProps> = ({
             <rect x="82" y="88" width="12" height="16" rx="5" fill="#F43F5E" />
 
             {/* Pig Body */}
-            <ellipse cx="62" cy="68" rx="36" ry="28" fill="url(#pigGrad)" stroke="#991213" strokeWidth="1.5" />
+            <ellipse cx="62" cy="68" rx="36" ry="28" fill="url(#pigGrad)" stroke="#8B0000" strokeWidth="1.5" />
 
             {/* Top Coin Slot */}
-            <rect x="48" y="40" width="16" height="4" rx="2" fill="#991213" />
+            <rect x="48" y="40" width="16" height="4" rx="2" fill="#8B0000" />
 
             {/* Curly Tail */}
             <path d="M98 64C104 62 108 66 106 70C104 73 100 70 102 67C103 65 106 66 107 68" stroke="#E11D48" strokeWidth="2.5" strokeLinecap="round" fill="none" />
 
             {/* Ear */}
             <g className="anim-ear">
-              <path d="M72 44C73 34 85 36 86 44C87 49 76 50 72 44Z" fill="#F43F5E" stroke="#991213" strokeWidth="1.2" />
+              <path d="M72 44C73 34 85 36 86 44C87 49 76 50 72 44Z" fill="#F43F5E" stroke="#8B0000" strokeWidth="1.2" />
               <path d="M74 43C75 37 82 38 83 43" fill="#FFE4E6" />
             </g>
 
@@ -225,7 +225,7 @@ export const LottieAnimation: React.FC<LottieAnimationProps> = ({
             <circle cx="41" cy="57" r="1" fill="#FFFFFF" />
 
             {/* Snout */}
-            <ellipse cx="27" cy="68" rx="11" ry="8" fill="url(#snoutGrad)" stroke="#991213" strokeWidth="1.2" />
+            <ellipse cx="27" cy="68" rx="11" ry="8" fill="url(#snoutGrad)" stroke="#8B0000" strokeWidth="1.2" />
             <circle cx="24" cy="68" r="2" fill="#881337" />
             <circle cx="30" cy="68" r="2" fill="#881337" />
 
@@ -263,7 +263,7 @@ export const LottieAnimation: React.FC<LottieAnimationProps> = ({
 
           <defs>
             <linearGradient id="vaultGrad" x1="20" y1="25" x2="100" y2="105" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#991213" />
+              <stop stopColor="#8B0000" />
               <stop offset="0.7" stopColor="#6E0B0C" />
               <stop offset="1" stopColor="#450607" />
             </linearGradient>
@@ -286,7 +286,7 @@ export const LottieAnimation: React.FC<LottieAnimationProps> = ({
           <rect x="22" y="30" width="76" height="70" rx="12" fill="url(#vaultGrad)" stroke="#FFD9D9" strokeWidth="1.5" strokeOpacity="0.5" />
 
           {/* Door Inset */}
-          <rect x="28" y="36" width="64" height="58" rx="8" fill="#500708" stroke="#991213" strokeWidth="1.2" />
+          <rect x="28" y="36" width="64" height="58" rx="8" fill="#500708" stroke="#8B0000" strokeWidth="1.2" />
 
           {/* Safe Dial Handle with Golden Rim */}
           <circle cx="60" cy="65" r="20" fill="url(#goldRimGrad)" stroke="#78350F" strokeWidth="1.2" />
@@ -351,11 +351,11 @@ export const LottieAnimation: React.FC<LottieAnimationProps> = ({
             </linearGradient>
             <linearGradient id="barGrad2" x1="0" y1="0" x2="0" y2="1">
               <stop stopColor="#EF4444" />
-              <stop offset="1" stopColor="#991213" />
+              <stop offset="1" stopColor="#8B0000" />
             </linearGradient>
             <linearGradient id="barGrad3" x1="0" y1="0" x2="0" y2="1">
-              <stop stopColor="#991213" />
-              <stop offset="1" stopColor="#550A0B" />
+              <stop stopColor="#8B0000" />
+              <stop offset="1" stopColor="#480000" />
             </linearGradient>
             <linearGradient id="lineTrendGrad" x1="25" y1="80" x2="95" y2="30" gradientUnits="userSpaceOnUse">
               <stop stopColor="#10B981" />

@@ -244,15 +244,15 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
       {/* Header and Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#FFD9D9] text-[#991213] flex items-center justify-center font-bold shadow-xs">
-            <TrendingUp className="w-5 h-5 text-[#991213]" />
+          <div className="w-10 h-10 rounded-2xl bg-[#FFD9D9] text-[#8B0000] flex items-center justify-center font-bold shadow-xs">
+            <TrendingUp className="w-5 h-5 text-[#8B0000]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-black text-base sm:text-lg text-slate-900">
                 Grafik Portofolio & Arus Investasi
               </h3>
-              <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[#991213] border border-[#FFD9D9]">
+              <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[#8B0000] border border-[#FFD9D9]">
                 {monthLabel}
               </span>
             </div>
@@ -268,8 +268,8 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
             onClick={() => setChartMode("trend")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all ${
               chartMode === "trend"
-                ? "bg-[#991213] text-white shadow-xs"
-                : "text-slate-600 hover:text-[#991213]"
+                ? "bg-[#8B0000] text-white shadow-xs"
+                : "text-slate-600 hover:text-[#8B0000]"
             }`}
           >
             <LineChartIcon className="w-3.5 h-3.5" />
@@ -279,8 +279,8 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
             onClick={() => setChartMode("cashflow")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all ${
               chartMode === "cashflow"
-                ? "bg-[#991213] text-white shadow-xs"
-                : "text-slate-600 hover:text-[#991213]"
+                ? "bg-[#8B0000] text-white shadow-xs"
+                : "text-slate-600 hover:text-[#8B0000]"
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5" />
@@ -329,9 +329,9 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
             <span className="text-[10px] uppercase font-bold text-slate-500">
               Modal Bersih Aktif
             </span>
-            <span className="w-2 h-2 rounded-full bg-[#991213]" />
+            <span className="w-2 h-2 rounded-full bg-[#8B0000]" />
           </div>
-          <div className="text-base sm:text-lg font-black text-[#991213] mt-1">
+          <div className="text-base sm:text-lg font-black text-[#8B0000] mt-1">
             {formatRupiah(summary.netCapital)}
           </div>
           <span className="text-[10px] text-slate-500 block">
@@ -342,7 +342,7 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
         {/* Nilai Total & Keuntungan */}
         <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#FFF0F0] to-[#FFE5E5] border border-[#FFD9D9]">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-black text-[#991213]">
+            <span className="text-[10px] uppercase font-black text-[#8B0000]">
               Nilai Portofolio Riil
             </span>
             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md">
@@ -352,7 +352,7 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
           <div className="text-base sm:text-lg font-black text-slate-900 mt-1">
             {formatRupiah(summary.totalValue)}
           </div>
-          <span className="text-[10px] text-[#991213] font-semibold block">
+          <span className="text-[10px] text-[#8B0000] font-semibold block">
             Modal bersih + Akumulasi profit
           </span>
         </div>
@@ -365,7 +365,7 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
           {/* Legend */}
           <div className="flex items-center justify-end gap-4 mb-2 text-xs">
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-[#991213]" />
+              <span className="w-3 h-3 rounded-full bg-[#8B0000]" />
               <span className="font-bold text-slate-800 text-[11px]">
                 Nilai Portofolio (Modal + Imbal Hasil)
               </span>
@@ -383,7 +383,7 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
             >
               <defs>
                 <linearGradient id="invGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#991213" stopOpacity="0.30" />
+                  <stop offset="0%" stopColor="#8B0000" stopOpacity="0.30" />
                   <stop offset="60%" stopColor="#FFD9D9" stopOpacity="0.15" />
                   <stop offset="100%" stopColor="#FFF9F9" stopOpacity="0.0" />
                 </linearGradient>
@@ -457,7 +457,7 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
                 <path
                   d={linePathD}
                   fill="none"
-                  stroke="#991213"
+                  stroke="#8B0000"
                   strokeWidth="3.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -476,7 +476,7 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
                         y1={paddingY}
                         x2={pt.x}
                         y2={svgHeight - paddingY}
-                        stroke="#991213"
+                        stroke="#8B0000"
                         strokeWidth="1.5"
                         strokeDasharray="2 2"
                       />
@@ -488,7 +488,7 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
                         cx={pt.x}
                         y={pt.y}
                         r={isHovered ? 6 : 4}
-                        fill={pt.data.outflow > 0 ? "#e11d48" : "#991213"}
+                        fill={pt.data.outflow > 0 ? "#e11d48" : "#8B0000"}
                         stroke="#ffffff"
                         strokeWidth="2"
                         className="transition-all"
@@ -529,7 +529,7 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
           <div className="p-5 rounded-2xl bg-[#FFF9F9] border border-[#FFD9D9] space-y-4">
             <div className="flex items-center justify-between text-xs font-bold text-slate-700">
               <span>Rasio Investasi Masuk vs Keluar</span>
-              <span className="text-[#991213]">
+              <span className="text-[#8B0000]">
                 {summary.totalMasuk > 0
                   ? `${Math.round(
                       (summary.totalKeluar / summary.totalMasuk) * 100
@@ -603,7 +603,7 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
       {activeDetailPoint && (
         <div className="p-4 rounded-2xl bg-[#FFF9F9] border border-[#FFD9D9] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5">
-            <Calendar className="w-4 h-4 text-[#991213]" />
+            <Calendar className="w-4 h-4 text-[#8B0000]" />
             <div>
               <span className="font-bold text-slate-800 block">
                 {activeDetailPoint.dayLabel} ({formatTanggalIndo(activeDetailPoint.dateStr)})
@@ -630,7 +630,7 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
             )}
             <div className="text-right">
               <span className="text-[10px] text-slate-500 block">Total Nilai Hari Ini</span>
-              <span className="text-sm font-black text-[#991213]">
+              <span className="text-sm font-black text-[#8B0000]">
                 {formatRupiah(activeDetailPoint.totalValue)}
               </span>
             </div>
