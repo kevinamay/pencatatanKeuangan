@@ -554,3 +554,4 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
     </div>
   );
 };
+
