@@ -397,6 +397,39 @@ export class FinanceStorage {
     });
   }
 
+  public static async updateIncome(
+    id: string,
+    updated: Partial<Omit<IncomeItem, "id" | "createdAt">>
+  ): Promise<void> {
+    const current = this.getIncomes();
+    const idx = current.findIndex((x) => x.id === id);
+    if (idx === -1) return;
+
+    const merged: IncomeItem = {
+      ...current[idx],
+      ...updated,
+    };
+    current[idx] = merged;
+    setLocalData(LOCAL_STORAGE_KEYS.INCOMES, current);
+    this.notify();
+
+    update(ref(rtdb, `incomes/${id}`), {
+      date: merged.date,
+      month: merged.month,
+      amount: merged.amount,
+      category: merged.category,
+      source: merged.source,
+      note: merged.note || "",
+    })
+      .then(() => {
+        this.isFirebaseConnected = true;
+        this.notify();
+      })
+      .catch((err) => {
+        console.warn("RTDB updateIncome gagal:", err.message);
+      });
+  }
+
   // --- EXPENSES (PENGELUARAN) ---
   public static getExpenses(): ExpenseItem[] {
     return getLocalData(LOCAL_STORAGE_KEYS.EXPENSES, DEFAULT_EXPENSES);
@@ -445,6 +478,39 @@ export class FinanceStorage {
     remove(ref(rtdb, `expenses/${id}`)).catch((err) => {
       console.warn("RTDB deleteExpense gagal:", err.message);
     });
+  }
+
+  public static async updateExpense(
+    id: string,
+    updated: Partial<Omit<ExpenseItem, "id" | "createdAt">>
+  ): Promise<void> {
+    const current = this.getExpenses();
+    const idx = current.findIndex((x) => x.id === id);
+    if (idx === -1) return;
+
+    const merged: ExpenseItem = {
+      ...current[idx],
+      ...updated,
+    };
+    current[idx] = merged;
+    setLocalData(LOCAL_STORAGE_KEYS.EXPENSES, current);
+    this.notify();
+
+    update(ref(rtdb, `expenses/${id}`), {
+      date: merged.date,
+      month: merged.month,
+      amount: merged.amount,
+      category: merged.category,
+      title: merged.title || "",
+      note: merged.note || "",
+    })
+      .then(() => {
+        this.isFirebaseConnected = true;
+        this.notify();
+      })
+      .catch((err) => {
+        console.warn("RTDB updateExpense gagal:", err.message);
+      });
   }
 
   // --- SAVINGS (ALOKASI TABUNGAN) ---
@@ -522,6 +588,39 @@ export class FinanceStorage {
     remove(ref(rtdb, `savings/${id}`)).catch((err) => {
       console.warn("RTDB deleteSavings gagal:", err.message);
     });
+  }
+
+  public static async updateSavings(
+    id: string,
+    updated: Partial<Omit<SavingsAllocation, "id" | "createdAt">>
+  ): Promise<void> {
+    const current = this.getSavings();
+    const idx = current.findIndex((x) => x.id === id);
+    if (idx === -1) return;
+
+    const merged: SavingsAllocation = {
+      ...current[idx],
+      ...updated,
+    };
+    current[idx] = merged;
+    setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, current);
+    this.notify();
+
+    update(ref(rtdb, `savings/${id}`), {
+      date: merged.date,
+      month: merged.month,
+      amount: merged.amount,
+      targetType: merged.targetType,
+      accountName: merged.accountName,
+      note: merged.note || "",
+    })
+      .then(() => {
+        this.isFirebaseConnected = true;
+        this.notify();
+      })
+      .catch((err) => {
+        console.warn("RTDB updateSavings gagal:", err.message);
+      });
   }
 
   // --- MONEY MARKET (PASAR UANG & PORTOFOLIO) ---

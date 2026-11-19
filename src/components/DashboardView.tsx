@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -17,6 +17,8 @@ import {
   Shield,
   CreditCard,
   Target,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import {
   IncomeItem,
@@ -24,9 +26,10 @@ import {
   SavingsAllocation,
   MoneyMarketProduct,
 } from "@/types/finance";
-import { formatRupiah, formatTanggalIndo, calculateMoneyMarketProfit } from "@/lib/storage";
+import { formatRupiah, formatTanggalIndo, calculateMoneyMarketProfit, FinanceStorage } from "@/lib/storage";
 import { LottieAnimation } from "@/components/LottieAnimation";
 import { DailyExpenseChart } from "@/components/DailyExpenseChart";
+import { EditTransactionModal, EditableTransaction } from "@/components/EditTransactionModal";
 
 interface DashboardViewProps {
   selectedMonth: string;
@@ -91,21 +94,39 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     (a, b) => b[1] - a[1]
   );
 
-  const combinedRecent = [
+  const [editingTx, setEditingTx] = useState<EditableTransaction | null>(null);
+
+  const handleDelete = async (id: string, type: "income" | "expense" | "savings") => {
+    if (confirm("Apakah Anda yakin ingin menghapus catatan transaksi ini?")) {
+      if (type === "income") await FinanceStorage.deleteIncome(id);
+      else if (type === "expense") await FinanceStorage.deleteExpense(id);
+      else if (type === "savings") await FinanceStorage.deleteSavings(id);
+    }
+  };
+
+  const combinedRecent: (EditableTransaction & {
+    type: "income" | "expense" | "savings";
+    title: string;
+    subtitle: string;
+    createdAt: number;
+  })[] = [
     ...currentIncomes.map((i) => ({
       ...i,
+      txType: "income" as const,
       type: "income" as const,
       title: i.source || i.category,
       subtitle: i.category,
     })),
     ...currentExpenses.map((e) => ({
       ...e,
+      txType: "expense" as const,
       type: "expense" as const,
       title: e.title || e.note || e.category,
       subtitle: e.category,
     })),
     ...currentSavings.map((s) => ({
       ...s,
+      txType: "savings" as const,
       type: "savings" as const,
       title: s.accountName,
       subtitle:
@@ -614,26 +635,45 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <span
-                    className={`text-sm sm:text-base font-black ${
-                      item.type === "income"
-                        ? "text-[#991213]"
+                <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+                  <div className="text-right">
+                    <span
+                      className={`text-sm sm:text-base font-black ${
+                        item.type === "income"
+                          ? "text-[#991213]"
+                          : item.type === "expense"
+                          ? "text-rose-600"
+                          : "text-[#991213]"
+                      }`}
+                    >
+                      {item.type === "income" ? "+" : "-"}
+                      {formatRupiah(item.amount)}
+                    </span>
+                    <span className="block text-[10px] uppercase font-bold text-slate-400">
+                      {item.type === "income"
+                        ? "Pemasukan"
                         : item.type === "expense"
-                        ? "text-rose-600"
-                        : "text-[#991213]"
-                    }`}
-                  >
-                    {item.type === "income" ? "+" : "-"}
-                    {formatRupiah(item.amount)}
-                  </span>
-                  <span className="block text-[10px] uppercase font-bold text-slate-400">
-                    {item.type === "income"
-                      ? "Pemasukan"
-                      : item.type === "expense"
-                      ? "Pengeluaran"
-                      : "Alokasi Tabungan"}
-                  </span>
+                        ? "Pengeluaran"
+                        : "Alokasi Tabungan"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setEditingTx(item)}
+                      className="p-1.5 text-slate-400 hover:text-[#991213] hover:bg-[#FFD9D9]/50 rounded-xl transition-all"
+                      title="Edit transaksi"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.id, item.type)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                      title="Hapus transaksi"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -648,6 +688,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         expenses={expenses}
         selectedMonth={selectedMonth}
         onOpenQuickAdd={onOpenQuickAdd}
+      />
+
+      {/* Modal Edit Transaksi (Update CRUD) */}
+      <EditTransactionModal
+        isOpen={!!editingTx}
+        transaction={editingTx}
+        onClose={() => setEditingTx(null)}
       />
     </div>
   );

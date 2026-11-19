@@ -5,6 +5,7 @@ import {
   ArrowUpDown,
   Search,
   Trash2,
+  Pencil,
   TrendingUp,
   TrendingDown,
   PiggyBank,
@@ -21,6 +22,10 @@ import {
   formatRupiah,
   formatTanggalIndo,
 } from "@/lib/storage";
+import {
+  EditTransactionModal,
+  EditableTransaction,
+} from "@/components/EditTransactionModal";
 
 interface TransactionsViewProps {
   incomes: IncomeItem[];
@@ -41,6 +46,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
     "all" | "income" | "expense" | "savings"
   >("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [editingTx, setEditingTx] = useState<EditableTransaction | null>(null);
 
   const monthIncomes = incomes.filter((i) => i.month === selectedMonth);
   const monthExpenses = expenses.filter((e) => e.month === selectedMonth);
@@ -255,19 +261,35 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                     </span>
                   </div>
 
-                  <button
-                    onClick={() => handleDelete(tx.id, tx.txType)}
-                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
-                    title="Hapus transaksi"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setEditingTx(tx)}
+                      className="p-2 text-slate-400 hover:text-[#991213] hover:bg-[#FFF0F0] rounded-xl transition-all"
+                      title="Edit transaksi"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(tx.id, tx.txType)}
+                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                      title="Hapus transaksi"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Modal Edit Transaksi (Update CRUD) */}
+      <EditTransactionModal
+        isOpen={!!editingTx}
+        transaction={editingTx}
+        onClose={() => setEditingTx(null)}
+      />
     </div>
   );
 };
