@@ -61,28 +61,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden sm:inline">
               PRO EDITION
             </span>
-            {/* Cloud Sync indicator dot */}
-            <span
-              title={
-                isFirebaseConnected
-                  ? "Terkoneksi ke Firebase Cloud Firestore (Realtime Synced)"
-                  : "Mode Penyimpanan Lokal Aktif (Aktifkan Firestore di Firebase Console untuk sinkronisasi cloud)"
-              }
-              className={`flex items-center gap-1.5 text-[11px] font-bold px-2 py-0.5 rounded-full border transition-all ml-1 ${
-                isFirebaseConnected
-                  ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                  : "bg-amber-50 text-amber-800 border-amber-200"
-              }`}
-            >
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  isFirebaseConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
-                }`}
-              />
-              <span className="hidden sm:inline text-[10px] font-extrabold uppercase">
-                {isFirebaseConnected ? "Firebase Cloud" : "Local Sync"}
-              </span>
-            </span>
           </div>
 
           {/* Minimal Text Tabs with Indicator Dot (Desktop) */}
