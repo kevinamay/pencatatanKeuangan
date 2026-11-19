@@ -14,12 +14,12 @@ import {
   MoneyMarketProduct,
 } from "@/types/finance";
 
-// Storage keys untuk fallback lokal (v3 - Clean Database)
+// Storage keys untuk fallback lokal (v4 - Clean Empty Database)
 const LOCAL_STORAGE_KEYS = {
-  INCOMES: "keuangan_incomes_v3",
-  EXPENSES: "keuangan_expenses_v3",
-  SAVINGS: "keuangan_savings_v3",
-  MONEY_MARKET: "keuangan_money_market_v3",
+  INCOMES: "keuangan_incomes_v4",
+  EXPENSES: "keuangan_expenses_v4",
+  SAVINGS: "keuangan_savings_v4",
+  MONEY_MARKET: "keuangan_money_market_v4",
 };
 
 // Data Awal Bersih Tanpa Data Dummy (Clean Empty State)
@@ -58,9 +58,9 @@ export function formatTanggalIndo(dateStr: string): string {
 
 // Hitung estimasi keuntungan pasar uang secara dinamis
 export function calculateMoneyMarketProfit(
-  initialCapital: number,
-  ratePa: number,
-  startDateStr: string,
+  initialCapital: number = 0,
+  ratePa: number = 5.5,
+  startDateStr: string = "",
   manualAccumulatedProfit?: number
 ): {
   estimatedProfit: number;
@@ -69,15 +69,21 @@ export function calculateMoneyMarketProfit(
   dailyReturn: number;
   monthlyReturn: number;
 } {
-  const start = new Date(startDateStr);
-  const now = new Date();
-  const diffTime = Math.max(0, now.getTime() - start.getTime());
-  const daysActive = Math.max(1, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+  const capital = isNaN(Number(initialCapital)) ? 0 : Number(initialCapital);
+  const rate = isNaN(Number(ratePa)) ? 5.5 : Number(ratePa);
+
+  let daysActive = 1;
+  if (startDateStr && !isNaN(Date.parse(startDateStr))) {
+    const start = new Date(startDateStr);
+    const now = new Date();
+    const diffTime = Math.max(0, now.getTime() - start.getTime());
+    daysActive = Math.max(1, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+  }
 
   // Keuntungan berbasis compound / prorate harian:
   // p.a. (per annum) = 365 hari
-  const dailyRate = ratePa / 100 / 365;
-  const theoreticalProfit = initialCapital * dailyRate * daysActive;
+  const dailyRate = rate / 100 / 365;
+  const theoreticalProfit = capital * dailyRate * daysActive;
 
   // Jika ada manual profit yang lebih tinggi atau diisi manual, gunakan yang lebih besar
   const estimatedProfit = Math.max(
@@ -85,9 +91,9 @@ export function calculateMoneyMarketProfit(
     manualAccumulatedProfit || 0
   );
 
-  const totalValue = initialCapital + estimatedProfit;
-  const dailyReturn = Math.round(initialCapital * dailyRate);
-  const monthlyReturn = Math.round(initialCapital * (ratePa / 100 / 12));
+  const totalValue = capital + estimatedProfit;
+  const dailyReturn = Math.round(capital * dailyRate);
+  const monthlyReturn = Math.round(capital * (rate / 100 / 12));
 
   return {
     estimatedProfit,
@@ -195,6 +201,10 @@ export class FinanceStorage {
       "keuangan_expenses_v2",
       "keuangan_savings_v2",
       "keuangan_money_market_v2",
+      "keuangan_incomes_v3",
+      "keuangan_expenses_v3",
+      "keuangan_savings_v3",
+      "keuangan_money_market_v3",
     ].forEach((k) => {
       try {
         localStorage.removeItem(k);
@@ -226,8 +236,8 @@ export class FinanceStorage {
           if (snapshot.exists()) {
             const data = snapshot.val();
             const list: IncomeItem[] = Object.entries(data).map(([key, val]: [string, any]) => ({
-              id: key,
               ...val,
+              id: key,
             }));
             list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             setLocalData(LOCAL_STORAGE_KEYS.INCOMES, list);
@@ -253,8 +263,8 @@ export class FinanceStorage {
           if (snapshot.exists()) {
             const data = snapshot.val();
             const list: ExpenseItem[] = Object.entries(data).map(([key, val]: [string, any]) => ({
-              id: key,
               ...val,
+              id: key,
             }));
             list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             setLocalData(LOCAL_STORAGE_KEYS.EXPENSES, list);
@@ -279,8 +289,8 @@ export class FinanceStorage {
           if (snapshot.exists()) {
             const data = snapshot.val();
             const list: SavingsAllocation[] = Object.entries(data).map(([key, val]: [string, any]) => ({
-              id: key,
               ...val,
+              id: key,
             }));
             list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, list);
@@ -296,7 +306,7 @@ export class FinanceStorage {
         }
       );
 
-      // 4. Listener Money Market (Murni Read & In-Memory Deduplication)
+      // 4. Listener Money Market (Murni Read, Validasi Nama & In-Memory Deduplication)
       const mmRef = ref(rtdb, "money_market");
       onValue(
         mmRef,
@@ -304,10 +314,19 @@ export class FinanceStorage {
           this.isFirebaseConnected = true;
           if (snapshot.exists()) {
             const data = snapshot.val();
-            const list: MoneyMarketProduct[] = Object.entries(data).map(([key, val]: [string, any]) => ({
-              id: key,
-              ...val,
-            }));
+            const list: MoneyMarketProduct[] = Object.entries(data)
+              .filter(
+                ([_, val]: [string, any]) =>
+                  val &&
+                  typeof val === "object" &&
+                  val.name &&
+                  val.name.trim() !== "" &&
+                  val.name !== "-"
+              )
+              .map(([key, val]: [string, any]) => ({
+                ...val,
+                id: key,
+              }));
             const cleaned = deduplicateMMList(list);
             setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, cleaned);
           } else {
@@ -587,16 +606,18 @@ export class FinanceStorage {
     // Jika jenis alokasi adalah ke pasar uang, update atau buat produk pasar uang secara otomatis!
     if (newItem.targetType === "money_market") {
       const mmList = this.getMoneyMarket();
-      if (mmList.length > 0) {
-        const targetMM =
-          mmList.find((m) =>
-            m.name.toLowerCase().includes(
-              (newItem.accountName || "pasar uang").toLowerCase()
-            )
-          ) || mmList[0];
-        targetMM.initialCapital += newItem.amount;
-        targetMM.history = [
-          ...(targetMM.history || []),
+      const existing = mmList.find(
+        (m) =>
+          m.id !== "mm-live-sync" &&
+          m.name &&
+          m.name.toLowerCase().includes(
+            (newItem.accountName || "pasar uang").toLowerCase()
+          )
+      );
+      if (existing) {
+        existing.initialCapital += newItem.amount;
+        existing.history = [
+          ...(existing.history || []),
           {
             id: "h-" + Date.now(),
             date: newItem.date,
@@ -605,14 +626,13 @@ export class FinanceStorage {
             note: `Alokasi Tabungan (${newItem.accountName})`,
           },
         ];
-        targetMM.updatedAt = Date.now();
+        existing.updatedAt = Date.now();
         setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, mmList);
 
-        update(ref(rtdb, `money_market/${targetMM.id}`), {
-          initialCapital: targetMM.initialCapital,
-          history: targetMM.history,
-          updatedAt: targetMM.updatedAt,
-        }).catch(() => {});
+        // Simpan objek lengkap ke Firebase agar properti name, returnRatePa, startDate tidak hilang
+        set(ref(rtdb, `money_market/${existing.id}`), existing).catch((err) => {
+          console.warn("RTDB update MM product gagal:", err);
+        });
       } else {
         // Otomatis buat produk pasar uang jika belum ada produk sebelumnya
         const mmRef = ref(rtdb, "money_market");
@@ -637,7 +657,8 @@ export class FinanceStorage {
           ],
           updatedAt: Date.now(),
         };
-        setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, [autoProduct]);
+        const updatedMMList = [...mmList.filter((m) => m.id !== "mm-live-sync"), autoProduct];
+        setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, updatedMMList);
         set(newMMRef, autoProduct).catch((err) => {
           console.warn("RTDB auto-create MM product gagal:", err);
         });
@@ -711,7 +732,15 @@ export class FinanceStorage {
   // --- MONEY MARKET (PASAR UANG & PORTOFOLIO) ---
   public static getMoneyMarket(): MoneyMarketProduct[] {
     const raw = getLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, DEFAULT_MONEY_MARKET);
-    return deduplicateMMList(raw);
+    const valid = (raw || []).filter(
+      (item) =>
+        item &&
+        typeof item === "object" &&
+        item.name &&
+        item.name.trim() !== "" &&
+        item.name !== "-"
+    );
+    return deduplicateMMList(valid);
   }
 
   public static async addMoneyMarketProduct(
@@ -776,11 +805,7 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, current);
     this.notify();
 
-    update(ref(rtdb, `money_market/${id}`), {
-      initialCapital: item.initialCapital,
-      history: item.history,
-      updatedAt: item.updatedAt,
-    }).catch((err) => {
+    set(ref(rtdb, `money_market/${id}`), item).catch((err) => {
       console.warn("RTDB topup gagal:", err.message);
     });
   }
@@ -812,11 +837,7 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, current);
     this.notify();
 
-    update(ref(rtdb, `money_market/${id}`), {
-      initialCapital: item.initialCapital,
-      history: item.history,
-      updatedAt: item.updatedAt,
-    }).catch((err) => {
+    set(ref(rtdb, `money_market/${id}`), item).catch((err) => {
       console.warn("RTDB withdraw gagal:", err.message);
     });
   }
@@ -826,8 +847,10 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, current);
     this.notify();
 
-    remove(ref(rtdb, `money_market/${id}`)).catch((err) => {
-      console.warn("RTDB deleteMoneyMarket gagal:", err.message);
-    });
+    if (id && id !== "mm-live-sync") {
+      remove(ref(rtdb, `money_market/${id}`)).catch((err) => {
+        console.warn("RTDB deleteMoneyMarket gagal:", err.message);
+      });
+    }
   }
 }

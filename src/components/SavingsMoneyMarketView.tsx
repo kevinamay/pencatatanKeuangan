@@ -113,9 +113,13 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
   const totalSavingsAll = savings.reduce((acc, curr) => acc + curr.amount, 0);
 
   // Produk Pasar Uang yang ditampilkan: jika moneyMarket array kosong tapi ada tabungan pasar uang, sediakan live fallback
+  const validMMProducts = (moneyMarket || []).filter(
+    (m) => m && m.name && m.name.trim() !== "" && m.name !== "-"
+  );
+
   const displayMMProducts: MoneyMarketProduct[] =
-    moneyMarket.length > 0
-      ? moneyMarket
+    validMMProducts.length > 0
+      ? validMMProducts
       : mmSavings.length > 0
       ? [
           {
@@ -596,7 +600,13 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                         <button
                           onClick={async () => {
                             if (confirm(`Hapus instrumen pasar uang "${item.name}"?`)) {
-                              await FinanceStorage.deleteMoneyMarket(item.id);
+                              if (item.id === "mm-live-sync") {
+                                for (const s of mmSavings) {
+                                  await FinanceStorage.deleteSavings(s.id);
+                                }
+                              } else {
+                                await FinanceStorage.deleteMoneyMarket(item.id);
+                              }
                             }
                           }}
                           className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-all"
