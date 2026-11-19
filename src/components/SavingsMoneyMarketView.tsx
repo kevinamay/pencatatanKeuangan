@@ -9,9 +9,12 @@ import {
   Shield,
   Target,
   ArrowUpRight,
+  ArrowDownRight,
   Calculator,
   Trash2,
   Pencil,
+  History,
+  Coins,
 } from "lucide-react";
 import {
   SavingsAllocation,
@@ -28,6 +31,7 @@ import {
   EditTransactionModal,
   EditableTransaction,
 } from "@/components/EditTransactionModal";
+import { InvestmentChart } from "@/components/InvestmentChart";
 
 interface SavingsMoneyMarketViewProps {
   savings: SavingsAllocation[];
@@ -43,7 +47,10 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
   onOpenQuickAdd,
 }) => {
   const [showAddMMModal, setShowAddMMModal] = useState(false);
-  const [showTopUpModal, setShowTopUpModal] = useState<string | null>(null);
+  const [showInvestModal, setShowInvestModal] = useState<{
+    productId: string;
+    mode: "topup" | "tarik";
+  } | null>(null);
 
   const [mmName, setMmName] = useState("");
   const [mmPlatform, setMmPlatform] = useState("Bibit");
@@ -52,15 +59,16 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
   const [mmStartDate, setMmStartDate] = useState("");
   const [mmNotes, setMmNotes] = useState("");
 
-  const [topUpAmount, setTopUpAmount] = useState("");
-  const [topUpDate, setTopUpDate] = useState("");
-  const [topUpNote, setTopUpNote] = useState("");
+  const [investAmount, setInvestAmount] = useState("");
+  const [investDate, setInvestDate] = useState("");
+  const [investNote, setInvestNote] = useState("");
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
 
   React.useEffect(() => {
     const today = new Date().toISOString().split("T")[0];
     if (!mmStartDate) setMmStartDate(today);
-    if (!topUpDate) setTopUpDate(today);
-  }, [mmStartDate, topUpDate]);
+    if (!investDate) setInvestDate(today);
+  }, [mmStartDate, investDate]);
 
   const [simCapital, setSimCapital] = useState<number>(20000000);
   const [simMonthlyAdd, setSimMonthlyAdd] = useState<number>(2000000);
@@ -181,23 +189,34 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
     setShowAddMMModal(false);
   };
 
-  const handleTopUp = async (e: React.FormEvent) => {
+  const handleInvestAction = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!showTopUpModal) return;
-    const amount = parseFloat(topUpAmount.replace(/[^0-9]/g, "")) || 0;
+    if (!showInvestModal) return;
+    const amount = parseFloat(investAmount.replace(/[^0-9]/g, "")) || 0;
     if (amount <= 0) {
-      alert("Masukkan nominal top up yang valid");
+      alert("Masukkan nominal yang valid di atas Rp 0");
       return;
     }
 
-    await FinanceStorage.topUpMoneyMarket(
-      showTopUpModal,
-      amount,
-      topUpDate,
-      topUpNote
-    );
-    setTopUpAmount("");
-    setShowTopUpModal(null);
+    if (showInvestModal.mode === "topup") {
+      await FinanceStorage.topUpMoneyMarket(
+        showInvestModal.productId,
+        amount,
+        investDate,
+        investNote || "Investasi Masuk (Top Up)"
+      );
+    } else {
+      await FinanceStorage.withdrawMoneyMarket(
+        showInvestModal.productId,
+        amount,
+        investDate,
+        investNote || "Investasi Keluar (Jual / Tarik)"
+      );
+    }
+
+    setInvestAmount("");
+    setInvestNote("");
+    setShowInvestModal(null);
   };
 
   return (
@@ -440,13 +459,27 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
               </div>
             </div>
 
-            <button
-              onClick={() => setShowAddMMModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#991213] hover:bg-[#7f0e0f] text-white font-bold text-xs shadow-md shadow-[#991213]/20 active:scale-95 transition-all"
-            >
-              <PlusCircle className="w-4 h-4" />
-              Tambah Produk
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const firstId = displayMMProducts[0]?.id || "";
+                  setShowInvestModal({ productId: firstId, mode: "topup" });
+                  setInvestAmount("");
+                  setInvestNote("");
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFF0F0] hover:bg-[#FFE0E0] text-[#991213] border border-[#FFD9D9] font-bold text-xs shadow-2xs active:scale-95 transition-all"
+              >
+                <Coins className="w-3.5 h-3.5" />
+                <span>± Catat Investasi</span>
+              </button>
+              <button
+                onClick={() => setShowAddMMModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#991213] hover:bg-[#7f0e0f] text-white font-bold text-xs shadow-md shadow-[#991213]/20 active:scale-95 transition-all"
+              >
+                <PlusCircle className="w-4 h-4" />
+                Tambah Produk
+              </button>
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -541,12 +574,30 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                       <span className="text-[11px] text-slate-500 font-medium">
                         ~ {formatRupiah(calc.monthlyReturn)} estimasi keuntungan per bulan
                       </span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <button
-                          onClick={() => setShowTopUpModal(item.id)}
-                          className="px-3 py-1.5 rounded-lg bg-[#991213] hover:bg-[#7f0e0f] text-white font-bold text-xs shadow-xs transition-all"
+                          onClick={() => {
+                            setShowInvestModal({ productId: item.id, mode: "topup" });
+                            setInvestAmount("");
+                            setInvestNote("");
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1"
+                          title="Investasi Masuk (Beli / Top Up)"
                         >
-                          + Top Up Dana
+                          <ArrowUpRight className="w-3.5 h-3.5" />
+                          <span>+ Beli / Top Up</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowInvestModal({ productId: item.id, mode: "tarik" });
+                            setInvestAmount("");
+                            setInvestNote("");
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-[#FFF0F0] hover:bg-[#FFE0E0] text-[#991213] border border-[#FFD9D9] font-bold text-xs shadow-xs transition-all flex items-center gap-1"
+                          title="Investasi Keluar (Jual / Tarik)"
+                        >
+                          <ArrowDownRight className="w-3.5 h-3.5 text-rose-600" />
+                          <span>− Jual / Tarik</span>
                         </button>
                         <button
                           onClick={async () => {
@@ -561,6 +612,69 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                         </button>
                       </div>
                     </div>
+
+                    {/* Expandable History Drawer */}
+                    {item.history && item.history.length > 0 && (
+                      <div className="pt-2 border-t border-[#FFD9D9]/50">
+                        <button
+                          onClick={() =>
+                            setExpandedHistoryId(
+                              expandedHistoryId === item.id ? null : item.id
+                            )
+                          }
+                          className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 hover:text-[#991213] transition-colors"
+                        >
+                          <History className="w-3.5 h-3.5 text-slate-400" />
+                          <span>
+                            {expandedHistoryId === item.id
+                              ? "Tutup Riwayat Arus Dana"
+                              : `Lihat Riwayat Masuk / Keluar (${item.history.length} transaksi)`}
+                          </span>
+                        </button>
+
+                        {expandedHistoryId === item.id && (
+                          <div className="mt-2 space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                            {item.history.map((h) => (
+                              <div
+                                key={h.id}
+                                className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#FFD9D9] text-xs"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className={`w-2 h-2 rounded-full ${
+                                      h.type === "tarik"
+                                        ? "bg-rose-500"
+                                        : "bg-emerald-500"
+                                    }`}
+                                  />
+                                  <div>
+                                    <span className="font-bold text-slate-800">
+                                      {h.type === "tarik"
+                                        ? "Investasi Keluar (Jual)"
+                                        : "Investasi Masuk (Beli)"}
+                                    </span>
+                                    <p className="text-[10px] text-slate-400">
+                                      {formatTanggalIndo(h.date)}
+                                      {h.note && ` • ${h.note}`}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span
+                                  className={`font-black ${
+                                    h.type === "tarik"
+                                      ? "text-rose-600"
+                                      : "text-emerald-700"
+                                  }`}
+                                >
+                                  {h.type === "tarik" ? "-" : "+"}
+                                  {formatRupiah(h.amount)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })
@@ -568,6 +682,13 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Grafik / Chart Investasi di Bagian Bawah */}
+      <InvestmentChart
+        moneyMarket={displayMMProducts}
+        savings={savings}
+        selectedMonth={selectedMonth}
+      />
 
       {/* Simulator Compound Calculator */}
       <div className="p-6 sm:p-8 rounded-3xl bg-white border border-[#FFD9D9] shadow-xs space-y-6">
@@ -807,28 +928,111 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
         </div>
       )}
 
-      {/* Modal Top Up Dana Pasar Uang */}
-      {showTopUpModal && (
+      {/* Modal Investasi Masuk (Beli) / Investasi Keluar (Jual) */}
+      {showInvestModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl border border-[#FFD9D9] space-y-4">
-            <h3 className="text-base font-black text-[#991213]">
-              Top Up Saldo Pasar Uang
-            </h3>
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-[#FFD9D9] space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#FFD9D9]">
+              <h3 className="text-base font-black text-[#991213]">
+                Catat Transaksi Investasi
+              </h3>
+              <button
+                onClick={() => setShowInvestModal(null)}
+                className="p-1 rounded-full text-slate-400 hover:text-slate-600 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
 
-            <form onSubmit={handleTopUp} className="space-y-3">
+            {/* Mode Selector Tabs */}
+            <div className="grid grid-cols-2 gap-2 p-1 bg-[#FFF0F0] rounded-2xl border border-[#FFD9D9]">
+              <button
+                type="button"
+                onClick={() =>
+                  setShowInvestModal((prev) =>
+                    prev ? { ...prev, mode: "topup" } : null
+                  )
+                }
+                className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                  showInvestModal.mode === "topup"
+                    ? "bg-emerald-700 text-white shadow-xs"
+                    : "text-slate-600 hover:text-emerald-700"
+                }`}
+              >
+                <ArrowUpRight className="w-4 h-4" />
+                <span>Investasi Masuk (Beli)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowInvestModal((prev) =>
+                    prev ? { ...prev, mode: "tarik" } : null
+                  )
+                }
+                className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                  showInvestModal.mode === "tarik"
+                    ? "bg-rose-600 text-white shadow-xs"
+                    : "text-slate-600 hover:text-rose-600"
+                }`}
+              >
+                <ArrowDownRight className="w-4 h-4" />
+                <span>Investasi Keluar (Jual)</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleInvestAction} className="space-y-3">
+              {/* Target Product Selector if multiple products */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Nominal Top Up (Rp)
+                  Instrumen Investasi
                 </label>
+                <select
+                  value={showInvestModal.productId}
+                  onChange={(e) =>
+                    setShowInvestModal((prev) =>
+                      prev ? { ...prev, productId: e.target.value } : null
+                    )
+                  }
+                  className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-bold text-slate-900 focus:bg-white"
+                >
+                  {displayMMProducts.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.platform}) - Saldo Pokok: {formatRupiah(p.initialCapital)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700">
+                    {showInvestModal.mode === "topup"
+                      ? "Nominal Pembelian / Setoran (Rp)"
+                      : "Nominal Penjualan / Pencairan (Rp)"}
+                  </label>
+                  {showInvestModal.mode === "tarik" && (
+                    <span className="text-[11px] text-slate-500">
+                      Maksimal pencairan:{" "}
+                      <span className="font-bold text-[#991213]">
+                        {formatRupiah(
+                          displayMMProducts.find(
+                            (p) => p.id === showInvestModal.productId
+                          )?.initialCapital || 0
+                        )}
+                      </span>
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
                   required
                   autoFocus
                   placeholder="0"
-                  value={topUpAmount}
+                  value={investAmount}
                   onChange={(e) => {
                     const val = e.target.value.replace(/[^0-9]/g, "");
-                    setTopUpAmount(val ? Number(val).toLocaleString("id-ID") : "");
+                    setInvestAmount(val ? Number(val).toLocaleString("id-ID") : "");
                   }}
                   className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-bold text-slate-900 focus:bg-white"
                 />
@@ -836,26 +1040,32 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Tanggal Top Up
+                  Tanggal Transaksi
                 </label>
                 <input
                   type="date"
                   required
-                  value={topUpDate}
-                  onChange={(e) => setTopUpDate(e.target.value)}
+                  value={investDate}
+                  onChange={(e) => setInvestDate(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:bg-white"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  Keterangan / Sumber Dana
+                  {showInvestModal.mode === "topup"
+                    ? "Keterangan / Sumber Dana"
+                    : "Keterangan / Alasan Penjualan"}
                 </label>
                 <input
                   type="text"
-                  placeholder="Contoh: Dari alokasi sisa gaji November"
-                  value={topUpNote}
-                  onChange={(e) => setTopUpNote(e.target.value)}
+                  placeholder={
+                    showInvestModal.mode === "topup"
+                      ? "Contoh: Beli unit baru dari alokasi gaji"
+                      : "Contoh: Jual untuk kebutuhan dana darurat"
+                  }
+                  value={investNote}
+                  onChange={(e) => setInvestNote(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-[#FFF9F9] border border-[#FFD9D9] rounded-xl text-sm font-medium text-slate-900 focus:bg-white"
                 />
               </div>
@@ -863,16 +1073,22 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowTopUpModal(null)}
+                  onClick={() => setShowInvestModal(null)}
                   className="flex-1 py-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-700"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-[#991213] hover:bg-[#7f0e0f] font-bold text-xs text-white shadow-md shadow-[#991213]/20"
+                  className={`flex-1 py-2.5 rounded-xl font-bold text-xs text-white shadow-md transition-all ${
+                    showInvestModal.mode === "topup"
+                      ? "bg-emerald-700 hover:bg-emerald-800 shadow-emerald-700/20"
+                      : "bg-rose-600 hover:bg-rose-700 shadow-rose-600/20"
+                  }`}
                 >
-                  Konfirmasi Top Up
+                  {showInvestModal.mode === "topup"
+                    ? "Konfirmasi Beli / Top Up"
+                    : "Konfirmasi Jual / Tarik"}
                 </button>
               </div>
             </form>

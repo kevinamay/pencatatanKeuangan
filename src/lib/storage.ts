@@ -312,6 +312,7 @@ export class FinanceStorage {
               ...val,
             }));
             setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, list);
+            this.deduplicateMoneyMarket();
             if (list.length === 0) {
               this.syncMoneyMarketFromSavings();
             }
@@ -343,6 +344,47 @@ export class FinanceStorage {
     this.syncMoneyMarketFromSavings();
   }
 
+  // Bersihkan produk duplikat dengan nama yang sama secara otomatis
+  public static deduplicateMoneyMarket() {
+    if (typeof window === "undefined") return;
+    const currentMM = getLocalData<MoneyMarketProduct[]>(LOCAL_STORAGE_KEYS.MONEY_MARKET, []);
+    if (currentMM.length <= 1) return;
+
+    const uniqueMap = new Map<string, MoneyMarketProduct>();
+    const duplicateIds: string[] = [];
+
+    for (const item of currentMM) {
+      const key = (item.name || "").trim().toLowerCase();
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, { ...item });
+      } else {
+        const first = uniqueMap.get(key)!;
+        // Gabungkan riwayat
+        first.history = [
+          ...(first.history || []),
+          ...(item.history || []),
+        ];
+        duplicateIds.push(item.id);
+      }
+    }
+
+    if (duplicateIds.length > 0) {
+      const cleanedList = Array.from(uniqueMap.values());
+      setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, cleanedList);
+      duplicateIds.forEach((id) => {
+        remove(ref(rtdb, `money_market/${id}`)).catch(() => {});
+      });
+      cleanedList.forEach((prod) => {
+        update(ref(rtdb, `money_market/${prod.id}`), {
+          initialCapital: prod.initialCapital,
+          history: prod.history,
+          updatedAt: Date.now(),
+        }).catch(() => {});
+      });
+      this.notify();
+    }
+  }
+
   // Sinkronisasi otomatis Money Market dari alokasi Tabungan yang sudah ada
   public static syncMoneyMarketFromSavings(savingsList?: SavingsAllocation[]) {
     const list = savingsList || this.getSavings();
@@ -350,6 +392,11 @@ export class FinanceStorage {
     if (mmSavings.length === 0) return;
 
     const currentMM = this.getMoneyMarket();
+    if (currentMM.length > 0) {
+      this.deduplicateMoneyMarket();
+      return;
+    }
+
     if (currentMM.length === 0) {
       const totalAmount = mmSavings.reduce((acc, curr) => acc + curr.amount, 0);
       const earliestDate = mmSavings.reduce(
@@ -711,7 +758,15 @@ export class FinanceStorage {
 
   // --- MONEY MARKET (PASAR UANG & PORTOFOLIO) ---
   public static getMoneyMarket(): MoneyMarketProduct[] {
-    return getLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, DEFAULT_MONEY_MARKET);
+    const raw = getLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, DEFAULT_MONEY_MARKET);
+    const uniqueMap = new Map<string, MoneyMarketProduct>();
+    for (const item of raw) {
+      const key = (item.name || "").trim().toLowerCase();
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, item);
+      }
+    }
+    return Array.from(uniqueMap.values());
   }
 
   public static async addMoneyMarketProduct(
@@ -782,6 +837,42 @@ export class FinanceStorage {
       updatedAt: item.updatedAt,
     }).catch((err) => {
       console.warn("RTDB topup gagal:", err.message);
+    });
+  }
+
+  // Jual / Tarik Dana Investasi (Investasi Keluar)
+  public static async withdrawMoneyMarket(
+    id: string,
+    amount: number,
+    date: string,
+    note?: string
+  ): Promise<void> {
+    const current = this.getMoneyMarket();
+    const item = current.find((x) => x.id === id);
+    if (!item) return;
+
+    item.initialCapital = Math.max(0, item.initialCapital - amount);
+    item.updatedAt = Date.now();
+    item.history = [
+      ...(item.history || []),
+      {
+        id: "h-" + Date.now(),
+        date: date || new Date().toISOString().split("T")[0],
+        type: "tarik",
+        amount,
+        note: note || "Jual / Tarik Dana Investasi",
+      },
+    ];
+
+    setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, current);
+    this.notify();
+
+    update(ref(rtdb, `money_market/${id}`), {
+      initialCapital: item.initialCapital,
+      history: item.history,
+      updatedAt: item.updatedAt,
+    }).catch((err) => {
+      console.warn("RTDB withdraw gagal:", err.message);
     });
   }
 
