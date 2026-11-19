@@ -2,12 +2,10 @@
 
 import React, { useState, useMemo } from "react";
 import {
-  BarChart3,
   LineChart,
   Calendar,
   TrendingDown,
   Sparkles,
-  Info,
   Receipt,
   ArrowDownRight,
 } from "lucide-react";
@@ -33,7 +31,6 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
   selectedMonth,
   onOpenQuickAdd,
 }) => {
-  const [chartType, setChartType] = useState<"bar" | "line">("bar");
   const [hoveredDay, setHoveredDay] = useState<DayExpenseData | null>(null);
 
   // Parse year & month
@@ -149,11 +146,11 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
 
   return (
     <div className="rounded-3xl bg-white border border-[#FFD9D9] p-6 sm:p-7 shadow-sm space-y-6">
-      {/* Header & View Mode Switcher */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-[#FFD9D9] text-[#991213] flex items-center justify-center font-bold shadow-xs">
-            <BarChart3 className="w-5 h-5 text-[#991213]" />
+            <LineChart className="w-5 h-5 text-[#991213]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -170,30 +167,10 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
           </div>
         </div>
 
-        {/* Chart type switch */}
-        <div className="inline-flex items-center p-1 bg-[#FFF0F0] rounded-xl border border-[#FFD9D9] self-start sm:self-auto">
-          <button
-            onClick={() => setChartType("bar")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              chartType === "bar"
-                ? "bg-[#991213] text-white shadow-xs"
-                : "text-slate-600 hover:text-[#991213]"
-            }`}
-          >
-            <BarChart3 className="w-3.5 h-3.5" />
-            <span>Batang</span>
-          </button>
-          <button
-            onClick={() => setChartType("line")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              chartType === "line"
-                ? "bg-[#991213] text-white shadow-xs"
-                : "text-slate-600 hover:text-[#991213]"
-            }`}
-          >
-            <LineChart className="w-3.5 h-3.5" />
-            <span>Garis Tren</span>
-          </button>
+        {/* Badge Label Garis Tren */}
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF0F0] rounded-xl border border-[#FFD9D9] text-[#991213] text-xs font-extrabold shadow-2xs self-start sm:self-auto">
+          <LineChart className="w-3.5 h-3.5" />
+          <span>Garis Tren Harian</span>
         </div>
       </div>
 
@@ -274,221 +251,136 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Batang Mode */}
-          {chartType === "bar" && (
-            <div className="overflow-x-auto pb-2 pt-4">
-              <div
-                className="min-w-[680px] h-64 flex items-end gap-1.5 sm:gap-2 px-2 pb-6 border-b border-[#FFD9D9]/60 relative"
+          {/* Garis / Area Chart */}
+          <div className="overflow-x-auto pb-2">
+            <div className="min-w-[680px]">
+              <svg
+                viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+                className="w-full h-64 overflow-visible"
               >
-                {/* Horizontal guide lines */}
-                <div className="absolute inset-x-0 top-2 border-b border-dashed border-slate-200 pointer-events-none flex justify-between text-[10px] text-slate-400 font-semibold px-2">
-                  <span>Maks: {formatRupiah(maxDailyAmount)}</span>
-                </div>
-                <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-b border-dashed border-slate-200 pointer-events-none flex justify-between text-[10px] text-slate-400 font-semibold px-2">
-                  <span>50%: {formatRupiah(maxDailyAmount / 2)}</span>
-                </div>
+                <defs>
+                  <linearGradient
+                    id="expenseAreaGrad"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="0%" stopColor="#991213" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="#991213" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
 
-                {dailyData.map((d) => {
-                  const heightPercent =
-                    maxDailyAmount > 0
-                      ? Math.min(100, Math.max(d.totalAmount > 0 ? 8 : 2, (d.totalAmount / maxDailyAmount) * 100))
-                      : 2;
-                  const isHovered = hoveredDay?.day === d.day;
-                  const isPeak = peakDay?.day === d.day && d.totalAmount > 0;
-                  const hasSpent = d.totalAmount > 0;
+                {/* Horizontal Grid lines */}
+                <line
+                  x1={paddingX}
+                  y1={paddingY}
+                  x2={svgWidth - paddingX}
+                  y2={paddingY}
+                  stroke="#e2e8f0"
+                  strokeDasharray="4 4"
+                />
+                <line
+                  x1={paddingX}
+                  y1={svgHeight / 2}
+                  x2={svgWidth - paddingX}
+                  y2={svgHeight / 2}
+                  stroke="#e2e8f0"
+                  strokeDasharray="4 4"
+                />
+                <line
+                  x1={paddingX}
+                  y1={svgHeight - paddingY}
+                  x2={svgWidth - paddingX}
+                  y2={svgHeight - paddingY}
+                  stroke="#cbd5e1"
+                />
+
+                {/* Labels on Y Axis */}
+                <text
+                  x={paddingX}
+                  y={paddingY - 8}
+                  fill="#94a3b8"
+                  fontSize="11"
+                  fontWeight="700"
+                >
+                  Maks: {formatRupiah(maxDailyAmount)}
+                </text>
+                <text
+                  x={paddingX}
+                  y={svgHeight / 2 - 8}
+                  fill="#94a3b8"
+                  fontSize="11"
+                  fontWeight="700"
+                >
+                  50%: {formatRupiah(maxDailyAmount / 2)}
+                </text>
+
+                {/* Area fill */}
+                {areaPathD && (
+                  <path
+                    d={areaPathD}
+                    fill="url(#expenseAreaGrad)"
+                    className="transition-all duration-300"
+                  />
+                )}
+
+                {/* Line stroke */}
+                {linePathD && (
+                  <path
+                    d={linePathD}
+                    fill="none"
+                    stroke="#991213"
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="transition-all duration-300"
+                  />
+                )}
+
+                {/* Data Points */}
+                {linePoints.map((pt) => {
+                  const hasSpent = pt.data.totalAmount > 0;
+                  const isHovered = hoveredDay?.day === pt.data.day;
+                  const isPeak = peakDay?.day === pt.data.day && hasSpent;
 
                   return (
-                    <div
-                      key={d.day}
-                      onMouseEnter={() => setHoveredDay(d)}
-                      onClick={() => setHoveredDay(d)}
-                      className="flex-1 flex flex-col items-center justify-end h-full group cursor-pointer relative"
+                    <g
+                      key={pt.data.day}
+                      className="cursor-pointer"
+                      onMouseEnter={() => setHoveredDay(pt.data)}
+                      onClick={() => setHoveredDay(pt.data)}
                     >
-                      {/* Floating tooltip on hover or peak */}
-                      {(isHovered || isPeak) && (
-                        <div
-                          className={`absolute -top-9 z-20 whitespace-nowrap px-2 py-0.5 rounded-md text-[10px] font-black shadow-md transition-all ${
-                            isPeak && !isHovered
-                              ? "bg-amber-500 text-white"
-                              : "bg-[#991213] text-white"
-                          }`}
+                      {/* Interactive Dot */}
+                      <circle
+                        cx={pt.x}
+                        cy={pt.y}
+                        r={isHovered ? 7 : isPeak ? 6 : hasSpent ? 4.5 : 2.5}
+                        fill={hasSpent ? (isPeak ? "#f59e0b" : "#991213") : "#cbd5e1"}
+                        stroke="#ffffff"
+                        strokeWidth={hasSpent ? 2 : 1}
+                        className="transition-all duration-150 hover:scale-125"
+                      />
+
+                      {/* X-axis label */}
+                      {(pt.data.day % 5 === 0 || pt.data.day === 1 || pt.data.day === daysInMonth || isHovered) && (
+                        <text
+                          x={pt.x}
+                          y={svgHeight - 10}
+                          textAnchor="middle"
+                          fill={isHovered ? "#991213" : "#64748b"}
+                          fontSize="11"
+                          fontWeight={isHovered || isPeak ? "900" : "600"}
                         >
-                          {d.totalAmount > 0 ? formatRupiah(d.totalAmount) : "Rp 0"}
-                        </div>
+                          Tgl {pt.data.day}
+                        </text>
                       )}
-
-                      {/* Bar Pillar */}
-                      <div className="w-full max-w-[24px] h-[180px] flex items-end justify-center">
-                        <div
-                          style={{ height: `${heightPercent}%` }}
-                          className={`w-full rounded-t-lg transition-all duration-300 ${
-                            hasSpent
-                              ? isPeak
-                                ? "bg-gradient-to-t from-[#991213] via-rose-600 to-amber-500 shadow-sm shadow-rose-900/30 ring-1 ring-amber-400"
-                                : isHovered
-                                ? "bg-gradient-to-t from-[#7f0e0f] to-rose-600 ring-2 ring-[#991213]"
-                                : "bg-gradient-to-t from-[#991213] to-rose-500 hover:from-[#7f0e0f] hover:to-rose-600"
-                              : "bg-[#FFD9D9]/30 hover:bg-[#FFD9D9]/60 rounded-t-sm"
-                          }`}
-                        />
-                      </div>
-
-                      {/* X-axis Day Label */}
-                      <div className="mt-2 text-center">
-                        <span
-                          className={`block text-[11px] font-black transition-colors ${
-                            hasSpent
-                              ? isPeak
-                                ? "text-[#991213] underline font-extrabold"
-                                : "text-slate-900 font-black"
-                              : "text-slate-400 font-medium"
-                          }`}
-                        >
-                          {d.day}
-                        </span>
-                        <span className="block text-[9px] text-slate-400 leading-tight">
-                          {d.dayName}
-                        </span>
-                      </div>
-                    </div>
+                    </g>
                   );
                 })}
-              </div>
+              </svg>
             </div>
-          )}
-
-          {/* Garis / Area Mode */}
-          {chartType === "line" && (
-            <div className="overflow-x-auto pb-2">
-              <div className="min-w-[680px]">
-                <svg
-                  viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-                  className="w-full h-64 overflow-visible"
-                >
-                  <defs>
-                    <linearGradient
-                      id="expenseAreaGrad"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="#991213" stopOpacity="0.4" />
-                      <stop offset="100%" stopColor="#991213" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Horizontal Grid lines */}
-                  <line
-                    x1={paddingX}
-                    y1={paddingY}
-                    x2={svgWidth - paddingX}
-                    y2={paddingY}
-                    stroke="#e2e8f0"
-                    strokeDasharray="4 4"
-                  />
-                  <line
-                    x1={paddingX}
-                    y1={svgHeight / 2}
-                    x2={svgWidth - paddingX}
-                    y2={svgHeight / 2}
-                    stroke="#e2e8f0"
-                    strokeDasharray="4 4"
-                  />
-                  <line
-                    x1={paddingX}
-                    y1={svgHeight - paddingY}
-                    x2={svgWidth - paddingX}
-                    y2={svgHeight - paddingY}
-                    stroke="#cbd5e1"
-                  />
-
-                  {/* Labels on Y Axis */}
-                  <text
-                    x={paddingX}
-                    y={paddingY - 8}
-                    fill="#94a3b8"
-                    fontSize="11"
-                    fontWeight="700"
-                  >
-                    Maks: {formatRupiah(maxDailyAmount)}
-                  </text>
-                  <text
-                    x={paddingX}
-                    y={svgHeight / 2 - 8}
-                    fill="#94a3b8"
-                    fontSize="11"
-                    fontWeight="700"
-                  >
-                    50%: {formatRupiah(maxDailyAmount / 2)}
-                  </text>
-
-                  {/* Area fill */}
-                  {areaPathD && (
-                    <path
-                      d={areaPathD}
-                      fill="url(#expenseAreaGrad)"
-                      className="transition-all duration-300"
-                    />
-                  )}
-
-                  {/* Line stroke */}
-                  {linePathD && (
-                    <path
-                      d={linePathD}
-                      fill="none"
-                      stroke="#991213"
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="transition-all duration-300"
-                    />
-                  )}
-
-                  {/* Data Points */}
-                  {linePoints.map((pt) => {
-                    const hasSpent = pt.data.totalAmount > 0;
-                    const isHovered = hoveredDay?.day === pt.data.day;
-                    const isPeak = peakDay?.day === pt.data.day && hasSpent;
-
-                    return (
-                      <g
-                        key={pt.data.day}
-                        className="cursor-pointer"
-                        onMouseEnter={() => setHoveredDay(pt.data)}
-                        onClick={() => setHoveredDay(pt.data)}
-                      >
-                        {/* Interactive Dot */}
-                        <circle
-                          cx={pt.x}
-                          cy={pt.y}
-                          r={isHovered ? 7 : isPeak ? 6 : hasSpent ? 4.5 : 2.5}
-                          fill={hasSpent ? (isPeak ? "#f59e0b" : "#991213") : "#cbd5e1"}
-                          stroke="#ffffff"
-                          strokeWidth={hasSpent ? 2 : 1}
-                          className="transition-all duration-150 hover:scale-125"
-                        />
-
-                        {/* X-axis label */}
-                        {(pt.data.day % 5 === 0 || pt.data.day === 1 || pt.data.day === daysInMonth || isHovered) && (
-                          <text
-                            x={pt.x}
-                            y={svgHeight - 10}
-                            textAnchor="middle"
-                            fill={isHovered ? "#991213" : "#64748b"}
-                            fontSize="11"
-                            fontWeight={isHovered || isPeak ? "900" : "600"}
-                          >
-                            Tgl {pt.data.day}
-                          </text>
-                        )}
-                      </g>
-                    );
-                  })}
-                </svg>
-              </div>
-            </div>
-          )}
+          </div>
 
           {/* Interactive Highlight Card (Detail Hari Terpilih) */}
           <div className="p-4 sm:p-5 rounded-2xl bg-[#FFF9F9] border border-[#FFD9D9] flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all">
@@ -554,4 +446,3 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
     </div>
   );
 };
-
