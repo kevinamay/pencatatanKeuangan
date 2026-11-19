@@ -7,6 +7,7 @@ import {
   AlertCircle,
   CheckCircle,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import {
   IncomeItem,
@@ -16,6 +17,7 @@ import {
 } from "@/types/finance";
 import {
   formatRupiah,
+  FinanceStorage,
 } from "@/lib/storage";
 import { LottieAnimation } from "@/components/LottieAnimation";
 
@@ -84,13 +86,33 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
           </p>
         </div>
 
-        <button
-          onClick={handlePrint}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-[#991213] hover:bg-[#7f0e0f] text-white font-black text-xs sm:text-sm shadow-md shadow-[#991213]/25 transition-all active:scale-95"
-        >
-          <Printer className="w-4 h-4" />
-          <span>Cetak / Simpan PDF</span>
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={async () => {
+              if (
+                confirm(
+                  "Apakah Anda yakin ingin membersihkan dan mengosongkan SELURUH data keuangan di Firebase dan aplikasi?"
+                )
+              ) {
+                await FinanceStorage.clearAllData();
+                alert("Seluruh data berhasil dibersihkan!");
+              }
+            }}
+            className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-2xl bg-[#FFF0F0] hover:bg-[#FFE0E0] border border-[#FFD9D9] text-[#991213] font-bold text-xs shadow-xs active:scale-95 transition-all"
+            title="Bersihkan Semua Data"
+          >
+            <Trash2 className="w-4 h-4 text-rose-600" />
+            <span>Bersihkan Data</span>
+          </button>
+
+          <button
+            onClick={handlePrint}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-[#991213] hover:bg-[#7f0e0f] text-white font-black text-xs sm:text-sm shadow-md shadow-[#991213]/25 transition-all active:scale-95"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Cetak / Simpan PDF</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Statement Sheet */}

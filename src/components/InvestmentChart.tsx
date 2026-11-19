@@ -640,3 +640,4 @@ export const InvestmentChart: React.FC<InvestmentChartProps> = ({
     </div>
   );
 };
+

@@ -111,13 +111,33 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={onOpenQuickAdd}
-          className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#991213] hover:bg-[#7f0e0f] text-white font-extrabold text-sm shadow-md shadow-[#991213]/25 active:scale-95 transition-all"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>Tambah Transaksi Baru</span>
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={async () => {
+              if (
+                confirm(
+                  "Apakah Anda yakin ingin membersihkan dan mengosongkan SELURUH data keuangan di Firebase dan aplikasi?"
+                )
+              ) {
+                await FinanceStorage.clearAllData();
+                alert("Seluruh data berhasil dibersihkan!");
+              }
+            }}
+            className="flex items-center justify-center gap-1.5 px-4 py-3 rounded-2xl bg-[#FFF0F0] hover:bg-[#FFE0E0] border border-[#FFD9D9] text-[#991213] font-bold text-xs shadow-xs active:scale-95 transition-all"
+            title="Bersihkan Semua Data"
+          >
+            <Trash2 className="w-4 h-4 text-rose-600" />
+            <span>Bersihkan Data</span>
+          </button>
+
+          <button
+            onClick={onOpenQuickAdd}
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#991213] hover:bg-[#7f0e0f] text-white font-extrabold text-sm shadow-md shadow-[#991213]/25 active:scale-95 transition-all"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Tambah Transaksi Baru</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Tabs & Search Controls */}

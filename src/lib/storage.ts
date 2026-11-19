@@ -14,12 +14,12 @@ import {
   MoneyMarketProduct,
 } from "@/types/finance";
 
-// Storage keys untuk fallback lokal (v2 tanpa data dummy)
+// Storage keys untuk fallback lokal (v3 - Clean Database)
 const LOCAL_STORAGE_KEYS = {
-  INCOMES: "keuangan_incomes_v2",
-  EXPENSES: "keuangan_expenses_v2",
-  SAVINGS: "keuangan_savings_v2",
-  MONEY_MARKET: "keuangan_money_market_v2",
+  INCOMES: "keuangan_incomes_v3",
+  EXPENSES: "keuangan_expenses_v3",
+  SAVINGS: "keuangan_savings_v3",
+  MONEY_MARKET: "keuangan_money_market_v3",
 };
 
 // Data Awal Bersih Tanpa Data Dummy (Clean Empty State)
@@ -153,6 +153,10 @@ export class FinanceStorage {
       "keuangan_expenses_v1",
       "keuangan_savings_v1",
       "keuangan_money_market_v1",
+      "keuangan_incomes_v2",
+      "keuangan_expenses_v2",
+      "keuangan_savings_v2",
+      "keuangan_money_market_v2",
     ].forEach((k) => {
       try {
         localStorage.removeItem(k);
@@ -190,22 +194,8 @@ export class FinanceStorage {
             list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             setLocalData(LOCAL_STORAGE_KEYS.INCOMES, list);
           } else {
-            // Jika Realtime Database kosong tapi lokal ada data, sinkronkan ke cloud
-            const local = getLocalData<IncomeItem[]>(LOCAL_STORAGE_KEYS.INCOMES, []);
-            if (local.length > 0) {
-              local.forEach((item) => {
-                const newRef = push(incomesRef);
-                set(newRef, {
-                  date: item.date,
-                  month: item.month,
-                  amount: item.amount,
-                  category: item.category,
-                  source: item.source,
-                  note: item.note || "",
-                  createdAt: item.createdAt || Date.now(),
-                });
-              });
-            }
+            // Jika Realtime Database kosong, set lokal kosong
+            setLocalData(LOCAL_STORAGE_KEYS.INCOMES, []);
           }
           this.notify();
         },
@@ -231,22 +221,7 @@ export class FinanceStorage {
             list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             setLocalData(LOCAL_STORAGE_KEYS.EXPENSES, list);
           } else {
-            // Jika Realtime Database kosong tapi lokal ada data (seperti -Rp 15.000 Makan), unggah ke RTDB!
-            const local = getLocalData<ExpenseItem[]>(LOCAL_STORAGE_KEYS.EXPENSES, []);
-            if (local.length > 0) {
-              local.forEach((item) => {
-                const newRef = push(expensesRef);
-                set(newRef, {
-                  date: item.date,
-                  month: item.month,
-                  amount: item.amount,
-                  category: item.category,
-                  title: item.title || "",
-                  note: item.note || "",
-                  createdAt: item.createdAt || Date.now(),
-                });
-              });
-            }
+            setLocalData(LOCAL_STORAGE_KEYS.EXPENSES, []);
           }
           this.notify();
         },
@@ -273,22 +248,7 @@ export class FinanceStorage {
             setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, list);
             this.syncMoneyMarketFromSavings(list);
           } else {
-            const local = getLocalData<SavingsAllocation[]>(LOCAL_STORAGE_KEYS.SAVINGS, []);
-            if (local.length > 0) {
-              local.forEach((item) => {
-                const newRef = push(savingsRef);
-                set(newRef, {
-                  date: item.date,
-                  month: item.month,
-                  amount: item.amount,
-                  targetType: item.targetType,
-                  accountName: item.accountName,
-                  note: item.note || "",
-                  createdAt: item.createdAt || Date.now(),
-                });
-              });
-              this.syncMoneyMarketFromSavings(local);
-            }
+            setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, []);
           }
           this.notify();
         },
@@ -313,19 +273,8 @@ export class FinanceStorage {
             }));
             setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, list);
             this.deduplicateMoneyMarket();
-            if (list.length === 0) {
-              this.syncMoneyMarketFromSavings();
-            }
           } else {
-            const local = getLocalData<MoneyMarketProduct[]>(LOCAL_STORAGE_KEYS.MONEY_MARKET, []);
-            if (local.length > 0) {
-              local.forEach((item) => {
-                const newRef = push(mmRef);
-                set(newRef, item);
-              });
-            } else {
-              this.syncMoneyMarketFromSavings();
-            }
+            setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, []);
           }
           this.notify();
         },
