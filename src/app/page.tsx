@@ -1,12 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { Navbar } from "@/components/Navbar";
 import { DashboardView } from "@/components/DashboardView";
-import { TransactionsView } from "@/components/TransactionsView";
-import { SavingsMoneyMarketView } from "@/components/SavingsMoneyMarketView";
-import { ReconciliationReportView } from "@/components/ReconciliationReportView";
-import { QuickAddModal } from "@/components/QuickAddModal";
 import { FinanceStorage } from "@/lib/storage";
 import {
   IncomeItem,
@@ -14,6 +11,55 @@ import {
   SavingsAllocation,
   MoneyMarketProduct,
 } from "@/types/finance";
+
+// Tab Loading Skeleton (Swiss Minimalist Theme)
+const ViewLoadingSkeleton = ({ title }: { title: string }) => (
+  <div className="w-full py-16 flex flex-col items-center justify-center gap-3">
+    <div className="w-8 h-8 rounded-full border-2 border-[#FFD9D9] border-t-[#991213] animate-spin" />
+    <span className="text-xs font-semibold text-[#991213] tracking-wide uppercase">
+      {title}
+    </span>
+  </div>
+);
+
+// High-Performance Dynamic Imports (Code-Splitting for Instant Page Load)
+const TransactionsView = dynamic(
+  () =>
+    import("@/components/TransactionsView").then((mod) => mod.TransactionsView),
+  {
+    loading: () => <ViewLoadingSkeleton title="Memuat Data Transaksi..." />,
+    ssr: false,
+  }
+);
+
+const SavingsMoneyMarketView = dynamic(
+  () =>
+    import("@/components/SavingsMoneyMarketView").then(
+      (mod) => mod.SavingsMoneyMarketView
+    ),
+  {
+    loading: () => <ViewLoadingSkeleton title="Memuat Tabungan & Pasar Uang..." />,
+    ssr: false,
+  }
+);
+
+const ReconciliationReportView = dynamic(
+  () =>
+    import("@/components/ReconciliationReportView").then(
+      (mod) => mod.ReconciliationReportView
+    ),
+  {
+    loading: () => <ViewLoadingSkeleton title="Memuat Laporan Rekonsiliasi..." />,
+    ssr: false,
+  }
+);
+
+const QuickAddModal = dynamic(
+  () => import("@/components/QuickAddModal").then((mod) => mod.QuickAddModal),
+  {
+    ssr: false,
+  }
+);
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<
@@ -109,11 +155,13 @@ export default function Home() {
       </main>
 
       {/* Quick Add Modal */}
-      <QuickAddModal
-        isOpen={isQuickAddOpen}
-        onClose={() => setIsQuickAddOpen(false)}
-        selectedMonth={selectedMonth}
-      />
+      {isQuickAddOpen && (
+        <QuickAddModal
+          isOpen={isQuickAddOpen}
+          onClose={() => setIsQuickAddOpen(false)}
+          selectedMonth={selectedMonth}
+        />
+      )}
 
       {/* Professional Footer */}
       <footer className="mt-auto border-t border-[#FFD9D9] bg-white py-6 text-center text-xs text-slate-500 font-medium">

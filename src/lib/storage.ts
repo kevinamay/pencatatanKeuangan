@@ -98,22 +98,33 @@ export function calculateMoneyMarketProfit(
   };
 }
 
-// Local Storage Helper
+// In-Memory Fast Cache (0ms Access, No redundant JSON.parse)
+let memoryCache: Record<string, any> = {};
+
+// Local Storage Helper with High-Speed In-Memory Cache
 function getLocalData<T>(key: string, defaultValue: T): T {
+  if (memoryCache[key] !== undefined) {
+    return memoryCache[key];
+  }
   if (typeof window === "undefined") return defaultValue;
   try {
     const raw = localStorage.getItem(key);
     if (!raw) {
       localStorage.setItem(key, JSON.stringify(defaultValue));
+      memoryCache[key] = defaultValue;
       return defaultValue;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    memoryCache[key] = parsed;
+    return parsed;
   } catch {
+    memoryCache[key] = defaultValue;
     return defaultValue;
   }
 }
 
 function setLocalData<T>(key: string, value: T) {
+  memoryCache[key] = value;
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(key, JSON.stringify(value));
@@ -127,6 +138,8 @@ export class FinanceStorage {
   // Subscribers callback
   private static listeners: Array<() => void> = [];
   private static isFirebaseConnected = false;
+  private static isInitialized = false;
+  private static notifyTimer: ReturnType<typeof setTimeout> | null = null;
 
   public static subscribe(callback: () => void) {
     this.listeners.push(callback);
@@ -135,8 +148,13 @@ export class FinanceStorage {
     };
   }
 
+  // 16ms animation frame batching debounce to eliminate cascading re-renders
   private static notify() {
-    this.listeners.forEach((cb) => cb());
+    if (this.notifyTimer) return;
+    this.notifyTimer = setTimeout(() => {
+      this.notifyTimer = null;
+      this.listeners.forEach((cb) => cb());
+    }, 16);
   }
 
   public static getFirebaseStatus(): boolean {
@@ -145,7 +163,8 @@ export class FinanceStorage {
 
   // Inisialisasi sinkronisasi Firebase Realtime Database
   public static initSync() {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || this.isInitialized) return;
+    this.isInitialized = true;
 
     // Bersihkan legacy dummy keys versi sebelumnya jika ada
     [
@@ -384,6 +403,7 @@ export class FinanceStorage {
 
   // Clear seluruh data (Reset Bersih)
   public static async clearAllData(): Promise<void> {
+    memoryCache = {};
     setLocalData(LOCAL_STORAGE_KEYS.INCOMES, []);
     setLocalData(LOCAL_STORAGE_KEYS.EXPENSES, []);
     setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, []);
