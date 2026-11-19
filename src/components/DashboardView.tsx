@@ -58,14 +58,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const totalExpense = currentExpenses.reduce((acc, curr) => acc + curr.amount, 0);
   const totalSavings = currentSavings.reduce((acc, curr) => acc + curr.amount, 0);
 
-  const remainingSalary = totalIncome - totalExpense - totalSavings;
+  // Tabungan yang dipotong dari gaji (fundingSource !== "external")
+  const salarySavings = currentSavings
+    .filter((item) => item.fundingSource !== "external")
+    .reduce((acc, curr) => acc + curr.amount, 0);
+  // Tabungan mandiri di luar gaji (fundingSource === "external")
+  const externalSavings = currentSavings
+    .filter((item) => item.fundingSource === "external")
+    .reduce((acc, curr) => acc + curr.amount, 0);
+
+  // Sisa Gaji Bersih HANYA dikurangi tabungan yang bersumber dari gaji
+  const remainingSalary = totalIncome - totalExpense - salarySavings;
 
   const expenseRate = totalIncome > 0 ? (totalExpense / totalIncome) * 100 : 0;
-  const savingsRate = totalIncome > 0 ? (totalSavings / totalIncome) * 100 : 0;
+  const savingsRate = totalIncome > 0 ? (salarySavings / totalIncome) * 100 : 0;
   const remainingRate = totalIncome > 0 ? (remainingSalary / totalIncome) * 100 : 0;
 
   const isSurplus = remainingSalary > 0;
-  const isDeficit = remainingSalary < 0;
+  const isDeficit = remainingSalary < 0 && totalIncome > 0;
+  const isZeroOrNoIncome = totalIncome === 0;
 
   const mmSummary = moneyMarket.reduce(
     (acc, item) => {
@@ -168,9 +179,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </h1>
 
             <p className="text-xs sm:text-sm text-[#FFD9D9] font-medium leading-relaxed">
-              Total Gaji Masuk: <span className="text-white font-bold">{formatRupiah(totalIncome)}</span> • 
+              Total Gaji: <span className="text-white font-bold">{formatRupiah(totalIncome)}</span> • 
               Terpotong Belanja: <span className="text-white font-bold">{formatRupiah(totalExpense)}</span> • 
-              Alokasi Tabungan: <span className="text-white font-bold">{formatRupiah(totalSavings)}</span>
+              Tabungan dari Gaji: <span className="text-white font-bold">{formatRupiah(salarySavings)}</span>
+              {externalSavings > 0 && (
+                <>
+                  {" "}• Tabungan Luar Gaji: <span className="text-emerald-200 font-bold">+{formatRupiah(externalSavings)}</span>
+                </>
+              )}
             </p>
 
             <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-2">
@@ -193,12 +209,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <TrendingUp className="w-3.5 h-3.5" />
                     Surplus Aman (+{remainingRate.toFixed(1)}% dari gaji)
                   </>
+                ) : isZeroOrNoIncome ? (
+                  <>Arus Kas Seimbang (Rp 0)</>
                 ) : (
                   <>Seimbang 100% Teralokasi</>
                 )}
               </span>
               <span className="text-xs text-[#FFD9D9]/80 font-semibold hidden sm:inline">
-                Formula: Gaji - Pengeluaran - Tabungan
+                Formula: Gaji - Belanja - Tabungan (dari Gaji)
               </span>
             </div>
           </div>
@@ -312,7 +330,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {formatRupiah(totalSavings)}
             </h3>
             <p className="text-xs font-bold text-[#8B0000]">
-              {savingsRate.toFixed(1)}% rasio tabungan bulanan
+              {salarySavings > 0
+                ? `${savingsRate.toFixed(1)}% rasio dari gaji`
+                : "Alokasi Mandiri / Luar Gaji"}
+              {externalSavings > 0 && salarySavings > 0 && ` (+${formatRupiah(externalSavings)} luar gaji)`}
             </p>
           </div>
           <div className="mt-4 pt-3 border-t border-[#FFD9D9]/60 flex items-center justify-between text-xs font-semibold">

@@ -25,6 +25,8 @@ export type SavingsTargetType =
   | "money_market"  // Dialokasikan ke Pasar Uang
   | "goal";         // Target Impian (Liburan, Gadget, dll)
 
+export type SavingsFundingSource = "salary" | "external";
+
 export interface IncomeItem {
   id: string;
   date: string; // YYYY-MM-DD
@@ -54,6 +56,7 @@ export interface SavingsAllocation {
   amount: number;
   targetType: SavingsTargetType;
   accountName: string; // misal "BCA Tabungan", "Bibit Reksadana", dll.
+  fundingSource?: SavingsFundingSource; // "salary" = potong gaji bulan ini, "external" = uang di luar gaji / mandiri
   note?: string;
   createdAt: number;
 }
@@ -72,6 +75,7 @@ export interface MoneyMarketProduct {
     date: string;
     type: "topup" | "tarik" | "deviden";
     amount: number;
+    fundingSource?: SavingsFundingSource;
     note?: string;
   }>;
   updatedAt: number;
@@ -82,7 +86,9 @@ export interface MonthlyReconciliation {
   totalIncome: number;
   totalExpense: number;
   totalSavings: number;
-  remainingSalary: number; // totalIncome - totalExpense - totalSavings
+  salarySavings?: number;
+  externalSavings?: number;
+  remainingSalary: number; // totalIncome - totalExpense - (salarySavings ?? totalSavings)
   savingsRate: number; // (totalSavings / totalIncome) * 100
   expenseRate: number; // (totalExpense / totalIncome) * 100
   status: "surplus" | "balanced" | "deficit";

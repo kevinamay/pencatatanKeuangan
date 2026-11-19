@@ -42,11 +42,17 @@ export const ReconciliationReportView: React.FC<ReconciliationReportViewProps> =
   const totalIncome = currentIncomes.reduce((acc, curr) => acc + curr.amount, 0);
   const totalExpense = currentExpenses.reduce((acc, curr) => acc + curr.amount, 0);
   const totalSavings = currentSavings.reduce((acc, curr) => acc + curr.amount, 0);
+  const salarySavings = currentSavings
+    .filter((s) => s.fundingSource !== "external")
+    .reduce((acc, curr) => acc + curr.amount, 0);
+  const externalSavings = currentSavings
+    .filter((s) => s.fundingSource === "external")
+    .reduce((acc, curr) => acc + curr.amount, 0);
 
-  const remainingSalary = totalIncome - totalExpense - totalSavings;
+  const remainingSalary = totalIncome - totalExpense - salarySavings;
 
   const expenseRate = totalIncome > 0 ? (totalExpense / totalIncome) * 100 : 0;
-  const savingsRate = totalIncome > 0 ? (totalSavings / totalIncome) * 100 : 0;
+  const savingsRate = totalIncome > 0 ? (salarySavings / totalIncome) * 100 : 0;
   const remainingRate = totalIncome > 0 ? (remainingSalary / totalIncome) * 100 : 0;
 
   const needsCategories = [

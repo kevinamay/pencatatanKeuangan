@@ -13,6 +13,7 @@ import {
   IncomeCategory,
   ExpenseCategory,
   SavingsTargetType,
+  SavingsFundingSource,
 } from "@/types/finance";
 import {
   FinanceStorage,
@@ -67,6 +68,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
   const [savingsAccount, setSavingsAccount] = useState<string>(
     "Sucorinvest Pasar Uang"
   );
+  const [fundingSource, setFundingSource] = useState<SavingsFundingSource>("salary");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -113,10 +115,13 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
           amount: parsedAmount,
           targetType: savingsTarget,
           accountName: savingsAccount.trim() || "Tabungan",
+          fundingSource,
           note: note.trim(),
         });
         setSuccessMsg(
-          `Alokasi Tabungan ${formatRupiah(parsedAmount)} berhasil dicatat!`
+          `Alokasi Tabungan ${formatRupiah(parsedAmount)} (${
+            fundingSource === "salary" ? "Dari Gaji" : "Di Luar Gaji"
+          }) berhasil dicatat!`
         );
       }
 
@@ -328,6 +333,54 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
               </div>
             )}
           </div>
+
+          {/* Pilihan Sumber Dana untuk Tabungan & Investasi */}
+          {activeType === "savings" && (
+            <div className="p-3.5 bg-[#FFF0F0] rounded-2xl border border-[#FFD9D9] space-y-2">
+              <label className="block text-xs font-bold text-slate-800">
+                Sumber Dana Tabungan / Investasi
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFundingSource("salary")}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all text-left flex flex-col gap-0.5 ${
+                    fundingSource === "salary"
+                      ? "bg-[#8B0000] text-white shadow-xs"
+                      : "bg-white text-slate-700 border border-[#FFD9D9] hover:text-[#8B0000]"
+                  }`}
+                >
+                  <span>💰 Dari Uang Gaji</span>
+                  <span
+                    className={`text-[10px] font-normal ${
+                      fundingSource === "salary" ? "text-[#FFD9D9]" : "text-slate-400"
+                    }`}
+                  >
+                    Dipotong dari sisa gaji
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFundingSource("external")}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all text-left flex flex-col gap-0.5 ${
+                    fundingSource === "external"
+                      ? "bg-[#8B0000] text-white shadow-xs"
+                      : "bg-white text-slate-700 border border-[#FFD9D9] hover:text-[#8B0000]"
+                  }`}
+                >
+                  <span>🌱 Di Luar Gaji / Dana Lain</span>
+                  <span
+                    className={`text-[10px] font-normal ${
+                      fundingSource === "external" ? "text-[#FFD9D9]" : "text-slate-400"
+                    }`}
+                  >
+                    Tidak mengurangi gaji
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {activeType === "income" && (
             <div>

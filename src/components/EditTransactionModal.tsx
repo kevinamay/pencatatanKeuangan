@@ -29,6 +29,7 @@ export interface EditableTransaction {
   note?: string;
   targetType?: SavingsTargetType;
   accountName?: string;
+  fundingSource?: "salary" | "external";
 }
 
 interface EditTransactionModalProps {
@@ -61,6 +62,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
   // Savings
   const [savingsAccount, setSavingsAccount] = useState<string>("");
   const [savingsTarget, setSavingsTarget] = useState<SavingsTargetType>("money_market");
+  const [fundingSource, setFundingSource] = useState<"salary" | "external">("salary");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -80,6 +82,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
       } else if (transaction.txType === "savings") {
         setSavingsAccount(transaction.accountName || "");
         setSavingsTarget(transaction.targetType || "money_market");
+        setFundingSource(transaction.fundingSource || "salary");
       }
     }
   }, [transaction]);
@@ -126,6 +129,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
           amount: parsedAmount,
           targetType: savingsTarget,
           accountName: savingsAccount.trim() || "Tabungan",
+          fundingSource,
           note: note.trim(),
         });
         setSuccessMsg("Alokasi Tabungan berhasil diperbarui!");
@@ -327,6 +331,54 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
               </div>
             )}
           </div>
+
+          {/* Pilihan Sumber Dana saat Edit Tabungan */}
+          {transaction.txType === "savings" && (
+            <div className="p-3.5 bg-[#FFF0F0] rounded-2xl border border-[#FFD9D9] space-y-2">
+              <label className="block text-xs font-bold text-slate-800">
+                Sumber Dana Tabungan / Investasi
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFundingSource("salary")}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all text-left flex flex-col gap-0.5 ${
+                    fundingSource === "salary"
+                      ? "bg-[#8B0000] text-white shadow-xs"
+                      : "bg-white text-slate-700 border border-[#FFD9D9] hover:text-[#8B0000]"
+                  }`}
+                >
+                  <span>💰 Dari Uang Gaji</span>
+                  <span
+                    className={`text-[10px] font-normal ${
+                      fundingSource === "salary" ? "text-[#FFD9D9]" : "text-slate-400"
+                    }`}
+                  >
+                    Dipotong dari sisa gaji
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFundingSource("external")}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold transition-all text-left flex flex-col gap-0.5 ${
+                    fundingSource === "external"
+                      ? "bg-[#8B0000] text-white shadow-xs"
+                      : "bg-white text-slate-700 border border-[#FFD9D9] hover:text-[#8B0000]"
+                  }`}
+                >
+                  <span>🌱 Di Luar Gaji / Mandiri</span>
+                  <span
+                    className={`text-[10px] font-normal ${
+                      fundingSource === "external" ? "text-[#FFD9D9]" : "text-slate-400"
+                    }`}
+                  >
+                    Tidak mengurangi gaji
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {transaction.txType === "income" && (
             <div>

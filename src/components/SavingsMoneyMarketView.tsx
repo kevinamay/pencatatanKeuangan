@@ -62,6 +62,8 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
   const [investAmount, setInvestAmount] = useState("");
   const [investDate, setInvestDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [investNote, setInvestNote] = useState("");
+  const [investFundingSource, setInvestFundingSource] = useState<"salary" | "external">("external");
+  const [addMMFundingSource, setAddMMFundingSource] = useState<"salary" | "external">("external");
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
 
   const [simCapital, setSimCapital] = useState<number>(20000000);
@@ -182,6 +184,17 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
       notes: mmNotes,
     });
 
+    // Catat ke alokasi tabungan
+    await FinanceStorage.addSavings({
+      date: mmStartDate,
+      month: mmStartDate.substring(0, 7),
+      amount: cap,
+      targetType: "money_market",
+      accountName: mmName,
+      fundingSource: addMMFundingSource,
+      note: `Modal Pokok Awal (${mmPlatform})`,
+    });
+
     setMmName("");
     setMmCapital("");
     setShowAddMMModal(false);
@@ -203,6 +216,18 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
         investDate,
         investNote || "Investasi Masuk (Top Up)"
       );
+
+      // Catat ke alokasi tabungan agar portofolio dan pencatatan sinkron
+      const prod = displayMMProducts.find((p) => p.id === showInvestModal.productId);
+      await FinanceStorage.addSavings({
+        date: investDate,
+        month: investDate.substring(0, 7),
+        amount,
+        targetType: "money_market",
+        accountName: prod?.name || "Sucorinvest Pasar Uang",
+        fundingSource: investFundingSource,
+        note: investNote || `Top Up Investasi (${prod?.name || "Pasar Uang"})`,
+      });
     } else {
       await FinanceStorage.withdrawMoneyMarket(
         showInvestModal.productId,
@@ -379,6 +404,18 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                             ? "Target Impian"
                             : "Tabungan Reguler"}
                         </span>
+                        {" • "}
+                        <span
+                          className={`font-bold px-1.5 py-0.5 rounded text-[10px] ${
+                            item.fundingSource === "external"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-[#FFF0F0] text-[#8B0000]"
+                          }`}
+                        >
+                          {item.fundingSource === "external"
+                            ? "🌱 Luar Gaji"
+                            : "💰 Dari Gaji"}
+                        </span>
                         {item.note && ` • ${item.note}`}
                       </p>
                     </div>
@@ -398,6 +435,7 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                           amount: item.amount,
                           targetType: item.targetType,
                           accountName: item.accountName,
+                          fundingSource: item.fundingSource || "salary",
                           note: item.note,
                         })
                       }
@@ -912,6 +950,44 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                 />
               </div>
 
+              {/* Pilihan Sumber Dana Modal Awal */}
+              <div className="p-3 bg-[#FFF0F0] rounded-xl border border-[#FFD9D9] space-y-1.5">
+                <label className="block text-xs font-bold text-slate-800">
+                  Sumber Dana Modal Awal
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAddMMFundingSource("external")}
+                    className={`py-2 px-2.5 rounded-lg text-xs font-bold transition-all text-left flex flex-col gap-0.5 ${
+                      addMMFundingSource === "external"
+                        ? "bg-[#8B0000] text-white shadow-xs"
+                        : "bg-white text-slate-700 border border-[#FFD9D9]"
+                    }`}
+                  >
+                    <span>🌱 Luar Gaji / Mandiri</span>
+                    <span className="text-[10px] opacity-80 font-normal">
+                      Tidak potong gaji
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setAddMMFundingSource("salary")}
+                    className={`py-2 px-2.5 rounded-lg text-xs font-bold transition-all text-left flex flex-col gap-0.5 ${
+                      addMMFundingSource === "salary"
+                        ? "bg-[#8B0000] text-white shadow-xs"
+                        : "bg-white text-slate-700 border border-[#FFD9D9]"
+                    }`}
+                  >
+                    <span>💰 Dari Gaji Bulan Ini</span>
+                    <span className="text-[10px] opacity-80 font-normal">
+                      Potong sisa gaji
+                    </span>
+                  </button>
+                </div>
+              </div>
+
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
@@ -1055,10 +1131,50 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
                 />
               </div>
 
+              {/* Pilihan Sumber Dana untuk Investasi Masuk (Top Up) */}
+              {showInvestModal.mode === "topup" && (
+                <div className="p-3 bg-[#FFF0F0] rounded-xl border border-[#FFD9D9] space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-800">
+                    Sumber Dana Pembelian Investasi
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setInvestFundingSource("external")}
+                      className={`py-2 px-2.5 rounded-lg text-xs font-bold transition-all text-left flex flex-col gap-0.5 ${
+                        investFundingSource === "external"
+                          ? "bg-[#8B0000] text-white shadow-xs"
+                          : "bg-white text-slate-700 border border-[#FFD9D9]"
+                      }`}
+                    >
+                      <span>🌱 Luar Gaji / Mandiri</span>
+                      <span className="text-[10px] opacity-80 font-normal">
+                        Tidak potong sisa gaji
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setInvestFundingSource("salary")}
+                      className={`py-2 px-2.5 rounded-lg text-xs font-bold transition-all text-left flex flex-col gap-0.5 ${
+                        investFundingSource === "salary"
+                          ? "bg-[#8B0000] text-white shadow-xs"
+                          : "bg-white text-slate-700 border border-[#FFD9D9]"
+                      }`}
+                    >
+                      <span>💰 Dari Gaji Bulan Ini</span>
+                      <span className="text-[10px] opacity-80 font-normal">
+                        Dipotong dari gaji
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   {showInvestModal.mode === "topup"
-                    ? "Keterangan / Sumber Dana"
+                    ? "Keterangan / Catatan"
                     : "Keterangan / Alasan Penjualan"}
                 </label>
                 <input

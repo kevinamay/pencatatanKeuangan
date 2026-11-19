@@ -14,12 +14,12 @@ import {
   MoneyMarketProduct,
 } from "@/types/finance";
 
-// Storage keys untuk fallback lokal (v4 - Clean Empty Database)
+// Storage keys untuk fallback lokal (v5 - Support Sumber Dana Investasi & Tabungan)
 const LOCAL_STORAGE_KEYS = {
-  INCOMES: "keuangan_incomes_v4",
-  EXPENSES: "keuangan_expenses_v4",
-  SAVINGS: "keuangan_savings_v4",
-  MONEY_MARKET: "keuangan_money_market_v4",
+  INCOMES: "keuangan_incomes_v5",
+  EXPENSES: "keuangan_expenses_v5",
+  SAVINGS: "keuangan_savings_v5",
+  MONEY_MARKET: "keuangan_money_market_v5",
 };
 
 // Data Awal Bersih Tanpa Data Dummy (Clean Empty State)
@@ -205,6 +205,10 @@ export class FinanceStorage {
       "keuangan_expenses_v3",
       "keuangan_savings_v3",
       "keuangan_money_market_v3",
+      "keuangan_incomes_v4",
+      "keuangan_expenses_v4",
+      "keuangan_savings_v4",
+      "keuangan_money_market_v4",
     ].forEach((k) => {
       try {
         localStorage.removeItem(k);
@@ -674,6 +678,7 @@ export class FinanceStorage {
       amount: newItem.amount,
       targetType: newItem.targetType,
       accountName: newItem.accountName,
+      fundingSource: newItem.fundingSource || "salary",
       note: newItem.note || "",
       createdAt: newItem.createdAt,
     })
@@ -718,6 +723,7 @@ export class FinanceStorage {
       amount: merged.amount,
       targetType: merged.targetType,
       accountName: merged.accountName,
+      fundingSource: merged.fundingSource || "salary",
       note: merged.note || "",
     })
       .then(() => {
