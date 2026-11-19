@@ -39,14 +39,8 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
   );
 
   const [amount, setAmount] = useState<string>("");
-  const [date, setDate] = useState<string>("");
+  const [date, setDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
   const [note, setNote] = useState<string>("");
-
-  React.useEffect(() => {
-    if (!date) {
-      setDate(new Date().toISOString().split("T")[0]);
-    }
-  }, [date]);
 
   // Income Specific
   const [incomeCategory, setIncomeCategory] = useState<IncomeCategory>("Gaji Pokok");

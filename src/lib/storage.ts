@@ -101,6 +101,25 @@ export function calculateMoneyMarketProfit(
 // In-Memory Fast Cache (0ms Access, No redundant JSON.parse)
 let memoryCache: Record<string, any> = {};
 
+// Helper deduplikasi murni in-memory (0 side-effects, tidak pernah memicu loop Firebase)
+function deduplicateMMList(list: MoneyMarketProduct[]): MoneyMarketProduct[] {
+  if (!list || list.length <= 1) return list || [];
+  const uniqueMap = new Map<string, MoneyMarketProduct>();
+  for (const item of list) {
+    const key = (item.name || "").trim().toLowerCase();
+    if (!uniqueMap.has(key)) {
+      uniqueMap.set(key, { ...item });
+    } else {
+      const existing = uniqueMap.get(key)!;
+      existing.history = [
+        ...(existing.history || []),
+        ...(item.history || []),
+      ];
+    }
+  }
+  return Array.from(uniqueMap.values());
+}
+
 // Local Storage Helper with High-Speed In-Memory Cache
 function getLocalData<T>(key: string, defaultValue: T): T {
   if (memoryCache[key] !== undefined) {
@@ -251,7 +270,7 @@ export class FinanceStorage {
         }
       );
 
-      // 3. Listener Savings
+      // 3. Listener Savings (Murni Read & Sync ke Lokal)
       const savingsRef = ref(rtdb, "savings");
       onValue(
         savingsRef,
@@ -265,7 +284,6 @@ export class FinanceStorage {
             }));
             list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, list);
-            this.syncMoneyMarketFromSavings(list);
           } else {
             setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, []);
           }
@@ -278,7 +296,7 @@ export class FinanceStorage {
         }
       );
 
-      // 4. Listener Money Market
+      // 4. Listener Money Market (Murni Read & In-Memory Deduplication)
       const mmRef = ref(rtdb, "money_market");
       onValue(
         mmRef,
@@ -290,8 +308,8 @@ export class FinanceStorage {
               id: key,
               ...val,
             }));
-            setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, list);
-            this.deduplicateMoneyMarket();
+            const cleaned = deduplicateMMList(list);
+            setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, cleaned);
           } else {
             setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, []);
           }
@@ -307,50 +325,15 @@ export class FinanceStorage {
       console.warn("RTDB init error:", e);
       this.isFirebaseConnected = false;
     }
-
-    // Auto-cek dan sinkronisasi awal
-    this.syncMoneyMarketFromSavings();
   }
 
-  // Bersihkan produk duplikat dengan nama yang sama secara otomatis
+  // Deduplikasi lokal in-memory yang aman
   public static deduplicateMoneyMarket() {
     if (typeof window === "undefined") return;
     const currentMM = getLocalData<MoneyMarketProduct[]>(LOCAL_STORAGE_KEYS.MONEY_MARKET, []);
-    if (currentMM.length <= 1) return;
-
-    const uniqueMap = new Map<string, MoneyMarketProduct>();
-    const duplicateIds: string[] = [];
-
-    for (const item of currentMM) {
-      const key = (item.name || "").trim().toLowerCase();
-      if (!uniqueMap.has(key)) {
-        uniqueMap.set(key, { ...item });
-      } else {
-        const first = uniqueMap.get(key)!;
-        // Gabungkan riwayat
-        first.history = [
-          ...(first.history || []),
-          ...(item.history || []),
-        ];
-        duplicateIds.push(item.id);
-      }
-    }
-
-    if (duplicateIds.length > 0) {
-      const cleanedList = Array.from(uniqueMap.values());
-      setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, cleanedList);
-      duplicateIds.forEach((id) => {
-        remove(ref(rtdb, `money_market/${id}`)).catch(() => {});
-      });
-      cleanedList.forEach((prod) => {
-        update(ref(rtdb, `money_market/${prod.id}`), {
-          initialCapital: prod.initialCapital,
-          history: prod.history,
-          updatedAt: Date.now(),
-        }).catch(() => {});
-      });
-      this.notify();
-    }
+    const cleaned = deduplicateMMList(currentMM);
+    setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, cleaned);
+    this.notify();
   }
 
   // Sinkronisasi otomatis Money Market dari alokasi Tabungan yang sudah ada
@@ -728,14 +711,7 @@ export class FinanceStorage {
   // --- MONEY MARKET (PASAR UANG & PORTOFOLIO) ---
   public static getMoneyMarket(): MoneyMarketProduct[] {
     const raw = getLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, DEFAULT_MONEY_MARKET);
-    const uniqueMap = new Map<string, MoneyMarketProduct>();
-    for (const item of raw) {
-      const key = (item.name || "").trim().toLowerCase();
-      if (!uniqueMap.has(key)) {
-        uniqueMap.set(key, item);
-      }
-    }
-    return Array.from(uniqueMap.values());
+    return deduplicateMMList(raw);
   }
 
   public static async addMoneyMarketProduct(

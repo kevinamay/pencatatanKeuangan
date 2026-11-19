@@ -56,19 +56,13 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
   const [mmPlatform, setMmPlatform] = useState("Bibit");
   const [mmCapital, setMmCapital] = useState("");
   const [mmRate, setMmRate] = useState("5.8");
-  const [mmStartDate, setMmStartDate] = useState("");
+  const [mmStartDate, setMmStartDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [mmNotes, setMmNotes] = useState("");
 
   const [investAmount, setInvestAmount] = useState("");
-  const [investDate, setInvestDate] = useState("");
+  const [investDate, setInvestDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [investNote, setInvestNote] = useState("");
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
-
-  React.useEffect(() => {
-    const today = new Date().toISOString().split("T")[0];
-    if (!mmStartDate) setMmStartDate(today);
-    if (!investDate) setInvestDate(today);
-  }, [mmStartDate, investDate]);
 
   const [simCapital, setSimCapital] = useState<number>(20000000);
   const [simMonthlyAdd, setSimMonthlyAdd] = useState<number>(2000000);
