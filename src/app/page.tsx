@@ -105,19 +105,21 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FFF9F9] text-[#1c0606] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#FFF9F9] text-[#1c0606] flex flex-col font-sans print:bg-white print:min-h-0 print:p-0 print:m-0">
       {/* Swiss Minimalist Navigation Header (Desain #2 Permanen) */}
-      <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        selectedMonth={selectedMonth}
-        setSelectedMonth={setSelectedMonth}
-        isFirebaseConnected={isFirebaseConnected}
-        onOpenQuickAdd={() => openQuickAdd()}
-      />
+      <div className="print:hidden">
+        <Navbar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          selectedMonth={selectedMonth}
+          setSelectedMonth={setSelectedMonth}
+          isFirebaseConnected={isFirebaseConnected}
+          onOpenQuickAdd={() => openQuickAdd()}
+        />
+      </div>
 
       {/* Main Single Fixed View Area (Executive Neo-Bank) */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 print:p-0 print:m-0 print:max-w-none print:w-full">
         {activeTab === "dashboard" && (
           <DashboardView
             selectedMonth={selectedMonth}
@@ -171,7 +173,7 @@ export default function Home() {
       )}
 
       {/* Professional Footer */}
-      <footer className="mt-auto border-t border-[#FFD9D9] bg-white py-6 text-center text-xs text-slate-500 font-medium">
+      <footer className="mt-auto border-t border-[#FFD9D9] bg-white py-6 text-center text-xs text-slate-500 font-medium print:hidden">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#8B0000]" />

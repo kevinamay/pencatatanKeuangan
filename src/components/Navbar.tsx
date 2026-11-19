@@ -49,7 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white border-b border-[#FFD9D9] shadow-xs">
+    <header className="sticky top-0 z-40 w-full bg-white border-b border-[#FFD9D9] shadow-xs print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Monospace Logo & Badge */}
