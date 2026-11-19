@@ -25,6 +25,7 @@ interface QuickAddModalProps {
   onClose: () => void;
   selectedMonth?: string;
   defaultMonth?: string;
+  initialType?: "income" | "expense" | "savings";
 }
 
 export const QuickAddModal: React.FC<QuickAddModalProps> = ({
@@ -32,11 +33,18 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
   onClose,
   selectedMonth,
   defaultMonth,
+  initialType = "income",
 }) => {
   const currentMonth = selectedMonth || defaultMonth || "2026-11";
   const [activeType, setActiveType] = useState<"income" | "expense" | "savings">(
-    "income"
+    initialType
   );
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setActiveType(initialType);
+    }
+  }, [isOpen, initialType]);
 
   const [amount, setAmount] = useState<string>("");
   const [date, setDate] = useState<string>(() => new Date().toISOString().split("T")[0]);

@@ -67,6 +67,12 @@ export default function Home() {
   >("dashboard");
   const [selectedMonth, setSelectedMonth] = useState<string>("2026-11");
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [quickAddType, setQuickAddType] = useState<"income" | "expense" | "savings">("income");
+
+  const openQuickAdd = (type?: "income" | "expense" | "savings") => {
+    setQuickAddType(type || (activeTab === "savings" ? "savings" : "income"));
+    setIsQuickAddOpen(true);
+  };
 
   // Financial Data States
   const [incomes, setIncomes] = useState<IncomeItem[]>([]);
@@ -107,7 +113,7 @@ export default function Home() {
         selectedMonth={selectedMonth}
         setSelectedMonth={setSelectedMonth}
         isFirebaseConnected={isFirebaseConnected}
-        onOpenQuickAdd={() => setIsQuickAddOpen(true)}
+        onOpenQuickAdd={() => openQuickAdd()}
       />
 
       {/* Main Single Fixed View Area (Executive Neo-Bank) */}
@@ -120,7 +126,7 @@ export default function Home() {
             savings={savings}
             moneyMarket={moneyMarket}
             onNavigateToTab={(tab) => setActiveTab(tab)}
-            onOpenQuickAdd={() => setIsQuickAddOpen(true)}
+            onOpenQuickAdd={() => openQuickAdd("income")}
           />
         )}
 
@@ -130,7 +136,7 @@ export default function Home() {
             expenses={expenses}
             savings={savings}
             selectedMonth={selectedMonth}
-            onOpenQuickAdd={() => setIsQuickAddOpen(true)}
+            onOpenQuickAdd={() => openQuickAdd("expense")}
           />
         )}
 
@@ -139,7 +145,7 @@ export default function Home() {
             savings={savings}
             moneyMarket={moneyMarket}
             selectedMonth={selectedMonth}
-            onOpenQuickAdd={() => setIsQuickAddOpen(true)}
+            onOpenQuickAdd={() => openQuickAdd("savings")}
           />
         )}
 
@@ -160,6 +166,7 @@ export default function Home() {
           isOpen={isQuickAddOpen}
           onClose={() => setIsQuickAddOpen(false)}
           selectedMonth={selectedMonth}
+          initialType={quickAddType}
         />
       )}
 
