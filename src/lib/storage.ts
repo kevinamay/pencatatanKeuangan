@@ -271,6 +271,7 @@ export class FinanceStorage {
             }));
             list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, list);
+            this.syncMoneyMarketFromSavings(list);
           } else {
             const local = getLocalData<SavingsAllocation[]>(LOCAL_STORAGE_KEYS.SAVINGS, []);
             if (local.length > 0) {
@@ -286,6 +287,7 @@ export class FinanceStorage {
                   createdAt: item.createdAt || Date.now(),
                 });
               });
+              this.syncMoneyMarketFromSavings(local);
             }
           }
           this.notify();
@@ -310,6 +312,9 @@ export class FinanceStorage {
               ...val,
             }));
             setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, list);
+            if (list.length === 0) {
+              this.syncMoneyMarketFromSavings();
+            }
           } else {
             const local = getLocalData<MoneyMarketProduct[]>(LOCAL_STORAGE_KEYS.MONEY_MARKET, []);
             if (local.length > 0) {
@@ -317,6 +322,8 @@ export class FinanceStorage {
                 const newRef = push(mmRef);
                 set(newRef, item);
               });
+            } else {
+              this.syncMoneyMarketFromSavings();
             }
           }
           this.notify();
@@ -330,6 +337,52 @@ export class FinanceStorage {
     } catch (e) {
       console.warn("RTDB init error:", e);
       this.isFirebaseConnected = false;
+    }
+
+    // Auto-cek dan sinkronisasi awal
+    this.syncMoneyMarketFromSavings();
+  }
+
+  // Sinkronisasi otomatis Money Market dari alokasi Tabungan yang sudah ada
+  public static syncMoneyMarketFromSavings(savingsList?: SavingsAllocation[]) {
+    const list = savingsList || this.getSavings();
+    const mmSavings = list.filter((s) => s.targetType === "money_market");
+    if (mmSavings.length === 0) return;
+
+    const currentMM = this.getMoneyMarket();
+    if (currentMM.length === 0) {
+      const totalAmount = mmSavings.reduce((acc, curr) => acc + curr.amount, 0);
+      const earliestDate = mmSavings.reduce(
+        (earliest, curr) => (curr.date < earliest ? curr.date : earliest),
+        mmSavings[0].date
+      );
+      const primaryName = mmSavings[0].accountName || "Sucorinvest Pasar Uang";
+
+      const mmRef = ref(rtdb, "money_market");
+      const newMMRef = push(mmRef);
+      const newMMId = newMMRef.key || "mm-" + Date.now();
+      const autoProduct: MoneyMarketProduct = {
+        id: newMMId,
+        name: primaryName,
+        platform: "Bibit",
+        initialCapital: totalAmount,
+        returnRatePa: 5.5,
+        startDate: earliestDate,
+        notes: "Sinkronisasi otomatis dari alokasi tabungan",
+        history: mmSavings.map((s) => ({
+          id: "h-" + s.id,
+          date: s.date,
+          type: "topup",
+          amount: s.amount,
+          note: `Alokasi Tabungan (${s.accountName})`,
+        })),
+        updatedAt: Date.now(),
+      };
+      setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, [autoProduct]);
+      set(newMMRef, autoProduct).catch((err) => {
+        console.warn("RTDB sync MM product gagal:", err);
+      });
+      this.notify();
     }
   }
 
@@ -532,11 +585,16 @@ export class FinanceStorage {
     const updated = [newItem, ...current.filter((x) => x.id !== newId)];
     setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, updated);
 
-    // Jika jenis alokasi adalah ke pasar uang, update juga modal pasar uang secara otomatis!
+    // Jika jenis alokasi adalah ke pasar uang, update atau buat produk pasar uang secara otomatis!
     if (newItem.targetType === "money_market") {
       const mmList = this.getMoneyMarket();
       if (mmList.length > 0) {
-        const targetMM = mmList.find((m) => m.name.toLowerCase().includes("pasar uang")) || mmList[0];
+        const targetMM =
+          mmList.find((m) =>
+            m.name.toLowerCase().includes(
+              (newItem.accountName || "pasar uang").toLowerCase()
+            )
+          ) || mmList[0];
         targetMM.initialCapital += newItem.amount;
         targetMM.history = [
           ...(targetMM.history || []),
@@ -556,6 +614,34 @@ export class FinanceStorage {
           history: targetMM.history,
           updatedAt: targetMM.updatedAt,
         }).catch(() => {});
+      } else {
+        // Otomatis buat produk pasar uang jika belum ada produk sebelumnya
+        const mmRef = ref(rtdb, "money_market");
+        const newMMRef = push(mmRef);
+        const newMMId = newMMRef.key || "mm-" + Date.now();
+        const autoProduct: MoneyMarketProduct = {
+          id: newMMId,
+          name: newItem.accountName || "Sucorinvest Pasar Uang",
+          platform: "Bibit",
+          initialCapital: newItem.amount,
+          returnRatePa: 5.5,
+          startDate: newItem.date || new Date().toISOString().split("T")[0],
+          notes: newItem.note || "Otomatis dibuat dari alokasi tabungan",
+          history: [
+            {
+              id: "h-" + Date.now(),
+              date: newItem.date,
+              type: "topup",
+              amount: newItem.amount,
+              note: `Setoran Awal Tabungan (${newItem.accountName})`,
+            },
+          ],
+          updatedAt: Date.now(),
+        };
+        setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, [autoProduct]);
+        set(newMMRef, autoProduct).catch((err) => {
+          console.warn("RTDB auto-create MM product gagal:", err);
+        });
       }
     }
 

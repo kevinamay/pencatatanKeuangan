@@ -11,6 +11,7 @@ import {
   ArrowUpRight,
   Calculator,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import {
   SavingsAllocation,
@@ -23,6 +24,10 @@ import {
   calculateMoneyMarketProfit,
 } from "@/lib/storage";
 import { LottieAnimation } from "@/components/LottieAnimation";
+import {
+  EditTransactionModal,
+  EditableTransaction,
+} from "@/components/EditTransactionModal";
 
 interface SavingsMoneyMarketViewProps {
   savings: SavingsAllocation[];
@@ -83,12 +88,51 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
 
   const simResult = calculateCompoundSimulation();
 
-  const regularSavings = savings.filter(
-    (s) => s.targetType === "regular" || s.targetType === "emergency" || s.targetType === "goal"
-  );
-  const totalRegularSavings = regularSavings.reduce((acc, curr) => acc + curr.amount, 0);
+  const [savingsFilter, setSavingsFilter] = useState<
+    "all" | "money_market" | "emergency" | "other"
+  >("all");
+  const [editingTx, setEditingTx] = useState<EditableTransaction | null>(null);
 
-  const mmSummary = moneyMarket.reduce(
+  // Kategori filter tabungan
+  const mmSavings = savings.filter((s) => s.targetType === "money_market");
+  const emergencySavings = savings.filter((s) => s.targetType === "emergency");
+  const otherSavings = savings.filter(
+    (s) => s.targetType === "regular" || s.targetType === "goal"
+  );
+
+  const filteredSavings = savings.filter((s) => {
+    if (savingsFilter === "money_market") return s.targetType === "money_market";
+    if (savingsFilter === "emergency") return s.targetType === "emergency";
+    if (savingsFilter === "other")
+      return s.targetType === "regular" || s.targetType === "goal";
+    return true;
+  });
+
+  const totalSavingsAll = savings.reduce((acc, curr) => acc + curr.amount, 0);
+
+  // Produk Pasar Uang yang ditampilkan: jika moneyMarket array kosong tapi ada tabungan pasar uang, sediakan live fallback
+  const displayMMProducts: MoneyMarketProduct[] =
+    moneyMarket.length > 0
+      ? moneyMarket
+      : mmSavings.length > 0
+      ? [
+          {
+            id: "mm-live-sync",
+            name: mmSavings[0].accountName || "Sucorinvest Pasar Uang",
+            platform: "Bibit",
+            initialCapital: mmSavings.reduce((acc, curr) => acc + curr.amount, 0),
+            returnRatePa: 5.5,
+            startDate: mmSavings.reduce(
+              (earliest, curr) => (curr.date < earliest ? curr.date : earliest),
+              mmSavings[0].date
+            ),
+            notes: "Terhubung otomatis dari alokasi tabungan pasar uang",
+            updatedAt: Date.now(),
+          },
+        ]
+      : [];
+
+  const mmSummary = displayMMProducts.reduce(
     (acc, item) => {
       const calc = calculateMoneyMarketProfit(
         item.initialCapital,
@@ -104,7 +148,15 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
     { totalCapital: 0, totalProfit: 0, totalValue: 0 }
   );
 
-  const grandTotalSavings = totalRegularSavings + mmSummary.totalValue;
+  // Total Keseluruhan: Seluruh tabungan yang dicatat + keuntungan akumulasi pasar uang
+  const totalConventional = savings
+    .filter((s) => s.targetType !== "money_market")
+    .reduce((acc, curr) => acc + curr.amount, 0);
+
+  const grandTotalSavings = Math.max(
+    totalSavingsAll + mmSummary.totalProfit,
+    totalConventional + mmSummary.totalValue
+  );
 
   const handleAddMM = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,8 +248,8 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
 
       {/* 2 Main Sections Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Kolom 1: Tabungan Yang Sudah Ada */}
-        <div className="p-6 sm:p-7 rounded-3xl bg-white border border-[#FFD9D9] shadow-xs space-y-6">
+        {/* Kolom 1: Daftar Alokasi Tabungan */}
+        <div className="p-6 sm:p-7 rounded-3xl bg-white border border-[#FFD9D9] shadow-xs space-y-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-[#FFD9D9] text-[#991213] flex items-center justify-center font-bold">
@@ -205,58 +257,150 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
               </div>
               <div>
                 <h2 className="font-black text-base sm:text-lg text-slate-900">
-                  Tabungan Yang Sudah Ada
+                  Daftar Alokasi Tabungan
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Tabungan darurat, tabungan bank reguler & target impian
+                  Tabungan pasar uang, darurat, reguler & target impian
                 </p>
               </div>
             </div>
             <span className="text-xs font-black px-3 py-1 bg-[#FFF0F0] border border-[#FFD9D9] rounded-full text-[#991213]">
-              {formatRupiah(totalRegularSavings)}
+              {formatRupiah(totalSavingsAll)}
             </span>
           </div>
 
+          {/* Filter Sub-Tabs */}
+          <div className="flex items-center gap-1.5 p-1 bg-[#FFF0F0] rounded-xl border border-[#FFD9D9] overflow-x-auto text-xs">
+            <button
+              onClick={() => setSavingsFilter("all")}
+              className={`px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
+                savingsFilter === "all"
+                  ? "bg-[#991213] text-white shadow-xs"
+                  : "text-slate-600 hover:text-[#991213]"
+              }`}
+            >
+              Semua ({savings.length})
+            </button>
+            <button
+              onClick={() => setSavingsFilter("money_market")}
+              className={`px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
+                savingsFilter === "money_market"
+                  ? "bg-[#991213] text-white shadow-xs"
+                  : "text-slate-600 hover:text-[#991213]"
+              }`}
+            >
+              Pasar Uang ({mmSavings.length})
+            </button>
+            <button
+              onClick={() => setSavingsFilter("emergency")}
+              className={`px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
+                savingsFilter === "emergency"
+                  ? "bg-[#991213] text-white shadow-xs"
+                  : "text-slate-600 hover:text-[#991213]"
+              }`}
+            >
+              Darurat ({emergencySavings.length})
+            </button>
+            <button
+              onClick={() => setSavingsFilter("other")}
+              className={`px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap ${
+                savingsFilter === "other"
+                  ? "bg-[#991213] text-white shadow-xs"
+                  : "text-slate-600 hover:text-[#991213]"
+              }`}
+            >
+              Reguler & Target ({otherSavings.length})
+            </button>
+          </div>
+
           <div className="space-y-3">
-            {regularSavings.length === 0 ? (
-              <div className="py-8 text-center text-slate-400 text-sm">
-                Belum ada tabungan konvensional yang tercatat.
+            {filteredSavings.length === 0 ? (
+              <div className="py-10 text-center rounded-2xl bg-[#FFF9F9] border border-dashed border-[#FFD9D9] space-y-2">
+                <p className="text-slate-400 text-sm font-medium">
+                  Belum ada alokasi tabungan pada kategori ini.
+                </p>
+                {onOpenQuickAdd && (
+                  <button
+                    onClick={onOpenQuickAdd}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#991213] text-white text-xs font-bold hover:bg-[#7f0e0f] transition-all"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" />
+                    + Catat Tabungan Baru
+                  </button>
+                )}
               </div>
             ) : (
-              regularSavings.map((item) => (
+              filteredSavings.map((item) => (
                 <div
                   key={item.id}
-                  className="p-4 rounded-2xl bg-[#FFF9F9] border border-[#FFD9D9] flex items-center justify-between gap-4"
+                  className="p-4 rounded-2xl bg-[#FFF9F9] border border-[#FFD9D9] flex items-center justify-between gap-4 transition-all hover:bg-white hover:shadow-xs"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-white shadow-xs border border-[#FFD9D9]/50 flex items-center justify-center text-slate-700">
-                      {item.targetType === "emergency" ? (
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-white shadow-xs border border-[#FFD9D9]/50 flex items-center justify-center flex-shrink-0 text-slate-700">
+                      {item.targetType === "money_market" ? (
+                        <TrendingUp className="w-4 h-4 text-[#991213]" />
+                      ) : item.targetType === "emergency" ? (
                         <Shield className="w-4 h-4 text-[#991213]" />
-                      ) : (
+                      ) : item.targetType === "goal" ? (
                         <Target className="w-4 h-4 text-[#991213]" />
+                      ) : (
+                        <PiggyBank className="w-4 h-4 text-[#991213]" />
                       )}
                     </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900">
+                    <div className="min-w-0">
+                      <h4 className="text-sm font-bold text-slate-900 truncate">
                         {item.accountName}
                       </h4>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-[11px] text-slate-500 truncate">
                         {formatTanggalIndo(item.date)} •{" "}
-                        {item.targetType === "emergency"
-                          ? "Dana Darurat"
-                          : "Tabungan Reguler"}
+                        <span className="font-semibold text-[#991213]">
+                          {item.targetType === "money_market"
+                            ? "Pasar Uang"
+                            : item.targetType === "emergency"
+                            ? "Dana Darurat"
+                            : item.targetType === "goal"
+                            ? "Target Impian"
+                            : "Tabungan Reguler"}
+                        </span>
+                        {item.note && ` • ${item.note}`}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <span className="font-black text-[#991213] text-sm">
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="font-black text-[#991213] text-sm mr-1">
                       {formatRupiah(item.amount)}
                     </span>
                     <button
-                      onClick={() => FinanceStorage.deleteSavings(item.id)}
-                      className="text-slate-400 hover:text-rose-500 p-1"
-                      title="Hapus"
+                      onClick={() =>
+                        setEditingTx({
+                          id: item.id,
+                          txType: "savings",
+                          date: item.date,
+                          month: item.month,
+                          amount: item.amount,
+                          targetType: item.targetType,
+                          accountName: item.accountName,
+                          note: item.note,
+                        })
+                      }
+                      className="p-1.5 text-slate-400 hover:text-[#991213] hover:bg-[#FFD9D9]/50 rounded-lg transition-all"
+                      title="Edit Alokasi"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (
+                          confirm(
+                            `Hapus alokasi tabungan "${item.accountName}" (${formatRupiah(item.amount)})?`
+                          )
+                        ) {
+                          await FinanceStorage.deleteSavings(item.id);
+                        }
+                      }}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                      title="Hapus Alokasi"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -265,9 +409,21 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
               ))
             )}
           </div>
+
+          {onOpenQuickAdd && filteredSavings.length > 0 && (
+            <div className="pt-2 border-t border-[#FFD9D9]/60 flex justify-end">
+              <button
+                onClick={onOpenQuickAdd}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#991213] hover:underline"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                Tambah Alokasi Tabungan
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Kolom 2: Tabungan Yang Dimasukkan Ke Pasar Uang */}
+        {/* Kolom 2: Tabungan di Pasar Uang (Portofolio & Imbal Hasil) */}
         <div className="p-6 sm:p-7 rounded-3xl bg-white border border-[#FFD9D9] shadow-xs space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -294,94 +450,121 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
           </div>
 
           <div className="space-y-4">
-            {moneyMarket.map((item) => {
-              const calc = calculateMoneyMarketProfit(
-                item.initialCapital,
-                item.returnRatePa,
-                item.startDate,
-                item.accumulatedReturn
-              );
-
-              return (
-                <div
-                  key={item.id}
-                  className="p-5 rounded-2xl bg-[#FFF9F9] border border-[#FFD9D9] shadow-xs space-y-4"
+            {displayMMProducts.length === 0 ? (
+              <div className="py-12 px-4 text-center rounded-2xl bg-[#FFF9F9] border border-dashed border-[#FFD9D9] space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#FFD9D9] text-[#991213] flex items-center justify-center mx-auto font-bold">
+                  <TrendingUp className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">
+                    Belum Ada Portofolio Pasar Uang
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                    Alokasikan tabungan dengan jenis Pasar Uang saat mencatat transaksi, atau klik Tambah Produk untuk mulai memantau imbal hasil harian.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowAddMMModal(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#991213] text-white font-bold text-xs hover:bg-[#7f0e0f] transition-all"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-black text-slate-900 text-base">
-                          {item.name}
-                        </h3>
-                        <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-md bg-[#FFD9D9] text-[#991213]">
-                          {item.platform}
+                  <PlusCircle className="w-4 h-4" />
+                  Tambah Produk Sekarang
+                </button>
+              </div>
+            ) : (
+              displayMMProducts.map((item) => {
+                const calc = calculateMoneyMarketProfit(
+                  item.initialCapital,
+                  item.returnRatePa,
+                  item.startDate,
+                  item.accumulatedReturn
+                );
+
+                return (
+                  <div
+                    key={item.id}
+                    className="p-5 rounded-2xl bg-[#FFF9F9] border border-[#FFD9D9] shadow-xs space-y-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-black text-slate-900 text-base">
+                            {item.name}
+                          </h3>
+                          <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-md bg-[#FFD9D9] text-[#991213]">
+                            {item.platform}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Mulai {formatTanggalIndo(item.startDate)} • Aktif {calc.daysActive} hari
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-xs text-slate-400 block font-semibold">
+                          Nilai Saat Ini
+                        </span>
+                        <span className="text-lg font-black text-[#991213]">
+                          {formatRupiah(calc.totalValue)}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        Mulai {formatTanggalIndo(item.startDate)} • Aktif {calc.daysActive} hari
-                      </p>
                     </div>
 
-                    <div className="text-right">
-                      <span className="text-xs text-slate-400 block font-semibold">
-                        Nilai Saat Ini
-                      </span>
-                      <span className="text-lg font-black text-[#991213]">
-                        {formatRupiah(calc.totalValue)}
-                      </span>
+                    <div className="grid grid-cols-3 gap-2 p-3 bg-white rounded-xl border border-[#FFD9D9] text-xs">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-semibold">
+                          Modal Pokok
+                        </span>
+                        <span className="font-bold text-slate-800">
+                          {formatRupiah(item.initialCapital)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-semibold">
+                          Imbal Hasil (% p.a.)
+                        </span>
+                        <span className="font-black text-[#991213]">
+                          {item.returnRatePa}% /thn
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-emerald-700 block font-bold">
+                          Keuntungan Didapat
+                        </span>
+                        <span className="font-extrabold text-emerald-700">
+                          +{formatRupiah(calc.estimatedProfit)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-3 gap-2 p-3 bg-white rounded-xl border border-[#FFD9D9] text-xs">
-                    <div>
-                      <span className="text-[10px] text-slate-400 block font-semibold">
-                        Modal Pokok
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        ~ {formatRupiah(calc.monthlyReturn)} estimasi keuntungan per bulan
                       </span>
-                      <span className="font-bold text-slate-800">
-                        {formatRupiah(item.initialCapital)}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 block font-semibold">
-                        Imbal Hasil (% p.a.)
-                      </span>
-                      <span className="font-black text-[#991213]">
-                        {item.returnRatePa}% /thn
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-emerald-700 block font-bold">
-                        Keuntungan Didapat
-                      </span>
-                      <span className="font-extrabold text-emerald-700">
-                        +{formatRupiah(calc.estimatedProfit)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-[11px] text-slate-500 font-medium">
-                      ~ {formatRupiah(calc.monthlyReturn)} estimasi keuntungan per bulan
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setShowTopUpModal(item.id)}
-                        className="px-3 py-1.5 rounded-lg bg-[#991213] hover:bg-[#7f0e0f] text-white font-bold text-xs shadow-xs transition-all"
-                      >
-                        + Top Up Dana
-                      </button>
-                      <button
-                        onClick={() => FinanceStorage.deleteMoneyMarket(item.id)}
-                        className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-all"
-                        title="Hapus instrumen"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setShowTopUpModal(item.id)}
+                          className="px-3 py-1.5 rounded-lg bg-[#991213] hover:bg-[#7f0e0f] text-white font-bold text-xs shadow-xs transition-all"
+                        >
+                          + Top Up Dana
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (confirm(`Hapus instrumen pasar uang "${item.name}"?`)) {
+                              await FinanceStorage.deleteMoneyMarket(item.id);
+                            }
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-all"
+                          title="Hapus instrumen"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       </div>
@@ -696,6 +879,13 @@ export const SavingsMoneyMarketView: React.FC<SavingsMoneyMarketViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Modal Edit Transaksi Tabungan */}
+      <EditTransactionModal
+        isOpen={!!editingTx}
+        transaction={editingTx}
+        onClose={() => setEditingTx(null)}
+      />
     </div>
   );
 };
