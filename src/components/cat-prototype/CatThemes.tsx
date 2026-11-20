@@ -51,7 +51,7 @@ export interface CatVariantProps {
 }
 
 // Universal financial calculation matching original web formulas
-function useFinanceStats(
+export function useFinanceStats(
   incomes: IncomeItem[],
   expenses: ExpenseItem[],
   savings: SavingsAllocation[],

@@ -115,6 +115,29 @@ export default function Home() {
 
     loadData();
 
+    // Baca shortcut & parameter URL (?tab= atau ?action=) dari WebAPK / Home Widget
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (
+        tabParam === "transactions" ||
+        tabParam === "savings" ||
+        tabParam === "report" ||
+        tabParam === "dashboard"
+      ) {
+        setActiveTab(tabParam);
+      }
+      const actionParam = params.get("action");
+      if (
+        actionParam === "income" ||
+        actionParam === "expense" ||
+        actionParam === "savings"
+      ) {
+        setQuickAddType(actionParam);
+        setIsQuickAddOpen(true);
+      }
+    }
+
     const unsubscribe = FinanceStorage.subscribe(() => {
       loadData();
     });

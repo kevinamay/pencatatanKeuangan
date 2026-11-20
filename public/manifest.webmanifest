@@ -56,10 +56,10 @@
   ],
   "shortcuts": [
     {
-      "name": "Catat Transaksi",
-      "short_name": "Transaksi",
-      "description": "Tambah catatan pemasukan atau pengeluaran baru",
-      "url": "/?tab=transactions",
+      "name": "Catat Pengeluaran",
+      "short_name": "Pengeluaran",
+      "description": "Catat pengeluaran baru secara instan",
+      "url": "/?action=expense",
       "icons": [
         {
           "src": "/icons/icon-192x192.png",
@@ -68,14 +68,57 @@
       ]
     },
     {
-      "name": "Tabungan & Pasar Uang",
-      "short_name": "Tabungan",
-      "description": "Lihat portofolio pasar uang dan tabungan",
-      "url": "/?tab=savings",
+      "name": "Catat Gaji Masuk",
+      "short_name": "Gaji",
+      "description": "Catat pemasukan gaji pokok atau sampingan",
+      "url": "/?action=income",
       "icons": [
         {
           "src": "/icons/icon-192x192.png",
           "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Alokasi Tabungan",
+      "short_name": "Tabungan",
+      "description": "Tambah alokasi simpanan atau pasar uang",
+      "url": "/?action=savings",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Widget Saku Saldo",
+      "short_name": "Widget Neko",
+      "description": "Buka tampilan mini widget saku cepat",
+      "url": "/widget",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "name": "Tokyo Neko Glance",
+      "short_name": "Neko Widget",
+      "description": "Pantau saldo sisa gaji bersih dan catat transaksi instan",
+      "tag": "tokyo-neko-widget",
+      "template": "widget-template",
+      "ms_ac_template": "/widget",
+      "data": "/widget",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "/icons/icon-512x512.png",
+          "sizes": "512x512",
+          "label": "Tampilan Widget Tokyo Neko"
         }
       ]
     }
