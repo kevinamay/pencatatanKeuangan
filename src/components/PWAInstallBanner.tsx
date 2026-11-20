@@ -112,9 +112,9 @@ export const PWAInstallBanner: React.FC = () => {
 
   return (
     <>
-      {/* Floating PWA Install Banner */}
+      {/* Floating PWA Install Banner (Mobile Only) */}
       {showBanner && (
-        <div className="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-fade-in print:hidden">
+        <div className="md:hidden fixed bottom-4 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-fade-in print:hidden">
           <div className="rounded-2xl bg-white border border-[#E8E2D8] shadow-2xl p-4 flex items-start gap-3.5 text-stone-900">
             <div className="w-12 h-12 rounded-xl bg-[#FAF7F2] border border-[#E8E2D8] flex items-center justify-center p-1.5 flex-shrink-0 shadow-xs">
               <CatAnimation variant="sleeping" className="w-full h-full" />
