@@ -22,7 +22,7 @@ const LOCAL_STORAGE_KEYS = {
   MONEY_MARKET: "keuangan_money_market_v5",
 };
 
-// Data Awal Bersih Tanpa Data Dummy (Clean Empty State)
+// Data Awal Bersih (Clean Empty State)
 const DEFAULT_INCOMES: IncomeItem[] = [];
 const DEFAULT_EXPENSES: ExpenseItem[] = [];
 const DEFAULT_SAVINGS: SavingsAllocation[] = [];
@@ -191,7 +191,7 @@ export class FinanceStorage {
     if (typeof window === "undefined" || this.isInitialized) return;
     this.isInitialized = true;
 
-    // Bersihkan legacy dummy keys versi sebelumnya jika ada
+    // Bersihkan legacy cache keys versi sebelumnya jika ada
     [
       "keuangan_incomes_v1",
       "keuangan_expenses_v1",
