@@ -80,23 +80,12 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
             </div>
 
             <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span
-                  className="text-base sm:text-lg font-black tracking-tight font-mono"
-                  style={{ color: theme.accent }}
-                >
-                  {theme.navTitle}
-                </span>
-                <span
-                  className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider hidden sm:inline-block"
-                  style={{
-                    backgroundColor: `${theme.accent}15`,
-                    color: theme.accent,
-                  }}
-                >
-                  WABI-SABI EDITION
-                </span>
-              </div>
+              <span
+                className="text-base sm:text-lg font-black tracking-tight font-mono"
+                style={{ color: theme.accent }}
+              >
+                {theme.navTitle}
+              </span>
               <span
                 className={`text-[10px] font-semibold -mt-0.5 hidden md:inline ${
                   theme.isDark ? "text-slate-400" : "text-slate-500"
