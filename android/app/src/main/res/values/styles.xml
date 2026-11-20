@@ -1,0 +1,13 @@
+<resources>
+    <style name="Theme.TokyoNeko" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/text_white</item>
+        <item name="android:statusBarColor">#FAF7F2</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="Theme.TokyoNeko.Fullscreen" parent="Theme.TokyoNeko">
+        <item name="android:windowBackground">#FAF7F2</item>
+    </style>
+</resources>

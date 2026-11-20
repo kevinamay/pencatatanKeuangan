@@ -536,6 +536,40 @@ export default function WidgetPage() {
         </div>
       </div>
 
+      {/* Direct Android APK Download Card */}
+      {!isEmbed && (
+        <div
+          className={`w-full max-w-lg mt-4 p-4 rounded-2xl border flex items-center justify-between gap-3 text-xs transition-all ${
+            isDark
+              ? "bg-[#18181b] border-white/10 text-white"
+              : "bg-amber-50/80 border-amber-200 text-stone-900"
+          }`}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center flex-shrink-0">
+              <Smartphone className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="font-black text-xs truncate">
+                File APK Android Asli (.apk)
+              </h4>
+              <p className={`text-[11px] truncate ${isDark ? "text-stone-400" : "text-stone-600"}`}>
+                Agar widget muncul resmi di menu sistem HP Anda.
+              </p>
+            </div>
+          </div>
+          <a
+            href="https://github.com/kevinamay/pencatatanKeuangan/releases/tag/latest"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3.5 py-2 rounded-xl bg-[#854D0E] hover:bg-[#713F12] text-white font-black text-xs whitespace-nowrap active:scale-95 transition-all shadow-xs flex-shrink-0 flex items-center gap-1"
+          >
+            <span>Unduh APK</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+      )}
+
       {/* ============================================================== */}
       {/* POPUP: CARA PASANG WIDGET PERSIS SEPERTI GAMBAR DI HP          */}
       {/* ============================================================== */}
