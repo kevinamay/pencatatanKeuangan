@@ -19,20 +19,20 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Custom scrollbar matching the theme */
+/* Custom scrollbar matching the warm paper theme */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #FFF2F2;
+  background: #FAF7F2;
 }
 ::-webkit-scrollbar-thumb {
-  background: #FFD9D9;
+  background: #E8E2D8;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #8B0000;
+  background: #854D0E;
 }
 
 /* ============================================================== */

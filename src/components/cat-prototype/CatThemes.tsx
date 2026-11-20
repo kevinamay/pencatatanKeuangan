@@ -193,7 +193,7 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in pb-16">
       {/* 1. Hero: Tokyo Editorial Card with BIGGER Sleeping Kitty Mascot */}
-      <div className="rounded-3xl bg-white border border-[#E8E2D8] p-7 sm:p-10 shadow-sm relative overflow-hidden transition-all duration-300">
+      <div className="rounded-3xl bg-white border border-[#E8E2D8] p-5 sm:p-8 sm:p-10 shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           {/* Left: Financial Statement */}
           <div className="space-y-3.5 text-center lg:text-left max-w-xl">
@@ -249,7 +249,7 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="pt-2 flex items-center justify-center lg:justify-start gap-3">
+            <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-3">
               <button
                 onClick={() => props.onOpenQuickAdd("income")}
                 className="px-4 py-2.5 rounded-xl bg-[#854D0E] hover:bg-[#713F12] text-white font-bold text-xs shadow-xs active:scale-95 transition-all flex items-center gap-1.5"

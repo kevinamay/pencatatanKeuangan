@@ -8,6 +8,7 @@ import {
   ArrowUpDown,
   TrendingUp,
   FileText,
+  ChevronDown,
 } from "lucide-react";
 import { CatAnimation } from "./CatAnimations";
 import { getCatThemeConfig } from "./catThemeConfig";
@@ -23,13 +24,13 @@ interface CatNavbarProps {
 }
 
 const MONTH_OPTIONS = [
-  { value: "2026-11", label: "November 2026" },
-  { value: "2026-10", label: "Oktober 2026" },
-  { value: "2026-09", label: "September 2026" },
-  { value: "2026-08", label: "Agustus 2026" },
-  { value: "2026-07", label: "Juli 2026" },
-  { value: "2026-06", label: "Juni 2026" },
-  { value: "2026-12", label: "Desember 2026" },
+  { value: "2026-11", label: "November 2026", shortLabel: "Nov '26" },
+  { value: "2026-10", label: "Oktober 2026", shortLabel: "Okt '26" },
+  { value: "2026-09", label: "September 2026", shortLabel: "Sep '26" },
+  { value: "2026-08", label: "Agustus 2026", shortLabel: "Agu '26" },
+  { value: "2026-07", label: "Juli 2026", shortLabel: "Jul '26" },
+  { value: "2026-06", label: "Juni 2026", shortLabel: "Jun '26" },
+  { value: "2026-12", label: "Desember 2026", shortLabel: "Des '26" },
 ];
 
 export const CatNavbar: React.FC<CatNavbarProps> = ({
@@ -46,11 +47,34 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
   // Tab-specific animation for navbar mini badge
   const tabAnimation = theme.pageAnimations[activeTab] || theme.pageAnimations.dashboard;
 
+  const currentMonthOption =
+    MONTH_OPTIONS.find((m) => m.value === selectedMonth) || MONTH_OPTIONS[0];
+
   const navTabs = [
-    { id: "dashboard" as const, label: "Ringkasan", icon: LayoutDashboard },
-    { id: "transactions" as const, label: "Transaksi", icon: ArrowUpDown },
-    { id: "savings" as const, label: "Tabungan & Pasar Uang", icon: TrendingUp },
-    { id: "report" as const, label: "Audit Rekonsiliasi", icon: FileText },
+    {
+      id: "dashboard" as const,
+      label: "Ringkasan",
+      shortLabel: "Ringkasan",
+      icon: LayoutDashboard,
+    },
+    {
+      id: "transactions" as const,
+      label: "Transaksi",
+      shortLabel: "Transaksi",
+      icon: ArrowUpDown,
+    },
+    {
+      id: "savings" as const,
+      label: "Tabungan & Pasar Uang",
+      shortLabel: "Tabungan",
+      icon: TrendingUp,
+    },
+    {
+      id: "report" as const,
+      label: "Audit Rekonsiliasi",
+      shortLabel: "Audit",
+      icon: FileText,
+    },
   ];
 
   return (
@@ -64,30 +88,30 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
         borderBottomColor: theme.cardBorder,
       }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
           {/* Logo with Dynamic Page-Specific Cat Mascot */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-xs border transition-transform hover:scale-105"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-xs border transition-transform hover:scale-105 flex-shrink-0"
               style={{
                 backgroundColor: theme.isDark ? "#1E293B" : theme.bgPage,
                 borderColor: theme.cardBorder,
               }}
               title={`Mode Kucing: #${variantId} ${theme.name}`}
             >
-              <CatAnimation variant={tabAnimation} className="w-8 h-8" />
+              <CatAnimation variant={tabAnimation} className="w-7 h-7 sm:w-8 sm:h-8" />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <span
-                className="text-base sm:text-lg font-black tracking-tight font-mono"
+                className="text-sm sm:text-lg font-black tracking-tight font-mono truncate"
                 style={{ color: theme.accent }}
               >
                 {theme.navTitle}
               </span>
               <span
-                className={`text-[10px] font-semibold -mt-0.5 hidden md:inline ${
+                className={`text-[10px] font-semibold -mt-0.5 hidden md:inline truncate ${
                   theme.isDark ? "text-slate-400" : "text-slate-500"
                 }`}
               >
@@ -134,21 +158,30 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
           </nav>
 
           {/* Period Selector & Quick Add Button */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+            {/* Native Select with Responsive Visuals */}
             <div
-              className="flex items-center px-2.5 py-1.5 rounded-xl text-xs font-extrabold border"
+              className="relative flex items-center px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-extrabold border transition-colors cursor-pointer select-none"
               style={{
                 backgroundColor: theme.isDark ? "#1E293B" : `${theme.accent}10`,
                 borderColor: theme.cardBorder,
                 color: theme.accent,
               }}
             >
-              <Calendar className="w-3.5 h-3.5 mr-1.5" style={{ color: theme.accent }} />
+              <Calendar className="w-3.5 h-3.5 mr-1 flex-shrink-0" style={{ color: theme.accent }} />
+              <span className="sm:hidden font-bold text-xs whitespace-nowrap">
+                {currentMonthOption.shortLabel}
+              </span>
+              <span className="hidden sm:inline font-bold text-xs whitespace-nowrap">
+                {currentMonthOption.label}
+              </span>
+              <ChevronDown className="w-3 h-3 ml-1 opacity-70 flex-shrink-0" />
+
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-transparent border-none outline-none cursor-pointer font-bold text-xs"
-                style={{ color: theme.accent }}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base sm:text-xs"
+                aria-label="Pilih Bulan"
               >
                 {MONTH_OPTIONS.map((m) => (
                   <option
@@ -162,47 +195,57 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
               </select>
             </div>
 
+            {/* Quick Add Button - Responsive label so it never truncates on mobile */}
             <button
               onClick={onOpenQuickAdd}
-              className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-white text-xs font-black tracking-wide uppercase transition-all shadow-sm active:scale-95 flex items-center gap-1.5"
+              className="px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-white text-xs font-black tracking-wide uppercase transition-all shadow-xs active:scale-95 flex items-center gap-1 sm:gap-1.5 flex-shrink-0"
               style={{
                 backgroundColor: theme.accent,
               }}
+              title="Tambah Transaksi Baru"
             >
-              <PlusCircle className="w-3.5 h-3.5" />
-              <span>+ Transaksi</span>
+              <PlusCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">+ Transaksi</span>
+              <span className="sm:hidden">+ Catat</span>
             </button>
           </div>
         </div>
 
-        {/* Mobile Sub-Navbar */}
-        <div
-          className="md:hidden flex items-center gap-1.5 py-2 border-t overflow-x-auto text-[11px] font-extrabold uppercase tracking-wider"
-          style={{ borderColor: theme.cardBorder }}
-        >
-          {navTabs.map((tab) => {
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-shrink-0 px-2.5 py-1 rounded-lg transition-all ${
-                  active
-                    ? "text-white shadow-xs"
-                    : theme.isDark
-                    ? "text-slate-400 hover:text-white"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-                style={
-                  active
-                    ? { backgroundColor: theme.accent }
-                    : {}
-                }
-              >
-                {tab.label}
-              </button>
-            );
-          })}
+        {/* Mobile Navigation Segmented Control - Full Width 4-Columns, No Overflow, No Scrollbars */}
+        <div className="md:hidden pb-2.5 pt-0.5">
+          <div
+            className="grid grid-cols-4 gap-1 p-1 rounded-2xl border text-center text-[11px] font-extrabold shadow-2xs"
+            style={{
+              backgroundColor: theme.isDark ? "#1E293B" : "#FAF7F2",
+              borderColor: theme.cardBorder,
+            }}
+          >
+            {navTabs.map((tab) => {
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`py-1.5 px-1 rounded-xl transition-all duration-200 truncate ${
+                    active
+                      ? "text-white shadow-xs font-black"
+                      : theme.isDark
+                      ? "text-slate-400 hover:text-white"
+                      : "text-stone-600 hover:text-stone-900"
+                  }`}
+                  style={
+                    active
+                      ? { backgroundColor: theme.accent }
+                      : {}
+                  }
+                  title={tab.label}
+                >
+                  <span className="sm:hidden">{tab.shortLabel}</span>
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </header>
