@@ -26,7 +26,8 @@ export const metadata: Metadata = {
   title: "Tokyo Neko FinPlan - Pencatatan Keuangan, Gaji & Pasar Uang",
   description:
     "Aplikasi manajemen keuangan pribadi, rekonsiliasi gaji, tabungan dan kalkulator portofolio reksadana pasar uang terintegrasi Firebase.",
-  manifest: "/manifest.json",
+  manifest: "/manifest.webmanifest",
+  applicationName: "Tokyo Neko",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -56,6 +57,10 @@ export default function RootLayout({
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} h-full light`}
     >
+      <head>
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="mobile-web-app-capable" content="yes" />
+      </head>
       <body className="min-h-full flex flex-col bg-[#FAF7F2] text-stone-900 antialiased selection:bg-amber-200">
         {children}
         <PWAInstallBanner />
