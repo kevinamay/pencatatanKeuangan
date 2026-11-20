@@ -20,6 +20,8 @@ import {
   formatRupiah,
 } from "@/lib/storage";
 import { LottieAnimation } from "@/components/LottieAnimation";
+import { CatAnimation } from "./cat-prototype/CatAnimations";
+import { getCatThemeConfig } from "./cat-prototype/catThemeConfig";
 
 interface QuickAddModalProps {
   isOpen: boolean;
@@ -27,6 +29,8 @@ interface QuickAddModalProps {
   selectedMonth?: string;
   defaultMonth?: string;
   initialType?: "income" | "expense" | "savings";
+  isCatMode?: boolean;
+  catVariant?: number;
 }
 
 export const QuickAddModal: React.FC<QuickAddModalProps> = ({
@@ -35,7 +39,10 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
   selectedMonth,
   defaultMonth,
   initialType = "income",
+  isCatMode = false,
+  catVariant = 1,
 }) => {
+  const catTheme = isCatMode ? getCatThemeConfig(catVariant) : null;
   const currentMonth = selectedMonth || defaultMonth || "2026-11";
   const [activeType, setActiveType] = useState<"income" | "expense" | "savings">(
     initialType
@@ -144,18 +151,41 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
       <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-[#FFD9D9] overflow-hidden transform transition-all">
         {/* Header Modal */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#FFD9D9] bg-[#FFF0F0]">
+        <div
+          className="flex items-center justify-between px-6 py-4 border-b transition-colors"
+          style={{
+            backgroundColor: catTheme ? (catTheme.isDark ? "#1E293B" : `${catTheme.accent}12`) : "#FFF0F0",
+            borderColor: catTheme ? catTheme.cardBorder : "#FFD9D9",
+          }}
+        >
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#FFD9D9] text-[#8B0000] flex items-center justify-center font-bold">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <h3 className="text-base sm:text-lg font-black text-[#8B0000]">
+            {catTheme ? (
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center p-0.5 border"
+                style={{
+                  backgroundColor: catTheme.bgPage,
+                  borderColor: catTheme.cardBorder,
+                }}
+              >
+                <CatAnimation variant={catTheme.pageAnimations.modal} className="w-full h-full" />
+              </div>
+            ) : (
+              <div className="w-8 h-8 rounded-lg bg-[#FFD9D9] text-[#8B0000] flex items-center justify-center font-bold">
+                <Sparkles className="w-4 h-4" />
+              </div>
+            )}
+            <h3
+              className="text-base sm:text-lg font-black"
+              style={{
+                color: catTheme ? (catTheme.isDark ? "#FFFFFF" : catTheme.accent) : "#8B0000",
+              }}
+            >
               Catat Keuangan Baru
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-slate-400 hover:text-[#8B0000] hover:bg-[#FFD9D9]/50 transition-colors"
+            className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
