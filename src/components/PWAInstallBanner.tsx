@@ -40,8 +40,9 @@ export const PWAInstallBanner: React.FC = () => {
         setActiveTab("pc");
       }
 
-      // Show banner after 1.5s if not installed and not dismissed in this session
-      if (!isStandaloneMode && !sessionStorage.getItem("tokyo_neko_pwa_dismissed")) {
+      // Show banner after 1.5s if on mobile screen, not installed and not dismissed in this session
+      const isMobile = window.innerWidth < 768;
+      if (isMobile && !isStandaloneMode && !sessionStorage.getItem("tokyo_neko_pwa_dismissed")) {
         const timer = setTimeout(() => {
           setShowBanner(true);
         }, 1500);
@@ -114,7 +115,7 @@ export const PWAInstallBanner: React.FC = () => {
     <>
       {/* Floating PWA Install Banner (Mobile Only) */}
       {showBanner && (
-        <div className="md:hidden fixed bottom-4 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-fade-in print:hidden">
+        <div className="md:!hidden fixed bottom-4 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md z-50 animate-fade-in print:hidden">
           <div className="rounded-2xl bg-white border border-[#E8E2D8] shadow-2xl p-4 flex items-start gap-3.5 text-stone-900">
             <div className="w-12 h-12 rounded-xl bg-[#FAF7F2] border border-[#E8E2D8] flex items-center justify-center p-1.5 flex-shrink-0 shadow-xs">
               <CatAnimation variant="sleeping" className="w-full h-full" />

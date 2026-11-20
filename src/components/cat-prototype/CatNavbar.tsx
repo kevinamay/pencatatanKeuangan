@@ -203,7 +203,7 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
                   (window as any).triggerPwaInstall();
                 }
               }}
-              className="md:hidden px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 flex items-center gap-1 sm:gap-1.5 flex-shrink-0 cursor-pointer border"
+              className="md:!hidden px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 flex items-center gap-1 sm:gap-1.5 flex-shrink-0 cursor-pointer border"
               style={{
                 backgroundColor: theme.isDark ? "#1E293B" : "#FEF3C7",
                 borderColor: theme.isDark ? "#334155" : "#FDE68A",
