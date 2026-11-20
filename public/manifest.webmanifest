@@ -58,7 +58,7 @@
     {
       "name": "Catat Pengeluaran",
       "short_name": "Pengeluaran",
-      "description": "Catat pengeluaran baru secara instan",
+      "description": "Catat pengeluaran belanja baru secara instan",
       "url": "/?action=expense",
       "icons": [
         {
@@ -70,7 +70,7 @@
     {
       "name": "Catat Gaji Masuk",
       "short_name": "Gaji",
-      "description": "Catat pemasukan gaji pokok atau sampingan",
+      "description": "Catat pemasukan gaji baru",
       "url": "/?action=income",
       "icons": [
         {
@@ -92,33 +92,14 @@
       ]
     },
     {
-      "name": "Widget Saku Saldo",
-      "short_name": "Widget Neko",
-      "description": "Buka tampilan mini widget saku cepat",
-      "url": "/widget",
+      "name": "Ringkasan Keuangan",
+      "short_name": "Ringkasan",
+      "description": "Lihat ringkasan saldo kas dan audit rekonsiliasi",
+      "url": "/?tab=dashboard",
       "icons": [
         {
           "src": "/icons/icon-192x192.png",
           "sizes": "192x192"
-        }
-      ]
-    }
-  ],
-  "widgets": [
-    {
-      "name": "Tokyo Neko Glance",
-      "short_name": "Neko Widget",
-      "description": "Pantau saldo sisa gaji bersih dan catat transaksi instan",
-      "tag": "tokyo-neko-widget",
-      "template": "widget-template",
-      "ms_ac_template": "/widget",
-      "data": "/widget",
-      "type": "application/json",
-      "screenshots": [
-        {
-          "src": "/icons/icon-512x512.png",
-          "sizes": "512x512",
-          "label": "Tampilan Widget Tokyo Neko"
         }
       ]
     }
