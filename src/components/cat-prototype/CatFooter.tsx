@@ -33,14 +33,15 @@ export const CatFooter: React.FC<CatFooterProps> = ({ currentCatTheme }) => {
           </span>
         </div>
 
-        {/* Sisi Kanan: Teks info + Animasi Rainbow Cat tanpa border */}
-        <div className="flex items-center gap-3">
+        {/* Sisi Kanan: Teks info + Animasi Rainbow Cat tanpa border (Ukuran Lebih Besar & Jelas) */}
+        <div className="flex items-center gap-3 sm:gap-4">
           <p className="text-stone-400 text-center sm:text-right">
             Realtime Firebase Cloud Database • Wabi-Sabi Warm Editorial FinPlan
           </p>
           <div className="shrink-0 flex items-center justify-center">
             <RainbowCatLottie
-              className="w-24 h-12 sm:w-28 sm:h-14 overflow-visible"
+              className="w-32 h-14 sm:w-40 sm:h-16 overflow-visible"
+              scale={2.2}
               showSpeech={true}
               showHoverHint={false}
             />

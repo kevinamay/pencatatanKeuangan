@@ -75,6 +75,7 @@ interface RainbowCatLottieProps {
   className?: string;
   showSpeech?: boolean;
   showHoverHint?: boolean;
+  scale?: number;
 }
 
 const NYAN_SOUNDS = [
@@ -91,6 +92,7 @@ export const RainbowCatLottie: React.FC<RainbowCatLottieProps> = ({
   className = "w-44 h-28 sm:w-56 sm:h-32",
   showSpeech = true,
   showHoverHint = false,
+  scale = 1.8,
 }) => {
   const [speech, setSpeech] = useState<string | null>(null);
   const [speechIndex, setSpeechIndex] = useState(0);
@@ -173,7 +175,10 @@ export const RainbowCatLottie: React.FC<RainbowCatLottieProps> = ({
       )}
 
       {/* Official Victor Aremu Rainbow Cat Remix Animation via Lottie */}
-      <div className="w-full h-full flex items-center justify-center">
+      <div
+        className="w-full h-full flex items-center justify-center pointer-events-none"
+        style={{ transform: `scale(${scale})` }}
+      >
         <Lottie
           src={rainbowCatData}
           loop={true}
