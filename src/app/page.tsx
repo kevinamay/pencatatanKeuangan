@@ -27,6 +27,7 @@ import { CatTransactionsView } from "@/components/cat-prototype/CatTransactionsV
 import { CatSavingsView } from "@/components/cat-prototype/CatSavingsView";
 import { CatReportView } from "@/components/cat-prototype/CatReportView";
 import { getCatThemeConfig } from "@/components/cat-prototype/catThemeConfig";
+import { CatFooter } from "@/components/cat-prototype/CatFooter";
 
 // Tab Loading Skeleton (Swiss Minimalist Theme)
 const ViewLoadingSkeleton = ({ title }: { title: string }) => (
@@ -301,30 +302,8 @@ export default function Home() {
         />
       )}
 
-      {/* Footer */}
-      <footer
-        className="mt-auto border-t py-6 text-center text-xs font-medium print:hidden bg-white border-[#E8E2D8] text-stone-500"
-      >
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span
-              className="w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: currentCatTheme.accent }}
-            />
-            <span
-              className="font-bold font-mono text-stone-900"
-            >
-              {currentCatTheme.navTitle}
-            </span>
-            <span className="text-stone-400">
-              | Tokyo Minimalist Paper Edition
-            </span>
-          </div>
-          <p className="text-stone-400">
-            Realtime Firebase Cloud Database • Wabi-Sabi Warm Editorial FinPlan
-          </p>
-        </div>
-      </footer>
+      {/* Footer with Lottie Rainbow Cat Remix Animation (by Victor Aremu) */}
+      <CatFooter currentCatTheme={currentCatTheme} />
     </div>
   );
 }
