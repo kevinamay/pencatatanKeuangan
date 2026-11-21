@@ -107,17 +107,14 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
           />
         </div>
 
-        {/* Brand & Subtitle */}
-        <div className="text-center mt-2 space-y-1">
+        {/* Brand & Title */}
+        <div className="text-center mt-2">
           <h1 className="text-2xl sm:text-3xl font-mono font-black tracking-tight text-stone-900 flex items-center justify-center gap-2">
             <span>TOKYO.NEKO</span>
             <span className="text-sm font-normal text-amber-800 font-serif italic">
               東京猫
             </span>
           </h1>
-          <p className="text-xs font-mono text-stone-500 tracking-wide">
-            Wabi-Sabi Warm Editorial FinPlan
-          </p>
         </div>
 
         {/* Elegant Progress Indicator */}
