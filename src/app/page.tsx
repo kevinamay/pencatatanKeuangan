@@ -28,6 +28,7 @@ import { CatSavingsView } from "@/components/cat-prototype/CatSavingsView";
 import { CatReportView } from "@/components/cat-prototype/CatReportView";
 import { getCatThemeConfig } from "@/components/cat-prototype/catThemeConfig";
 import { CatFooter } from "@/components/cat-prototype/CatFooter";
+import { SplashScreen } from "@/components/cat-prototype/SplashScreen";
 
 // Tab Loading Skeleton (Swiss Minimalist Theme)
 const ViewLoadingSkeleton = ({ title }: { title: string }) => (
@@ -89,6 +90,7 @@ export default function Home() {
   // Tokyo Minimalist Paper Edition (Desain #2 Permanen)
   const [isCatMode, setIsCatMode] = useState<boolean>(true);
   const [catVariant, setCatVariant] = useState<number>(2);
+  const [showSplash, setShowSplash] = useState<boolean>(true);
 
   const openQuickAdd = (type?: "income" | "expense" | "savings") => {
     setQuickAddType(type || (activeTab === "savings" ? "savings" : "income"));
@@ -179,13 +181,17 @@ export default function Home() {
   const currentCatTheme = getCatThemeConfig(catVariant);
 
   return (
-    <div
-      className="min-h-screen flex flex-col font-sans print:bg-white print:min-h-0 print:p-0 print:m-0 transition-colors duration-300"
-      style={{
-        backgroundColor: isCatMode ? currentCatTheme.bgPage : "#FFF9F9",
-        color: isCatMode ? currentCatTheme.textColor : "#1c0606",
-      }}
-    >
+    <>
+      {showSplash && (
+        <SplashScreen onFinish={() => setShowSplash(false)} />
+      )}
+      <div
+        className="min-h-screen flex flex-col font-sans print:bg-white print:min-h-0 print:p-0 print:m-0 transition-colors duration-300"
+        style={{
+          backgroundColor: isCatMode ? currentCatTheme.bgPage : "#FFF9F9",
+          color: isCatMode ? currentCatTheme.textColor : "#1c0606",
+        }}
+      >
       {/* Header: Cat Themed Navbar or Original Swiss Minimalist */}
       <div className="print:hidden">
         {isCatMode ? (
@@ -305,5 +311,6 @@ export default function Home() {
       {/* Footer with Lottie Rainbow Cat Remix Animation (by Victor Aremu) */}
       <CatFooter currentCatTheme={currentCatTheme} />
     </div>
-  );
+  </>
+);
 }
