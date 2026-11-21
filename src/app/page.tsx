@@ -180,7 +180,7 @@ export default function Home() {
 
   return (
     <div
-      className="min-h-screen flex flex-col font-sans print:bg-white print:min-h-0 print:p-0 print:m-0 pb-20 transition-colors duration-300"
+      className="min-h-screen flex flex-col font-sans print:bg-white print:min-h-0 print:p-0 print:m-0 transition-colors duration-300"
       style={{
         backgroundColor: isCatMode ? currentCatTheme.bgPage : "#FFF9F9",
         color: isCatMode ? currentCatTheme.textColor : "#1c0606",
@@ -211,7 +211,7 @@ export default function Home() {
       </div>
 
       {/* Main Single Fixed View Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 print:p-0 print:m-0 print:max-w-none print:w-full">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-10 print:p-0 print:m-0 print:max-w-none print:w-full">
         {activeTab === "dashboard" && (
           isCatMode ? (
             renderCatVariant()
