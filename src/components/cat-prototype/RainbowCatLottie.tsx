@@ -74,6 +74,7 @@ function RainbowCatFallback() {
 interface RainbowCatLottieProps {
   className?: string;
   showSpeech?: boolean;
+  showHoverHint?: boolean;
 }
 
 const NYAN_SOUNDS = [
@@ -89,6 +90,7 @@ const NYAN_SOUNDS = [
 export const RainbowCatLottie: React.FC<RainbowCatLottieProps> = ({
   className = "w-44 h-28 sm:w-56 sm:h-32",
   showSpeech = true,
+  showHoverHint = false,
 }) => {
   const [speech, setSpeech] = useState<string | null>(null);
   const [speechIndex, setSpeechIndex] = useState(0);
@@ -181,9 +183,11 @@ export const RainbowCatLottie: React.FC<RainbowCatLottieProps> = ({
       </div>
 
       {/* Subtle Hint on Hover */}
-      <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-90 transition-opacity text-[10px] text-amber-800/80 font-mono font-semibold pointer-events-none whitespace-nowrap bg-white/90 px-2 py-0.5 rounded-full border border-amber-200 shadow-xs">
-        🐾 Click me!
-      </span>
+      {showHoverHint && (
+        <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-90 transition-opacity text-[10px] text-amber-800 font-mono font-semibold pointer-events-none whitespace-nowrap bg-white/90 px-2 py-0.5 rounded-full shadow-xs">
+          🐾 Click me!
+        </span>
+      )}
     </div>
   );
 };
