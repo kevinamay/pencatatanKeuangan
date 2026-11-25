@@ -27,6 +27,7 @@ import {
   MoneyMarketProduct,
   PlannedItem,
   FinancialGoal,
+  isSavingsMatchingMMProduct,
 } from "@/types/finance";
 import {
   formatRupiah,
@@ -73,13 +74,18 @@ export function useFinanceStats(
 
   const mmSummary = validMM.reduce(
     (acc, m) => {
+      const matchingSum = savings
+        .filter((s) => isSavingsMatchingMMProduct(s, m))
+        .reduce((sum, curr) => sum + curr.amount, 0);
+      const effCapital = Math.max(m.initialCapital, matchingSum);
+
       const calc = calculateMoneyMarketProfit(
-        m.initialCapital,
+        effCapital,
         m.returnRatePa,
         m.startDate,
         m.accumulatedReturn
       );
-      acc.totalCapital += m.initialCapital;
+      acc.totalCapital += effCapital;
       acc.totalProfit += calc.estimatedProfit;
       acc.totalValue += calc.totalValue;
       acc.monthlyYield += calc.monthlyReturn;

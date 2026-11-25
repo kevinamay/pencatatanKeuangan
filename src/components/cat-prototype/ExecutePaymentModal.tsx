@@ -20,6 +20,7 @@ import {
   FinancialGoal,
   MoneyMarketProduct,
   SavingsTargetType,
+  isSavingsMatchingMMProduct,
 } from "@/types/finance";
 import { FinanceStorage, formatRupiah } from "@/lib/storage";
 
@@ -62,10 +63,27 @@ export const ExecutePaymentModal: React.FC<ExecutePaymentModalProps> = ({
       const isSav =
         item.itemType === "savings" ||
         item.category === "Tabungan & Investasi" ||
-        /menabung|tabung|nabung|investasi|celengan|pasar uang/i.test(item.title);
+        /menabung|tabung|nabung|investasi|celengan|pasar uang|bibit|sucorinvest|danamas/i.test(item.title);
 
       setIsSavingsMode(isSav);
-      const defTarget = item.savingsTargetType || (goals.length > 0 ? "goal" : "regular");
+
+      // Cek apakah judul / wacana ini cocok dengan produk pasar uang tertentu
+      const matchingMM = moneyMarket.find((m) =>
+        isSavingsMatchingMMProduct({ accountName: item.title, note: item.note }, m)
+      );
+
+      let defTarget: SavingsTargetType = item.savingsTargetType || "regular";
+      if (!item.savingsTargetType) {
+        if (matchingMM || /pasar uang|bibit|sucorinvest|danamas|reksadana/i.test(item.title)) {
+          defTarget = "money_market";
+        } else if (/darurat/i.test(item.title)) {
+          defTarget = "emergency";
+        } else if (item.goalId || /celengan|impian/i.test(item.title)) {
+          defTarget = "goal";
+        } else if (goals.length > 0) {
+          defTarget = "goal";
+        }
+      }
       setSavingsTargetType(defTarget);
 
       // Auto select goal if available
@@ -80,6 +98,8 @@ export const ExecutePaymentModal: React.FC<ExecutePaymentModalProps> = ({
       // Auto select MM if available
       if (item.moneyMarketId && moneyMarket.some((m) => m.id === item.moneyMarketId)) {
         setSelectedMMId(item.moneyMarketId);
+      } else if (matchingMM) {
+        setSelectedMMId(matchingMM.id);
       } else if (moneyMarket.length > 0) {
         setSelectedMMId(moneyMarket[0].id);
       } else {
@@ -109,6 +129,7 @@ export const ExecutePaymentModal: React.FC<ExecutePaymentModalProps> = ({
     setErrorMsg(null);
 
     try {
+      const selectedMM = (moneyMarket || []).find((m) => m.id === selectedMMId);
       await FinanceStorage.executePlannedPayment(
         item.id,
         actualAmount,
@@ -118,6 +139,10 @@ export const ExecutePaymentModal: React.FC<ExecutePaymentModalProps> = ({
           savingsTargetType: isSavingsMode ? savingsTargetType : undefined,
           goalId: isSavingsMode && selectedGoalId !== "none" ? selectedGoalId : undefined,
           moneyMarketId: isSavingsMode && selectedMMId !== "none" ? selectedMMId : undefined,
+          accountName:
+            isSavingsMode && savingsTargetType === "money_market" && selectedMM
+              ? selectedMM.name
+              : undefined,
         }
       );
 

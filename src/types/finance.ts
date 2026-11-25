@@ -142,5 +142,40 @@ export interface FinancialGoal {
   createdAt: number;
 }
 
+/**
+ * Helper untuk mencocokkan apakah suatu alokasi tabungan berhubungan
+ * dengan produk pasar uang tertentu (berdasarkan nama, kata kunci, platform, atau ID).
+ */
+export function isSavingsMatchingMMProduct(
+  saving: { accountName?: string; note?: string; targetType?: string; moneyMarketId?: string },
+  product: { id?: string; name: string; platform?: string }
+): boolean {
+  if (!saving || !product) return false;
+  if (saving.moneyMarketId && product.id && saving.moneyMarketId === product.id) return true;
+
+  const sAcc = (saving.accountName || "").toLowerCase().trim();
+  const sNote = (saving.note || "").toLowerCase().trim();
+  const pName = (product.name || "").toLowerCase().trim();
+  const pPlatform = (product.platform || "").toLowerCase().trim();
+
+  // Normalisasi string (hilangkan spasi dan tanda baca)
+  const normAcc = sAcc.replace(/[^a-z0-9]/g, "");
+  const normPName = pName.replace(/[^a-z0-9]/g, "");
+
+  if (normAcc && normPName) {
+    if (normAcc.includes(normPName) || normPName.includes(normAcc)) return true;
+  }
+
+  // Pencocokan kata kunci khusus (misal Sucorinvest, Danamas, Batavia, dll)
+  if (pName.includes("sucorinvest") && (sAcc.includes("sucorinvest") || sNote.includes("sucorinvest"))) return true;
+  if (pName.includes("danamas") && (sAcc.includes("danamas") || sNote.includes("danamas"))) return true;
+  if (pName.includes("batavia") && (sAcc.includes("batavia") || sNote.includes("batavia"))) return true;
+
+  // Jika alokasi eksplisit money_market dan menyebut platform produk (misal Bibit)
+  if (saving.targetType === "money_market" && pPlatform && sAcc.includes(pPlatform)) return true;
+
+  return false;
+}
+
 
 

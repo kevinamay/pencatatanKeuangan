@@ -21,6 +21,7 @@ import {
   FinancialGoal,
   MoneyMarketProduct,
   SavingsTargetType,
+  isSavingsMatchingMMProduct,
 } from "@/types/finance";
 import { FinanceStorage, formatRupiah } from "@/lib/storage";
 
@@ -110,9 +111,22 @@ export const PlannedItemModal: React.FC<PlannedItemModalProps> = ({
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle);
     if (!initialItem) {
-      if (/menabung|tabung|nabung|investasi|celengan|pasar uang/i.test(newTitle)) {
+      if (/menabung|tabung|nabung|investasi|celengan|pasar uang|bibit|sucorinvest|danamas/i.test(newTitle)) {
         setItemType("savings");
         setCategory("Tabungan & Investasi");
+        const matchMM = moneyMarket.find((m) =>
+          isSavingsMatchingMMProduct({ accountName: newTitle }, m)
+        );
+        if (matchMM || /pasar uang|bibit|sucorinvest|danamas|reksadana/i.test(newTitle)) {
+          setSavingsTargetType("money_market");
+          if (matchMM) setSelectedMMId(matchMM.id);
+          else if (moneyMarket.length > 0) setSelectedMMId(moneyMarket[0].id);
+        } else if (/darurat/i.test(newTitle)) {
+          setSavingsTargetType("emergency");
+        } else if (goals.length > 0) {
+          setSavingsTargetType("goal");
+          setSelectedGoalId(goals[0].id);
+        }
       }
     }
   };

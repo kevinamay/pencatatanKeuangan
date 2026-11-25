@@ -24,6 +24,7 @@ import {
   SavingsAllocation,
   MoneyMarketProduct,
   FinancialGoal,
+  isSavingsMatchingMMProduct,
 } from "@/types/finance";
 import {
   FinanceStorage,
@@ -150,15 +151,23 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
         ]
       : [];
 
+  // Hitung modal pokok efektif per produk pasar uang (termasuk seluruh alokasi tabungan yang sesuai)
+  const getProductEffectiveCapital = (prod: MoneyMarketProduct) => {
+    const matchingAllocations = savings.filter((s) => isSavingsMatchingMMProduct(s, prod));
+    const matchingSum = matchingAllocations.reduce((sum, curr) => sum + curr.amount, 0);
+    return Math.max(prod.initialCapital, matchingSum);
+  };
+
   const mmSummary = displayMMProducts.reduce(
     (acc, item) => {
+      const effCapital = getProductEffectiveCapital(item);
       const calc = calculateMoneyMarketProfit(
-        item.initialCapital,
+        effCapital,
         item.returnRatePa,
         item.startDate,
         item.accumulatedReturn
       );
-      acc.totalCapital += item.initialCapital;
+      acc.totalCapital += effCapital;
       acc.totalProfit += calc.estimatedProfit;
       acc.totalValue += calc.totalValue;
       return acc;
@@ -167,12 +176,27 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
   );
 
   // Pastikan SETIAP produk pasar uang aktif memiliki representasi alokasi tabungan
-  const existingMMNames = new Set(
-    mmSavings.map((s) => (s.accountName || "").toLowerCase().trim())
-  );
+  const representedProductIds = new Set<string>();
+  const normalizedSavings: SavingsAllocation[] = savings.map((s) => {
+    const match = displayMMProducts.find((p) => isSavingsMatchingMMProduct(s, p));
+    if (match) {
+      representedProductIds.add(match.id);
+      return {
+        ...s,
+        targetType: "money_market" as const,
+      };
+    }
+    if (/pasar uang|bibit|sucorinvest|danamas/i.test(s.accountName || "")) {
+      return {
+        ...s,
+        targetType: "money_market" as const,
+      };
+    }
+    return s;
+  });
 
   const missingMMAllocations = displayMMProducts
-    .filter((p) => !existingMMNames.has(p.name.toLowerCase().trim()))
+    .filter((p) => !representedProductIds.has(p.id))
     .map((p) => ({
       id: `mm-synced-${p.id}`,
       date: p.startDate,
@@ -184,14 +208,9 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
       createdAt: p.updatedAt || Date.now(),
     }));
 
-  const mmAllocations: SavingsAllocation[] = [
-    ...mmSavings,
-    ...missingMMAllocations,
-  ];
-
   const effectiveSavings: SavingsAllocation[] = [
-    ...savings.filter((s) => s.targetType !== "money_market"),
-    ...mmAllocations,
+    ...normalizedSavings,
+    ...missingMMAllocations,
   ];
 
   const filteredSavings = effectiveSavings.filter((s) => {
@@ -401,10 +420,24 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
           {/* Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
             {[
-              { id: "all", label: "Semua", count: savings.length },
-              { id: "money_market", label: "Pasar Uang", count: mmSavings.length },
-              { id: "emergency", label: "Darurat", count: emergencySavings.length },
-              { id: "other", label: "Target", count: otherSavings.length },
+              { id: "all", label: "Semua", count: effectiveSavings.length },
+              {
+                id: "money_market",
+                label: "Pasar Uang",
+                count: effectiveSavings.filter((s) => s.targetType === "money_market").length,
+              },
+              {
+                id: "emergency",
+                label: "Darurat",
+                count: effectiveSavings.filter((s) => s.targetType === "emergency").length,
+              },
+              {
+                id: "other",
+                label: "Target",
+                count: effectiveSavings.filter(
+                  (s) => s.targetType === "regular" || s.targetType === "goal"
+                ).length,
+              },
             ].map((f) => {
               const active = savingsFilter === f.id;
               return (
@@ -531,8 +564,9 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
               </div>
             ) : (
               displayMMProducts.map((p) => {
+                const effCapital = getProductEffectiveCapital(p);
                 const calc = calculateMoneyMarketProfit(
-                  p.initialCapital,
+                  effCapital,
                   p.returnRatePa,
                   p.startDate,
                   p.accumulatedReturn
@@ -586,7 +620,7 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
                     >
                       <div>
                         <span className="text-[10px] text-slate-400 block">Modal Pokok</span>
-                        <span className="font-black">{formatRupiah(p.initialCapital)}</span>
+                        <span className="font-black">{formatRupiah(effCapital)}</span>
                       </div>
                       <div>
                         <span className="text-[10px] text-slate-400 block">Imbal Hasil</span>

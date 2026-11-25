@@ -16,6 +16,7 @@ import {
   MoneyMarketProduct,
   PlannedItem,
   FinancialGoal,
+  isSavingsMatchingMMProduct,
 } from "@/types/finance";
 
 // Storage keys untuk fallback lokal (v6 - Clean Slate Fresh Start)
@@ -696,17 +697,15 @@ export class FinanceStorage {
     const updated = [newItem, ...current.filter((x) => x.id !== newId)];
     setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, updated);
 
-    // Jika jenis alokasi adalah ke pasar uang, update atau buat produk pasar uang secara otomatis!
-    if (newItem.targetType === "money_market") {
-      const mmList = this.getMoneyMarket();
-      const existing = mmList.find(
-        (m) =>
-          m.id !== "mm-live-sync" &&
-          m.name &&
-          m.name.toLowerCase().includes(
-            (newItem.accountName || "pasar uang").toLowerCase()
-          )
-      );
+    // Jika jenis alokasi adalah ke pasar uang atau cocok dengan nama produk pasar uang
+    const mmList = this.getMoneyMarket();
+    const existing = mmList.find(
+      (m) =>
+        m.id !== "mm-live-sync" &&
+        isSavingsMatchingMMProduct(newItem, m)
+    );
+
+    if (newItem.targetType === "money_market" || existing) {
       if (existing) {
         existing.initialCapital += newItem.amount;
         existing.history = [
@@ -723,7 +722,7 @@ export class FinanceStorage {
         setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, mmList);
 
         // Simpan objek lengkap ke Firebase agar properti name, returnRatePa, startDate tidak hilang
-        set(ref(rtdb, `money_market/${existing.id}`), existing).catch((err) => {
+        set(ref(rtdb, `money_market/${existing.id}`), cleanForFirebase(existing)).catch((err) => {
           console.warn("RTDB update MM product gagal:", err);
         });
       } else {
@@ -1063,7 +1062,18 @@ export class FinanceStorage {
       // 1. Eksekusi sebagai Alokasi Tabungan (Dipotong dari Kas Utama / Gaji)
       let targetType = options?.savingsTargetType || item.savingsTargetType || "regular";
       let targetGoalId = options?.goalId || item.goalId;
-      const targetMMId = options?.moneyMarketId || item.moneyMarketId;
+      let targetMMId = options?.moneyMarketId || item.moneyMarketId;
+
+      // Cek apakah item ini mengarah ke pasar uang (berdasarkan judul atau produk yang ada)
+      const matchingMM = this.getMoneyMarket().find((m) =>
+        isSavingsMatchingMMProduct({ accountName: item.title, note: item.note }, m)
+      );
+      if (matchingMM) {
+        targetType = "money_market";
+        targetMMId = matchingMM.id;
+      } else if (!targetGoalId && /pasar uang|bibit|sucorinvest|danamas/i.test(item.title)) {
+        targetType = "money_market";
+      }
 
       // Fallback: Jika pengguna memilih celengan impian tapi belum/tidak memilih targetGoalId
       if (targetType === "goal" && !targetGoalId) {
@@ -1078,6 +1088,7 @@ export class FinanceStorage {
       const accName =
         options?.accountName ||
         (targetGoalId ? `Celengan: ${this.getGoals().find((g) => g.id === targetGoalId)?.title || item.title}` : null) ||
+        (matchingMM ? matchingMM.name : null) ||
         (targetMMId ? this.getMoneyMarket().find((m) => m.id === targetMMId)?.name : null) ||
         item.title ||
         "Tabungan Wacana";
@@ -1198,6 +1209,39 @@ export class FinanceStorage {
           });
 
           didChange = true;
+        }
+      }
+
+      // Rekonsiliasi sinkronisasi Pasar Uang dan Alokasi Tabungan
+      const mmList = this.getMoneyMarket();
+      const allSavings = this.getSavings();
+
+      for (const mm of mmList) {
+        if (!mm || mm.id === "mm-live-sync") continue;
+        const matchingSavings = allSavings.filter((s) => isSavingsMatchingMMProduct(s, mm));
+        if (matchingSavings.length > 0) {
+          let updatedSavings = false;
+          for (const s of matchingSavings) {
+            if (s.targetType !== "money_market") {
+              s.targetType = "money_market";
+              updatedSavings = true;
+              set(ref(rtdb, `savings/${s.id}`), cleanForFirebase(s)).catch(() => {});
+            }
+          }
+          if (updatedSavings) {
+            setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, allSavings);
+            didChange = true;
+          }
+
+          const totalAllocated = matchingSavings.reduce((sum, s) => sum + s.amount, 0);
+          if (totalAllocated > mm.initialCapital) {
+            console.log(`[Reconcile] Sinkronisasi modal produk ${mm.name}: ${mm.initialCapital} -> ${totalAllocated}`);
+            mm.initialCapital = totalAllocated;
+            mm.updatedAt = Date.now();
+            setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, mmList);
+            set(ref(rtdb, `money_market/${mm.id}`), cleanForFirebase(mm)).catch(() => {});
+            didChange = true;
+          }
         }
       }
 
