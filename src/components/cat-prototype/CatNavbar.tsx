@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Calendar,
   PlusCircle,
@@ -11,6 +11,9 @@ import {
   ChevronDown,
   Download,
   ShoppingBag,
+  Menu,
+  X,
+  ChevronRight,
 } from "lucide-react";
 import { CatAnimation } from "./CatAnimations";
 import { getCatThemeConfig } from "./catThemeConfig";
@@ -44,6 +47,7 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
   onOpenQuickAdd,
   variantId,
 }) => {
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const theme = getCatThemeConfig(variantId);
 
   // Tab-specific animation for navbar mini badge
@@ -57,225 +61,382 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
       id: "dashboard" as const,
       label: "Ringkasan",
       shortLabel: "Ringkasan",
+      desc: "Dashboard & visualisasi grafik",
       icon: LayoutDashboard,
     },
     {
       id: "transactions" as const,
       label: "Transaksi",
       shortLabel: "Transaksi",
+      desc: "Pemasukan & pengeluaran kas",
       icon: ArrowUpDown,
     },
     {
       id: "savings" as const,
       label: "Tabungan & Pasar Uang",
       shortLabel: "Tabungan",
+      desc: "Celengan impian & pasar uang",
       icon: TrendingUp,
     },
     {
       id: "planned" as const,
       label: "Rencana & Wishlist",
       shortLabel: "Rencana",
+      desc: "Wacana belanja & wishlist",
       icon: ShoppingBag,
     },
     {
       id: "report" as const,
       label: "Audit Rekonsiliasi",
       shortLabel: "Audit",
+      desc: "Rekonsiliasi & ekspor laporan",
       icon: FileText,
     },
   ];
 
   return (
-    <header
-      className={`sticky top-0 z-40 w-full border-b transition-colors duration-300 print:hidden ${
-        theme.isDark
-          ? "bg-[#0A0E17]/95 backdrop-blur-md border-white/10 text-white"
-          : "bg-white/95 backdrop-blur-md border-slate-200 text-slate-900"
-      }`}
-      style={{
-        borderBottomColor: theme.cardBorder,
-      }}
-    >
-      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
-          {/* Logo with Dynamic Page-Specific Cat Mascot */}
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
-            <div
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-xs border transition-transform hover:scale-105 flex-shrink-0"
-              style={{
-                backgroundColor: theme.isDark ? "#1E293B" : theme.bgPage,
-                borderColor: theme.cardBorder,
-              }}
-              title={`Mode Kucing: #${variantId} ${theme.name}`}
-            >
-              <CatAnimation variant={tabAnimation} className="w-7 h-7 sm:w-8 sm:h-8" />
-            </div>
-
-            <div className="flex flex-col min-w-0">
-              <span
-                className="text-sm sm:text-lg font-black tracking-tight font-mono truncate"
-                style={{ color: theme.accent }}
+    <>
+      <header
+        className={`sticky top-0 z-40 w-full border-b transition-colors duration-300 print:hidden ${
+          theme.isDark
+            ? "bg-[#0A0E17]/95 backdrop-blur-md border-white/10 text-white"
+            : "bg-white/95 backdrop-blur-md border-slate-200 text-slate-900"
+        }`}
+        style={{
+          borderBottomColor: theme.cardBorder,
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
+            {/* Logo with Dynamic Page-Specific Cat Mascot & Mobile Hamburger */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
+              {/* Mobile Hamburger Menu Button */}
+              <button
+                type="button"
+                onClick={() => setIsMobileSidebarOpen(true)}
+                className="p-1.5 -ml-1 rounded-xl transition-all md:hidden flex items-center justify-center active:scale-95 cursor-pointer"
+                style={{
+                  color: theme.accent,
+                  backgroundColor: `${theme.accent}15`,
+                }}
+                aria-label="Buka Menu Navigasi"
+                title="Buka Menu Navigasi"
               >
-                {theme.navTitle}
-              </span>
-              <span
-                className={`text-[10px] font-semibold -mt-0.5 hidden md:inline truncate ${
-                  theme.isDark ? "text-slate-400" : "text-slate-500"
-                }`}
-              >
-                {theme.navSubtitle}
-              </span>
-            </div>
-          </div>
+                <Menu className="w-5 h-5" />
+              </button>
 
-          {/* Navigation Tabs (Desktop) */}
-          <nav className="hidden md:flex items-center gap-6">
-            {navTabs.map((tab) => {
-              const active = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 text-xs uppercase tracking-wider font-extrabold transition-all py-1.5 px-3 rounded-xl ${
-                    active
-                      ? "shadow-xs"
-                      : theme.isDark
-                      ? "text-slate-400 hover:text-white hover:bg-white/5"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                  }`}
-                  style={
-                    active
-                      ? {
-                          backgroundColor: `${theme.accent}18`,
-                          color: theme.accent,
-                          borderColor: `${theme.accent}40`,
-                        }
-                      : {}
-                  }
+              <div
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-xs border transition-transform hover:scale-105 flex-shrink-0"
+                style={{
+                  backgroundColor: theme.isDark ? "#1E293B" : theme.bgPage,
+                  borderColor: theme.cardBorder,
+                }}
+                title={`Mode Kucing: #${variantId} ${theme.name}`}
+              >
+                <CatAnimation variant={tabAnimation} className="w-7 h-7 sm:w-8 sm:h-8" />
+              </div>
+
+              <div className="flex flex-col min-w-0">
+                <span
+                  className="text-sm sm:text-lg font-black tracking-tight font-mono truncate"
+                  style={{ color: theme.accent }}
                 >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full transition-transform ${
-                      active ? "scale-100" : "scale-0"
-                    }`}
-                    style={{ backgroundColor: theme.accent }}
-                  />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Period Selector & Quick Add Button */}
-          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-            {/* Native Select with Responsive Visuals */}
-            <div
-              className="relative flex items-center px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-extrabold border transition-colors cursor-pointer select-none"
-              style={{
-                backgroundColor: theme.isDark ? "#1E293B" : `${theme.accent}10`,
-                borderColor: theme.cardBorder,
-                color: theme.accent,
-              }}
-            >
-              <Calendar className="w-3.5 h-3.5 mr-1 flex-shrink-0" style={{ color: theme.accent }} />
-              <span className="sm:hidden font-bold text-xs whitespace-nowrap">
-                {currentMonthOption.shortLabel}
-              </span>
-              <span className="hidden sm:inline font-bold text-xs whitespace-nowrap">
-                {currentMonthOption.label}
-              </span>
-              <ChevronDown className="w-3 h-3 ml-1 opacity-70 flex-shrink-0" />
-
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base sm:text-xs"
-                aria-label="Pilih Bulan"
-              >
-                {MONTH_OPTIONS.map((m) => (
-                  <option
-                    key={m.value}
-                    value={m.value}
-                    className="text-slate-900 font-semibold bg-white"
-                  >
-                    {m.label}
-                  </option>
-                ))}
-              </select>
+                  {theme.navTitle}
+                </span>
+                <span
+                  className={`text-[10px] font-semibold -mt-0.5 hidden md:inline truncate ${
+                    theme.isDark ? "text-slate-400" : "text-slate-500"
+                  }`}
+                >
+                  {theme.navSubtitle}
+                </span>
+              </div>
             </div>
 
-            {/* Install PWA / WebAPK Button (Mobile Only) */}
-            <button
-              onClick={() => {
-                if (typeof window !== "undefined" && (window as any).triggerPwaInstall) {
-                  (window as any).triggerPwaInstall();
-                }
-              }}
-              className="md:!hidden px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 flex items-center gap-1 sm:gap-1.5 flex-shrink-0 cursor-pointer border"
-              style={{
-                backgroundColor: theme.isDark ? "#1E293B" : "#FEF3C7",
-                borderColor: theme.isDark ? "#334155" : "#FDE68A",
-                color: theme.isDark ? "#FDE68A" : "#92400E",
-              }}
-              title="Pasang Aplikasi Tokyo Neko (WebAPK)"
-            >
-              <Download className="w-3.5 h-3.5 flex-shrink-0" />
-              <span className="hidden sm:inline">Install App</span>
-              <span className="sm:hidden">APK</span>
-            </button>
+            {/* Navigation Tabs (Desktop) */}
+            <nav className="hidden md:flex items-center gap-6">
+              {navTabs.map((tab) => {
+                const active = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-1.5 text-xs uppercase tracking-wider font-extrabold transition-all py-1.5 px-3 rounded-xl ${
+                      active
+                        ? "shadow-xs"
+                        : theme.isDark
+                        ? "text-slate-400 hover:text-white hover:bg-white/5"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    }`}
+                    style={
+                      active
+                        ? {
+                            backgroundColor: `${theme.accent}18`,
+                            color: theme.accent,
+                            borderColor: `${theme.accent}40`,
+                          }
+                        : {}
+                    }
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full transition-transform ${
+                        active ? "scale-100" : "scale-0"
+                      }`}
+                      style={{ backgroundColor: theme.accent }}
+                    />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
 
-            {/* Quick Add Button - Responsive label so it never truncates on mobile */}
-            <button
-              onClick={onOpenQuickAdd}
-              className="px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-white text-xs font-black tracking-wide uppercase transition-all shadow-xs active:scale-95 flex items-center gap-1 sm:gap-1.5 flex-shrink-0"
-              style={{
-                backgroundColor: theme.accent,
-              }}
-              title="Tambah Transaksi Baru"
-            >
-              <PlusCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-              <span className="hidden sm:inline">+ Transaksi</span>
-              <span className="sm:hidden">+ Catat</span>
-            </button>
+            {/* Period Selector & Quick Add Button */}
+            <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+              {/* Native Select with Responsive Visuals */}
+              <div
+                className="relative flex items-center px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-extrabold border transition-colors cursor-pointer select-none"
+                style={{
+                  backgroundColor: theme.isDark ? "#1E293B" : `${theme.accent}10`,
+                  borderColor: theme.cardBorder,
+                  color: theme.accent,
+                }}
+              >
+                <Calendar className="w-3.5 h-3.5 mr-1 flex-shrink-0" style={{ color: theme.accent }} />
+                <span className="sm:hidden font-bold text-xs whitespace-nowrap">
+                  {currentMonthOption.shortLabel}
+                </span>
+                <span className="hidden sm:inline font-bold text-xs whitespace-nowrap">
+                  {currentMonthOption.label}
+                </span>
+                <ChevronDown className="w-3 h-3 ml-1 opacity-70 flex-shrink-0" />
+
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base sm:text-xs"
+                  aria-label="Pilih Bulan"
+                >
+                  {MONTH_OPTIONS.map((m) => (
+                    <option
+                      key={m.value}
+                      value={m.value}
+                      className="text-slate-900 font-semibold bg-white"
+                    >
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Install PWA / WebAPK Button (Mobile Only) */}
+              <button
+                onClick={() => {
+                  if (typeof window !== "undefined" && (window as any).triggerPwaInstall) {
+                    (window as any).triggerPwaInstall();
+                  }
+                }}
+                className="md:!hidden px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 flex items-center gap-1 sm:gap-1.5 flex-shrink-0 cursor-pointer border"
+                style={{
+                  backgroundColor: theme.isDark ? "#1E293B" : "#FEF3C7",
+                  borderColor: theme.isDark ? "#334155" : "#FDE68A",
+                  color: theme.isDark ? "#FDE68A" : "#92400E",
+                }}
+                title="Pasang Aplikasi Tokyo Neko (WebAPK)"
+              >
+                <Download className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="hidden sm:inline">Install App</span>
+                <span className="sm:hidden">APK</span>
+              </button>
+
+              {/* Quick Add Button */}
+              <button
+                onClick={onOpenQuickAdd}
+                className="px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-white text-xs font-black tracking-wide uppercase transition-all shadow-xs active:scale-95 flex items-center gap-1 sm:gap-1.5 flex-shrink-0"
+                style={{
+                  backgroundColor: theme.accent,
+                }}
+                title="Tambah Transaksi Baru"
+              >
+                <PlusCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">+ Transaksi</span>
+                <span className="sm:hidden">+ Catat</span>
+              </button>
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* Mobile Navigation Segmented Control - Full Width 4-Columns, No Overflow, No Scrollbars */}
-        <div className="md:hidden pb-2.5 pt-0.5">
+      {/* ============================================================== */}
+      {/* MOBILE SIDEBAR DRAWER (Slide-over Navigation for Handphone/Mobile) */}
+      {/* ============================================================== */}
+      {/* Backdrop */}
+      {isMobileSidebarOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-opacity duration-300 md:hidden animate-fade-in"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+
+      {/* Drawer Container */}
+      <aside
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 max-w-[85vw] flex flex-col shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
+          isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        style={{
+          backgroundColor: theme.isDark ? "#0F172A" : "#FAF7F2",
+          borderRight: `1px solid ${theme.cardBorder}`,
+        }}
+      >
+        {/* Drawer Header */}
+        <div
+          className="p-5 border-b flex items-center justify-between"
+          style={{ borderColor: theme.cardBorder }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden border shadow-xs"
+              style={{
+                backgroundColor: theme.isDark ? "#1E293B" : "#FFFFFF",
+                borderColor: theme.cardBorder,
+              }}
+            >
+              <CatAnimation variant={theme.pageAnimations.dashboard} className="w-8 h-8" />
+            </div>
+            <div>
+              <h3 className="font-black text-sm" style={{ color: theme.accent }}>
+                {theme.navTitle}
+              </h3>
+              <p className="text-[10px] text-stone-400 font-medium">
+                Pencatatan Keuangan
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 transition-colors"
+            aria-label="Tutup Menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Sync Status Badge */}
+        <div className="px-5 pt-3 pb-1">
           <div
-            className="grid grid-cols-4 gap-1 p-1 rounded-2xl border text-center text-[11px] font-extrabold shadow-2xs"
+            className="px-3 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-2 border"
             style={{
-              backgroundColor: theme.isDark ? "#1E293B" : "#FAF7F2",
-              borderColor: theme.cardBorder,
+              backgroundColor: isFirebaseConnected ? "#ECFDF5" : "#FFFBEB",
+              borderColor: isFirebaseConnected ? "#A7F3D0" : "#FDE68A",
+              color: isFirebaseConnected ? "#065F46" : "#92400E",
             }}
           >
-            {navTabs.map((tab) => {
-              const active = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`py-1.5 px-1 rounded-xl transition-all duration-200 truncate ${
-                    active
-                      ? "text-white shadow-xs font-black"
-                      : theme.isDark
-                      ? "text-slate-400 hover:text-white"
-                      : "text-stone-600 hover:text-stone-900"
-                  }`}
-                  style={
-                    active
-                      ? { backgroundColor: theme.accent }
-                      : {}
-                  }
-                  title={tab.label}
-                >
-                  <span className="sm:hidden">{tab.shortLabel}</span>
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </button>
-              );
-            })}
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isFirebaseConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
+              }`}
+            />
+            <span>{isFirebaseConnected ? "Cloud Sync Aktif (Realtime)" : "Mode Offline"}</span>
           </div>
         </div>
-      </div>
-    </header>
+
+        {/* Navigation Links */}
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1.5">
+          <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1">
+            Menu Utama
+          </span>
+          {navTabs.map((tab) => {
+            const active = activeTab === tab.id;
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setIsMobileSidebarOpen(false);
+                }}
+                className={`w-full flex items-center justify-between p-3 rounded-2xl text-left transition-all active:scale-[0.98] cursor-pointer ${
+                  active
+                    ? "font-black shadow-xs border"
+                    : theme.isDark
+                    ? "text-slate-300 hover:bg-white/5 font-bold"
+                    : "text-stone-700 hover:bg-stone-200/50 font-bold"
+                }`}
+                style={
+                  active
+                    ? {
+                        backgroundColor: `${theme.accent}18`,
+                        borderColor: `${theme.accent}40`,
+                        color: theme.accent,
+                      }
+                    : {}
+                }
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+                      active ? "text-white" : "text-stone-500 bg-stone-100"
+                    }`}
+                    style={active ? { backgroundColor: theme.accent } : {}}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs block leading-tight">{tab.label}</span>
+                    <span className="text-[10px] text-stone-400 font-normal block">
+                      {tab.desc}
+                    </span>
+                  </div>
+                </div>
+
+                <ChevronRight
+                  className={`w-4 h-4 transition-transform ${
+                    active ? "translate-x-0.5 opacity-100" : "opacity-30"
+                  }`}
+                  style={active ? { color: theme.accent } : {}}
+                />
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Drawer Footer Actions */}
+        <div
+          className="p-4 border-t space-y-2"
+          style={{ borderColor: theme.cardBorder }}
+        >
+          {/* Quick Add inside sidebar */}
+          <button
+            onClick={() => {
+              setIsMobileSidebarOpen(false);
+              onOpenQuickAdd();
+            }}
+            className="w-full py-2.5 px-3 rounded-xl text-white text-xs font-black flex items-center justify-center gap-2 shadow-xs active:scale-95 transition-all cursor-pointer"
+            style={{ backgroundColor: theme.accent }}
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>+ Catat Transaksi Baru</span>
+          </button>
+
+          {/* Install App button if mobile */}
+          <button
+            onClick={() => {
+              if (typeof window !== "undefined" && (window as any).triggerPwaInstall) {
+                (window as any).triggerPwaInstall();
+              }
+            }}
+            className="w-full py-2 px-3 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 border active:scale-95 transition-all cursor-pointer"
+            style={{
+              backgroundColor: theme.isDark ? "#1E293B" : "#FEF3C7",
+              borderColor: theme.isDark ? "#334155" : "#FDE68A",
+              color: theme.isDark ? "#FDE68A" : "#92400E",
+            }}
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Pasang Aplikasi (PWA / WebAPK)</span>
+          </button>
+        </div>
+      </aside>
+    </>
   );
 };
