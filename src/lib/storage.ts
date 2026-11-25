@@ -10,7 +10,9 @@ import {
 import {
   IncomeItem,
   ExpenseItem,
+  ExpenseCategory,
   SavingsAllocation,
+  SavingsTargetType,
   MoneyMarketProduct,
   PlannedItem,
   FinancialGoal,
@@ -369,6 +371,7 @@ export class FinanceStorage {
           } else {
             setLocalData(LOCAL_STORAGE_KEYS.PLANNED_ITEMS, []);
           }
+          this.reconcileLegacyPlannedSavings();
           this.notify();
         },
         (err) => {
@@ -997,33 +1000,164 @@ export class FinanceStorage {
     });
   }
 
-  // Eksekusi pembayaran wacana: Otomatis potong saldo (buat ExpenseItem) & update status wacana
+  // Eksekusi pembayaran wacana: Otomatis potong saldo kas utama (gaji)
+  // - Jika wacana Belanja: Buat ExpenseItem & kurangi kas utama
+  // - Jika wacana Tabungan: Buat SavingsAllocation (fundingSource="salary") & kurangi kas utama serta update Halaman Tabungan & Celengan secara realtime!
   public static async executePlannedPayment(
     id: string,
     actualAmount: number,
-    paidDate: string
+    paidDate: string,
+    options?: {
+      overrideType?: "expense" | "savings";
+      savingsTargetType?: SavingsTargetType;
+      accountName?: string;
+      goalId?: string;
+      moneyMarketId?: string;
+    }
   ): Promise<void> {
     const current = this.getPlannedItems();
     const item = current.find((x) => x.id === id);
     if (!item) return;
 
-    // 1. Buat Pengeluaran Riil (Memotong Saldo Kas)
-    const expenseMonth = paidDate.slice(0, 7);
-    await this.addExpense({
-      date: paidDate,
-      month: expenseMonth,
-      amount: actualAmount,
-      category: item.category,
-      title: item.title,
-      note: `[Wacana Terealisasi] ${item.note || item.title}`,
-    });
+    const targetMonth = paidDate.slice(0, 7);
+    const isSavings =
+      options?.overrideType === "savings" ||
+      item.itemType === "savings" ||
+      item.category === "Tabungan & Investasi" ||
+      /menabung|tabung|nabung|investasi|pasar uang|celengan|deposito/i.test(item.title);
 
-    // 2. Tandai wacana sebagai lunas / terbeli
-    await this.updatePlannedItem(id, {
-      isPaid: true,
-      paidDate,
-      paidAmount: actualAmount,
-    });
+    if (isSavings) {
+      // 1. Eksekusi sebagai Alokasi Tabungan (Dipotong dari Kas Utama / Gaji)
+      const targetType = options?.savingsTargetType || item.savingsTargetType || "regular";
+      const targetGoalId = options?.goalId || item.goalId;
+      const targetMMId = options?.moneyMarketId || item.moneyMarketId;
+      const accName =
+        options?.accountName ||
+        (targetGoalId ? `Celengan: ${this.getGoals().find((g) => g.id === targetGoalId)?.title || item.title}` : null) ||
+        (targetMMId ? this.getMoneyMarket().find((m) => m.id === targetMMId)?.name : null) ||
+        item.title ||
+        "Tabungan Wacana";
+
+      if (targetGoalId) {
+        await this.depositToGoal(
+          targetGoalId,
+          actualAmount,
+          paidDate,
+          "salary",
+          targetMMId,
+          accName
+        );
+      } else {
+        await this.addSavings({
+          date: paidDate,
+          month: targetMonth,
+          amount: actualAmount,
+          targetType,
+          accountName: accName,
+          fundingSource: "salary",
+          note: `[Wacana Terealisasi] ${item.note || item.title}`,
+        });
+      }
+
+      // 2. Tandai wacana sebagai lunas / terealisasi tabungan
+      await this.updatePlannedItem(id, {
+        isPaid: true,
+        paidDate,
+        paidAmount: actualAmount,
+        itemType: "savings",
+        savingsTargetType: targetType,
+        goalId: targetGoalId || undefined,
+        moneyMarketId: targetMMId || undefined,
+      });
+    } else {
+      // 1. Eksekusi sebagai Pengeluaran Belanja (Memotong Saldo Kas)
+      await this.addExpense({
+        date: paidDate,
+        month: targetMonth,
+        amount: actualAmount,
+        category: (item.category as ExpenseCategory) || "Belanja Bulanan",
+        title: item.title,
+        note: `[Wacana Terealisasi] ${item.note || item.title}`,
+      });
+
+      // 2. Tandai wacana sebagai lunas / terbeli
+      await this.updatePlannedItem(id, {
+        isPaid: true,
+        paidDate,
+        paidAmount: actualAmount,
+        itemType: "expense",
+      });
+    }
+  }
+
+  // Rekonsiliasi wacana tabungan legacy (misal "Menabung" Rp 2.000.000) yang sempat masuk ke expenses agar pindah ke savings
+  public static reconcileLegacyPlannedSavings() {
+    if (typeof window === "undefined") return;
+    try {
+      const planned = this.getPlannedItems();
+      const expenses = this.getExpenses();
+      const savings = this.getSavings();
+
+      const savingsPlanned = planned.filter(
+        (p) =>
+          p.isPaid &&
+          (p.itemType === "savings" ||
+            p.category === "Tabungan & Investasi" ||
+            /menabung|tabung|nabung|investasi|celengan/i.test(p.title))
+      );
+
+      let didChange = false;
+
+      for (const sp of savingsPlanned) {
+        const amount = sp.paidAmount || sp.estimatedAmount;
+        const spDate = sp.paidDate || `${sp.targetMonth || "2026-11"}-25`;
+        const spMonth = spDate.slice(0, 7);
+
+        // Cari transaksi pengeluaran keliru yang dibuat untuk item wacana ini
+        const wrongExpense = expenses.find(
+          (e) =>
+            (e.title === sp.title || e.note?.includes(sp.title)) &&
+            Math.abs(e.amount - amount) < 1
+        );
+
+        // Cek apakah sudah tercatat di savings
+        const alreadyInSavings = savings.some(
+          (s) =>
+            (s.accountName === sp.title || s.note?.includes(sp.title)) &&
+            Math.abs(s.amount - amount) < 1
+        );
+
+        if (wrongExpense && !alreadyInSavings) {
+          console.log("Rekonsiliasi wacana tabungan dari pengeluaran ke alokasi tabungan:", sp.title, amount);
+          // Hapus dari expenses
+          this.deleteExpense(wrongExpense.id);
+
+          // Masukkan ke savings (fundingSource: salary agar memotong gaji secara tepat)
+          this.addSavings({
+            date: spDate,
+            month: spMonth,
+            amount,
+            targetType: sp.savingsTargetType || "regular",
+            accountName: sp.title || "Tabungan Wacana",
+            fundingSource: "salary",
+            note: `[Wacana Terealisasi] ${sp.note || sp.title}`,
+          });
+
+          // Update itemType di planned item
+          this.updatePlannedItem(sp.id, {
+            itemType: "savings",
+          });
+
+          didChange = true;
+        }
+      }
+
+      if (didChange) {
+        this.notify();
+      }
+    } catch (err) {
+      console.warn("Gagal reconcileLegacyPlannedSavings:", err);
+    }
   }
 
   // --- FINANCIAL GOALS (CELENGAN IMPIAN & TARGET TABUNGAN) ---

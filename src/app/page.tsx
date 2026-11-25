@@ -319,6 +319,8 @@ export default function Home() {
             }
             selectedMonth={selectedMonth}
             variantId={catVariant}
+            goals={goals}
+            moneyMarket={moneyMarket}
           />
         )}
       </main>

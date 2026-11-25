@@ -17,7 +17,7 @@ import {
   Wallet,
   Check,
 } from "lucide-react";
-import { PlannedItem, PlannedItemUrgency } from "@/types/finance";
+import { PlannedItem, PlannedItemUrgency, FinancialGoal, MoneyMarketProduct } from "@/types/finance";
 import { FinanceStorage, formatRupiah, formatTanggalIndo } from "@/lib/storage";
 import { getCatThemeConfig } from "./catThemeConfig";
 import { InteractiveCatMascot } from "./InteractiveCatMascot";
@@ -29,6 +29,8 @@ interface CatPlannedViewProps {
   currentBalance: number;
   selectedMonth: string;
   variantId: number;
+  goals?: FinancialGoal[];
+  moneyMarket?: MoneyMarketProduct[];
 }
 
 export const CatPlannedView: React.FC<CatPlannedViewProps> = ({
@@ -36,6 +38,8 @@ export const CatPlannedView: React.FC<CatPlannedViewProps> = ({
   currentBalance,
   selectedMonth,
   variantId,
+  goals = [],
+  moneyMarket = [],
 }) => {
   const theme = getCatThemeConfig(variantId);
 
@@ -303,9 +307,17 @@ export const CatPlannedView: React.FC<CatPlannedViewProps> = ({
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       {getUrgencyBadge(item.urgency)}
-                      <span className="text-[10px] font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded-full">
-                        {item.category}
-                      </span>
+                      {item.itemType === "savings" ||
+                      item.category === "Tabungan & Investasi" ||
+                      /menabung|tabung|nabung|investasi|celengan|pasar uang/i.test(item.title) ? (
+                        <span className="text-[10px] font-black text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                          💰 Alokasi Tabungan
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full">
+                          🛍️ {item.category}
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
@@ -339,11 +351,11 @@ export const CatPlannedView: React.FC<CatPlannedViewProps> = ({
                   )}
                 </div>
 
-                {/* Bottom Row: Amount & Prominent Checkmark Button */}
+                {/* Bottom Row: Amount & Prominent Centang Button */}
                 <div className="pt-3 border-t border-[#E8E2D8] flex items-center justify-between gap-3">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">
-                      Estimasi Harga
+                      Estimasi Nominal
                     </span>
                     <span className="text-base font-black font-mono text-stone-800">
                       {formatRupiah(item.estimatedAmount)}
@@ -353,11 +365,29 @@ export const CatPlannedView: React.FC<CatPlannedViewProps> = ({
                   {/* PROMINENT CENTANG BUTTON */}
                   <button
                     onClick={() => setPaymentExecutionItem(item)}
-                    className="px-3.5 py-2.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs hover:shadow-md active:scale-95 transition-all flex items-center gap-1.5"
-                    title="Centang untuk konfirmasi pembayaran riil & kurangi saldo kas"
+                    className={`px-3.5 py-2.5 rounded-2xl text-white font-bold text-xs shadow-xs hover:shadow-md active:scale-95 transition-all flex items-center gap-1.5 ${
+                      item.itemType === "savings" ||
+                      item.category === "Tabungan & Investasi" ||
+                      /menabung|tabung|nabung|investasi|celengan|pasar uang/i.test(item.title)
+                        ? "bg-emerald-700 hover:bg-emerald-800"
+                        : "bg-[#854D0E] hover:bg-[#713F12]"
+                    }`}
+                    title={
+                      item.itemType === "savings" ||
+                      item.category === "Tabungan & Investasi" ||
+                      /menabung|tabung|nabung|investasi|celengan|pasar uang/i.test(item.title)
+                        ? "Centang untuk simpan ke Halaman Tabungan & potong kas utama"
+                        : "Centang untuk konfirmasi pembayaran riil & potong saldo kas"
+                    }
                   >
                     <Check className="w-4 h-4 stroke-[3]" />
-                    <span>Bayar & Potong Saldo</span>
+                    <span>
+                      {item.itemType === "savings" ||
+                      item.category === "Tabungan & Investasi" ||
+                      /menabung|tabung|nabung|investasi|celengan|pasar uang/i.test(item.title)
+                        ? "Tabung & Potong Saldo"
+                        : "Bayar & Potong Saldo"}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -437,6 +467,8 @@ export const CatPlannedView: React.FC<CatPlannedViewProps> = ({
         }}
         selectedMonth={selectedMonth}
         initialItem={editingItem}
+        goals={goals}
+        moneyMarket={moneyMarket}
       />
 
       <ExecutePaymentModal
@@ -444,6 +476,8 @@ export const CatPlannedView: React.FC<CatPlannedViewProps> = ({
         onClose={() => setPaymentExecutionItem(null)}
         item={paymentExecutionItem}
         currentBalance={currentBalance}
+        goals={goals}
+        moneyMarket={moneyMarket}
       />
     </div>
   );

@@ -95,12 +95,13 @@ export interface MonthlyReconciliation {
 }
 
 export type PlannedItemUrgency = "penting" | "keinginan" | "santai";
+export type PlannedItemType = "expense" | "savings";
 
 export interface PlannedItem {
   id: string;
   title: string;
   estimatedAmount: number;
-  category: ExpenseCategory;
+  category: ExpenseCategory | "Tabungan & Investasi";
   urgency: PlannedItemUrgency;
   targetMonth: string; // YYYY-MM
   note?: string;
@@ -108,6 +109,10 @@ export interface PlannedItem {
   paidDate?: string; // YYYY-MM-DD
   paidAmount?: number;
   expenseId?: string; // ID transaksi pengeluaran yang terhubung saat centang
+  itemType?: PlannedItemType; // "expense" (belanja) vs "savings" (tabungan)
+  savingsTargetType?: SavingsTargetType; // regular, emergency, money_market, goal
+  goalId?: string; // ID Celengan Impian jika diarahkan ke goal tertentu
+  moneyMarketId?: string; // ID produk Pasar Uang jika diarahkan ke MM
   createdAt: number;
 }
 
