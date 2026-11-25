@@ -15,7 +15,7 @@ interface CatFooterProps {
  */
 export const CatFooter: React.FC<CatFooterProps> = ({ currentCatTheme }) => {
   return (
-    <footer className="hidden md:block mt-auto py-2.5 text-xs font-medium print:hidden bg-transparent border-0 text-stone-500">
+    <footer className="mt-auto border-t py-3 sm:py-4 text-xs font-medium print:hidden bg-white border-[#E8E2D8] text-stone-500">
       <div className="max-w-7xl mx-auto px-4 flex flex-row items-center justify-between">
         {/* Sisi Kiri: Brand */}
         <div className="flex items-center gap-2">
