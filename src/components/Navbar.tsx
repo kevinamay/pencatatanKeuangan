@@ -167,21 +167,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </select>
               </div>
 
-              {/* Install PWA / WebAPK Button (Mobile Only) */}
-              <button
-                onClick={() => {
-                  if (typeof window !== "undefined" && (window as any).triggerPwaInstall) {
-                    (window as any).triggerPwaInstall();
-                  }
-                }}
-                className="md:!hidden px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-[#854D0E] border border-amber-300 text-xs font-bold transition-all shadow-xs active:scale-95 flex items-center gap-1 sm:gap-1.5 flex-shrink-0 cursor-pointer"
-                title="Pasang Aplikasi Tokyo Neko (WebAPK)"
-              >
-                <Download className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="hidden sm:inline">Install App</span>
-                <span className="sm:hidden">APK</span>
-              </button>
-
               {/* Quick Add Button */}
               <button
                 onClick={onOpenQuickAdd}
