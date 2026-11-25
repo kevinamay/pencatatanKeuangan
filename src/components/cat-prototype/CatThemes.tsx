@@ -229,7 +229,7 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-fade-in pb-16 w-full min-w-0 max-w-full overflow-x-hidden">
+    <div className="space-y-6 sm:space-y-8 animate-fade-in pb-3 sm:pb-8 w-full min-w-0 max-w-full overflow-x-hidden">
       {/* 0. In-App Daily Reminder Banner */}
       <DailyReminderBanner
         incomes={props.incomes}

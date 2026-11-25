@@ -228,7 +228,7 @@ export default function Home() {
       </div>
 
       {/* Main Single Fixed View Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-10 print:p-0 print:m-0 print:max-w-none print:w-full min-w-0 max-w-full overflow-x-hidden">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-3 sm:pb-8 print:p-0 print:m-0 print:max-w-none print:w-full min-w-0 max-w-full overflow-x-hidden">
         {activeTab === "dashboard" && (
           isCatMode ? (
             renderCatVariant()
