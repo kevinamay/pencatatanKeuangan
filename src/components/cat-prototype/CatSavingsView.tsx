@@ -655,6 +655,56 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
           </button>
         </div>
 
+        {/* Overview Stats Bar: Total Progres Seluruh Celengan Aktif */}
+        {goals.length > 0 && (
+          <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#E8E2D8] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-stone-400">
+                  Total Progres Seluruh Celengan Aktif
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white text-[#854D0E] border border-[#E8E2D8]">
+                  {goals.filter((g) => !g.isCompleted).length} Impian Aktif {goals.filter((g) => g.isCompleted).length > 0 ? `• ${goals.filter((g) => g.isCompleted).length} Selesai 🎉` : ""}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl font-black font-mono text-[#854D0E]">
+                  {formatRupiah(goals.filter((g) => !g.isCompleted).reduce((acc, curr) => acc + curr.currentAmount, 0))}
+                </span>
+                <span className="text-xs text-stone-500 font-medium">
+                  dari target {formatRupiah(goals.filter((g) => !g.isCompleted).reduce((acc, curr) => acc + curr.targetAmount, 0))}
+                </span>
+              </div>
+            </div>
+
+            <div className="sm:w-64 space-y-1.5">
+              {(() => {
+                const active = goals.filter((g) => !g.isCompleted);
+                const tgt = active.reduce((acc, curr) => acc + curr.targetAmount, 0);
+                const col = active.reduce((acc, curr) => acc + curr.currentAmount, 0);
+                const pct = tgt > 0 ? Math.min(100, Math.round((col / tgt) * 100)) : 0;
+                return (
+                  <>
+                    <div className="flex justify-between text-xs font-bold text-stone-700">
+                      <span>Total Tercapai</span>
+                      <span className="text-[#854D0E] font-mono">{pct}%</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-stone-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#854D0E] rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] text-stone-400">
+                      <span>Sisa akumulasi: {formatRupiah(Math.max(0, tgt - col))}</span>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        )}
+
         {goals.length === 0 ? (
           <div className="py-10 text-center space-y-3 border border-dashed border-[#E8E2D8] rounded-2xl bg-[#FAF7F2]/40">
             <div className="w-12 h-12 rounded-2xl bg-white text-[#854D0E] flex items-center justify-center text-xl mx-auto border border-[#E8E2D8]">
