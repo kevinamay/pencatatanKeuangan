@@ -65,11 +65,28 @@ export const ExecutePaymentModal: React.FC<ExecutePaymentModalProps> = ({
         /menabung|tabung|nabung|investasi|celengan|pasar uang/i.test(item.title);
 
       setIsSavingsMode(isSav);
-      setSavingsTargetType(item.savingsTargetType || "regular");
-      setSelectedGoalId(item.goalId || "none");
-      setSelectedMMId(item.moneyMarketId || "none");
+      const defTarget = item.savingsTargetType || (goals.length > 0 ? "goal" : "regular");
+      setSavingsTargetType(defTarget);
+
+      // Auto select goal if available
+      if (item.goalId && goals.some((g) => g.id === item.goalId)) {
+        setSelectedGoalId(item.goalId);
+      } else if (goals.length > 0) {
+        setSelectedGoalId(goals[0].id);
+      } else {
+        setSelectedGoalId("none");
+      }
+
+      // Auto select MM if available
+      if (item.moneyMarketId && moneyMarket.some((m) => m.id === item.moneyMarketId)) {
+        setSelectedMMId(item.moneyMarketId);
+      } else if (moneyMarket.length > 0) {
+        setSelectedMMId(moneyMarket[0].id);
+      } else {
+        setSelectedMMId("none");
+      }
     }
-  }, [item, isOpen]);
+  }, [item, isOpen, goals, moneyMarket]);
 
   if (!isOpen || !item) return null;
 
@@ -106,8 +123,9 @@ export const ExecutePaymentModal: React.FC<ExecutePaymentModalProps> = ({
 
       onSuccess?.();
       onClose();
-    } catch {
-      setErrorMsg("Terjadi kendala saat memproses eksekusi transaksi.");
+    } catch (err: any) {
+      console.error("Gagal executePlannedPayment:", err);
+      setErrorMsg(err?.message || "Terjadi kendala saat memproses eksekusi transaksi.");
     } finally {
       setIsSubmitting(false);
     }
@@ -226,7 +244,16 @@ export const ExecutePaymentModal: React.FC<ExecutePaymentModalProps> = ({
                 </label>
                 <select
                   value={savingsTargetType}
-                  onChange={(e) => setSavingsTargetType(e.target.value as SavingsTargetType)}
+                  onChange={(e) => {
+                    const nextType = e.target.value as SavingsTargetType;
+                    setSavingsTargetType(nextType);
+                    if (nextType === "goal" && selectedGoalId === "none" && goals.length > 0) {
+                      setSelectedGoalId(goals[0].id);
+                    }
+                    if (nextType === "money_market" && selectedMMId === "none" && moneyMarket.length > 0) {
+                      setSelectedMMId(moneyMarket[0].id);
+                    }
+                  }}
                   className="w-full px-3 py-2 rounded-xl border border-emerald-300 text-xs font-bold bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-400"
                 >
                   <option value="regular">🏦 Tabungan Reguler / Bank Utama</option>
@@ -237,44 +264,54 @@ export const ExecutePaymentModal: React.FC<ExecutePaymentModalProps> = ({
               </div>
 
               {/* Pilih Celengan jika targetType === "goal" */}
-              {savingsTargetType === "goal" && goals.length > 0 && (
+              {savingsTargetType === "goal" && (
                 <div>
                   <label className="block text-xs font-bold text-emerald-950 mb-1">
                     Pilih Target Celengan Impian:
                   </label>
-                  <select
-                    value={selectedGoalId}
-                    onChange={(e) => setSelectedGoalId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-emerald-300 text-xs font-bold bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                  >
-                    <option value="none">-- Pilih Celengan Impian --</option>
-                    {goals.map((g) => (
-                      <option key={g.id} value={g.id}>
-                        {g.title} (Target: {formatRupiah(g.targetAmount)})
-                      </option>
-                    ))}
-                  </select>
+                  {goals.length === 0 ? (
+                    <p className="text-[11px] text-amber-800 bg-amber-50 p-2 rounded-xl border border-amber-200">
+                      Belum ada Celengan Impian aktif. Dana akan dialokasikan ke Tabungan Reguler/Bank.
+                    </p>
+                  ) : (
+                    <select
+                      value={selectedGoalId}
+                      onChange={(e) => setSelectedGoalId(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-emerald-300 text-xs font-bold bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                    >
+                      {goals.map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.title} (Target: {formatRupiah(g.targetAmount)})
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               )}
 
               {/* Pilih Pasar Uang jika targetType === "money_market" */}
-              {savingsTargetType === "money_market" && moneyMarket.length > 0 && (
+              {savingsTargetType === "money_market" && (
                 <div>
                   <label className="block text-xs font-bold text-emerald-950 mb-1">
                     Pilih Produk Pasar Uang:
                   </label>
-                  <select
-                    value={selectedMMId}
-                    onChange={(e) => setSelectedMMId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-emerald-300 text-xs font-bold bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                  >
-                    <option value="none">-- Pilih Produk Pasar Uang --</option>
-                    {moneyMarket.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name} ({m.platform})
-                      </option>
-                    ))}
-                  </select>
+                  {moneyMarket.length === 0 ? (
+                    <p className="text-[11px] text-amber-800 bg-amber-50 p-2 rounded-xl border border-amber-200">
+                      Belum ada produk pasar uang terdaftar. Produk baru akan dibuat otomatis di portofolio.
+                    </p>
+                  ) : (
+                    <select
+                      value={selectedMMId}
+                      onChange={(e) => setSelectedMMId(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-emerald-300 text-xs font-bold bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                    >
+                      {moneyMarket.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name} ({m.platform})
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               )}
             </div>

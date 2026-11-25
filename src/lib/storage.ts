@@ -220,7 +220,7 @@ export class FinanceStorage {
     ].forEach((k) => {
       try {
         localStorage.removeItem(k);
-      } catch {}
+      } catch { }
     });
 
     // Pastikan localStorage terisi array kosong jika belum ada
@@ -481,12 +481,12 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.GOALS, []);
     this.notify();
 
-    remove(ref(rtdb, "incomes")).catch(() => {});
-    remove(ref(rtdb, "expenses")).catch(() => {});
-    remove(ref(rtdb, "savings")).catch(() => {});
-    remove(ref(rtdb, "money_market")).catch(() => {});
-    remove(ref(rtdb, "planned_items")).catch(() => {});
-    remove(ref(rtdb, "financial_goals")).catch(() => {});
+    remove(ref(rtdb, "incomes")).catch(() => { });
+    remove(ref(rtdb, "expenses")).catch(() => { });
+    remove(ref(rtdb, "savings")).catch(() => { });
+    remove(ref(rtdb, "money_market")).catch(() => { });
+    remove(ref(rtdb, "planned_items")).catch(() => { });
+    remove(ref(rtdb, "financial_goals")).catch(() => { });
   }
 
   // --- INCOMES (GAJI / PEMASUKAN) ---
@@ -972,22 +972,29 @@ export class FinanceStorage {
     const idx = current.findIndex((x) => x.id === id);
     if (idx === -1) return;
 
+    // Filter out undefined keys so Firebase RTDB doesn't throw
+    const cleanUpdated: any = {};
+    for (const [k, v] of Object.entries(updated)) {
+      if (v !== undefined) {
+        cleanUpdated[k] = v;
+      }
+    }
+
     const merged: PlannedItem = {
       ...current[idx],
-      ...updated,
+      ...cleanUpdated,
     };
     current[idx] = merged;
     setLocalData(LOCAL_STORAGE_KEYS.PLANNED_ITEMS, current);
     this.notify();
 
-    update(ref(rtdb, `planned_items/${id}`), updated)
-      .then(() => {
-        this.isFirebaseConnected = true;
-        this.notify();
-      })
-      .catch((err) => {
-        console.warn("RTDB updatePlannedItem gagal:", err.message);
-      });
+    try {
+      await update(ref(rtdb, `planned_items/${id}`), cleanUpdated);
+      this.isFirebaseConnected = true;
+      this.notify();
+    } catch (err: any) {
+      console.warn("RTDB updatePlannedItem gagal:", err?.message);
+    }
   }
 
   public static async deletePlannedItem(id: string): Promise<void> {
@@ -1028,9 +1035,20 @@ export class FinanceStorage {
 
     if (isSavings) {
       // 1. Eksekusi sebagai Alokasi Tabungan (Dipotong dari Kas Utama / Gaji)
-      const targetType = options?.savingsTargetType || item.savingsTargetType || "regular";
-      const targetGoalId = options?.goalId || item.goalId;
+      let targetType = options?.savingsTargetType || item.savingsTargetType || "regular";
+      let targetGoalId = options?.goalId || item.goalId;
       const targetMMId = options?.moneyMarketId || item.moneyMarketId;
+
+      // Fallback: Jika pengguna memilih celengan impian tapi belum/tidak memilih targetGoalId
+      if (targetType === "goal" && !targetGoalId) {
+        const availableGoals = this.getGoals();
+        if (availableGoals.length > 0) {
+          targetGoalId = availableGoals[0].id;
+        } else {
+          targetType = "regular";
+        }
+      }
+
       const accName =
         options?.accountName ||
         (targetGoalId ? `Celengan: ${this.getGoals().find((g) => g.id === targetGoalId)?.title || item.title}` : null) ||
@@ -1044,8 +1062,8 @@ export class FinanceStorage {
           actualAmount,
           paidDate,
           "salary",
-          targetMMId,
-          accName
+          accName,
+          targetMMId
         );
       } else {
         await this.addSavings({
@@ -1059,16 +1077,21 @@ export class FinanceStorage {
         });
       }
 
-      // 2. Tandai wacana sebagai lunas / terealisasi tabungan
-      await this.updatePlannedItem(id, {
+      // 2. Tandai wacana sebagai lunas / terealisasi tabungan (hindari nilai undefined ke RTDB)
+      const plannedUpdates: any = {
         isPaid: true,
         paidDate,
         paidAmount: actualAmount,
         itemType: "savings",
         savingsTargetType: targetType,
-        goalId: targetGoalId || undefined,
-        moneyMarketId: targetMMId || undefined,
-      });
+      };
+      if (targetGoalId) {
+        plannedUpdates.goalId = targetGoalId;
+      }
+      if (targetMMId) {
+        plannedUpdates.moneyMarketId = targetMMId;
+      }
+      await this.updatePlannedItem(id, plannedUpdates);
     } else {
       // 1. Eksekusi sebagai Pengeluaran Belanja (Memotong Saldo Kas)
       await this.addExpense({
@@ -1203,27 +1226,36 @@ export class FinanceStorage {
     const idx = current.findIndex((x) => x.id === id);
     if (idx === -1) return;
 
+    // Filter out undefined keys so Firebase RTDB doesn't throw
+    const cleanUpdated: any = {};
+    for (const [k, v] of Object.entries(updated)) {
+      if (v !== undefined) {
+        cleanUpdated[k] = v;
+      }
+    }
+
     const merged: FinancialGoal = {
       ...current[idx],
-      ...updated,
+      ...cleanUpdated,
     };
     if (merged.currentAmount >= merged.targetAmount && !merged.isCompleted) {
       merged.isCompleted = true;
       merged.completedDate = new Date().toISOString().split("T")[0];
+      cleanUpdated.isCompleted = true;
+      cleanUpdated.completedDate = merged.completedDate;
     }
 
     current[idx] = merged;
     setLocalData(LOCAL_STORAGE_KEYS.GOALS, current);
     this.notify();
 
-    update(ref(rtdb, `financial_goals/${id}`), merged)
-      .then(() => {
-        this.isFirebaseConnected = true;
-        this.notify();
-      })
-      .catch((err) => {
-        console.warn("RTDB updateGoal gagal:", err.message);
-      });
+    try {
+      await update(ref(rtdb, `financial_goals/${id}`), cleanUpdated);
+      this.isFirebaseConnected = true;
+      this.notify();
+    } catch (err: any) {
+      console.warn("RTDB updateGoal gagal:", err?.message);
+    }
   }
 
   public static async deleteGoal(id: string): Promise<void> {
@@ -1282,14 +1314,21 @@ export class FinanceStorage {
       note: `Setoran ke celengan impian [${goal.title}]`,
     });
 
-    // 4. Perbarui progres saldo Celengan
-    await this.updateGoal(goalId, {
+    // 4. Perbarui progres saldo Celengan (hindari undefined ke RTDB)
+    const goalUpdates: any = {
       currentAmount: newCurrent,
       isCompleted,
-      completedDate: isCompleted ? date : undefined,
-      linkedMoneyMarketId: targetMMId,
-      linkedAccountName: targetAccName,
-    });
+    };
+    if (isCompleted && date) {
+      goalUpdates.completedDate = date;
+    }
+    if (targetMMId) {
+      goalUpdates.linkedMoneyMarketId = targetMMId;
+    }
+    if (targetAccName) {
+      goalUpdates.linkedAccountName = targetAccName;
+    }
+    await this.updateGoal(goalId, goalUpdates);
   }
 
   // Alokasikan saldo dari tabungan/pasar uang yang SUDAH ADA ke Celengan Impian
