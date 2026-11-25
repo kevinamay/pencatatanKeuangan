@@ -12,6 +12,7 @@ import {
   ExpenseItem,
   SavingsAllocation,
   MoneyMarketProduct,
+  PlannedItem,
 } from "@/types/finance";
 
 // Storage keys untuk fallback lokal (v5 - Support Sumber Dana Investasi & Tabungan)
@@ -20,6 +21,7 @@ const LOCAL_STORAGE_KEYS = {
   EXPENSES: "keuangan_expenses_v5",
   SAVINGS: "keuangan_savings_v5",
   MONEY_MARKET: "keuangan_money_market_v5",
+  PLANNED_ITEMS: "keuangan_planned_v1",
 };
 
 // Data Awal Bersih (Clean Empty State)
@@ -27,6 +29,7 @@ const DEFAULT_INCOMES: IncomeItem[] = [];
 const DEFAULT_EXPENSES: ExpenseItem[] = [];
 const DEFAULT_SAVINGS: SavingsAllocation[] = [];
 const DEFAULT_MONEY_MARKET: MoneyMarketProduct[] = [];
+const DEFAULT_PLANNED_ITEMS: PlannedItem[] = [];
 
 // Helper: Format Rupiah
 export function formatRupiah(value: number | string | undefined | null): string {
@@ -344,6 +347,33 @@ export class FinanceStorage {
           this.notify();
         }
       );
+
+      // 5. Listener Planned Items (Wacana Belanja / Tagihan Pending)
+      const plannedRef = ref(rtdb, "planned_items");
+      onValue(
+        plannedRef,
+        (snapshot) => {
+          this.isFirebaseConnected = true;
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            const list: PlannedItem[] = Object.entries(data).map(
+              ([key, val]: [string, any]) => ({
+                ...val,
+                id: key,
+              })
+            );
+            setLocalData(LOCAL_STORAGE_KEYS.PLANNED_ITEMS, list);
+          } else {
+            setLocalData(LOCAL_STORAGE_KEYS.PLANNED_ITEMS, []);
+          }
+          this.notify();
+        },
+        (err) => {
+          console.warn("RTDB [planned_items] error:", err.message);
+          this.isFirebaseConnected = false;
+          this.notify();
+        }
+      );
     } catch (e) {
       console.warn("RTDB init error:", e);
       this.isFirebaseConnected = false;
@@ -414,12 +444,14 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.EXPENSES, []);
     setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, []);
     setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, []);
+    setLocalData(LOCAL_STORAGE_KEYS.PLANNED_ITEMS, []);
     this.notify();
 
     remove(ref(rtdb, "incomes")).catch(() => {});
     remove(ref(rtdb, "expenses")).catch(() => {});
     remove(ref(rtdb, "savings")).catch(() => {});
     remove(ref(rtdb, "money_market")).catch(() => {});
+    remove(ref(rtdb, "planned_items")).catch(() => {});
   }
 
   // --- INCOMES (GAJI / PEMASUKAN) ---
@@ -858,5 +890,105 @@ export class FinanceStorage {
         console.warn("RTDB deleteMoneyMarket gagal:", err.message);
       });
     }
+  }
+
+  // --- PLANNED ITEMS (WACANA BELANJA / TAGIHAN PENDING) ---
+  public static getPlannedItems(): PlannedItem[] {
+    return getLocalData(LOCAL_STORAGE_KEYS.PLANNED_ITEMS, DEFAULT_PLANNED_ITEMS);
+  }
+
+  public static async addPlannedItem(
+    item: Omit<PlannedItem, "id" | "createdAt" | "isPaid">
+  ): Promise<string> {
+    const plannedRef = ref(rtdb, "planned_items");
+    const newRef = push(plannedRef);
+    const newId = newRef.key || "plan-" + Date.now();
+    const newItem: PlannedItem = {
+      ...item,
+      id: newId,
+      isPaid: false,
+      createdAt: Date.now(),
+    };
+
+    const current = this.getPlannedItems();
+    const updated = [newItem, ...current.filter((x) => x.id !== newId)];
+    setLocalData(LOCAL_STORAGE_KEYS.PLANNED_ITEMS, updated);
+    this.notify();
+
+    set(newRef, newItem)
+      .then(() => {
+        this.isFirebaseConnected = true;
+        this.notify();
+      })
+      .catch((err) => {
+        console.warn("RTDB addPlannedItem gagal:", err.message);
+      });
+
+    return newId;
+  }
+
+  public static async updatePlannedItem(
+    id: string,
+    updated: Partial<Omit<PlannedItem, "id" | "createdAt">>
+  ): Promise<void> {
+    const current = this.getPlannedItems();
+    const idx = current.findIndex((x) => x.id === id);
+    if (idx === -1) return;
+
+    const merged: PlannedItem = {
+      ...current[idx],
+      ...updated,
+    };
+    current[idx] = merged;
+    setLocalData(LOCAL_STORAGE_KEYS.PLANNED_ITEMS, current);
+    this.notify();
+
+    update(ref(rtdb, `planned_items/${id}`), updated)
+      .then(() => {
+        this.isFirebaseConnected = true;
+        this.notify();
+      })
+      .catch((err) => {
+        console.warn("RTDB updatePlannedItem gagal:", err.message);
+      });
+  }
+
+  public static async deletePlannedItem(id: string): Promise<void> {
+    const current = this.getPlannedItems().filter((x) => x.id !== id);
+    setLocalData(LOCAL_STORAGE_KEYS.PLANNED_ITEMS, current);
+    this.notify();
+
+    remove(ref(rtdb, `planned_items/${id}`)).catch((err) => {
+      console.warn("RTDB deletePlannedItem gagal:", err.message);
+    });
+  }
+
+  // Eksekusi pembayaran wacana: Otomatis potong saldo (buat ExpenseItem) & update status wacana
+  public static async executePlannedPayment(
+    id: string,
+    actualAmount: number,
+    paidDate: string
+  ): Promise<void> {
+    const current = this.getPlannedItems();
+    const item = current.find((x) => x.id === id);
+    if (!item) return;
+
+    // 1. Buat Pengeluaran Riil (Memotong Saldo Kas)
+    const expenseMonth = paidDate.slice(0, 7);
+    await this.addExpense({
+      date: paidDate,
+      month: expenseMonth,
+      amount: actualAmount,
+      category: item.category,
+      title: item.title,
+      note: `[Wacana Terealisasi] ${item.note || item.title}`,
+    });
+
+    // 2. Tandai wacana sebagai lunas / terbeli
+    await this.updatePlannedItem(id, {
+      isPaid: true,
+      paidDate,
+      paidAmount: actualAmount,
+    });
   }
 }

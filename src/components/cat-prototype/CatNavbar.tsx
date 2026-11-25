@@ -10,13 +10,14 @@ import {
   FileText,
   ChevronDown,
   Download,
+  ShoppingBag,
 } from "lucide-react";
 import { CatAnimation } from "./CatAnimations";
 import { getCatThemeConfig } from "./catThemeConfig";
 
 interface CatNavbarProps {
-  activeTab: "dashboard" | "transactions" | "savings" | "report";
-  setActiveTab: (tab: "dashboard" | "transactions" | "savings" | "report") => void;
+  activeTab: "dashboard" | "transactions" | "savings" | "report" | "planned";
+  setActiveTab: (tab: "dashboard" | "transactions" | "savings" | "report" | "planned") => void;
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
   isFirebaseConnected: boolean;
@@ -46,7 +47,7 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
   const theme = getCatThemeConfig(variantId);
 
   // Tab-specific animation for navbar mini badge
-  const tabAnimation = theme.pageAnimations[activeTab] || theme.pageAnimations.dashboard;
+  const tabAnimation = (activeTab !== "planned" && theme.pageAnimations[activeTab]) || theme.pageAnimations.dashboard;
 
   const currentMonthOption =
     MONTH_OPTIONS.find((m) => m.value === selectedMonth) || MONTH_OPTIONS[0];
@@ -69,6 +70,12 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
       label: "Tabungan & Pasar Uang",
       shortLabel: "Tabungan",
       icon: TrendingUp,
+    },
+    {
+      id: "planned" as const,
+      label: "Rencana & Wishlist",
+      shortLabel: "Rencana",
+      icon: ShoppingBag,
     },
     {
       id: "report" as const,

@@ -25,6 +25,7 @@ import {
   ExpenseItem,
   SavingsAllocation,
   MoneyMarketProduct,
+  PlannedItem,
 } from "@/types/finance";
 import {
   formatRupiah,
@@ -41,15 +42,18 @@ import {
 } from "@/components/EditTransactionModal";
 import { CatCoachCard } from "./CatCoachCard";
 import { DailyReminderBanner } from "./DailyReminderBanner";
+import { PlannedSummaryWidget } from "./PlannedSummaryWidget";
 
 export interface CatVariantProps {
   incomes: IncomeItem[];
   expenses: ExpenseItem[];
   savings: SavingsAllocation[];
   moneyMarket: MoneyMarketProduct[];
+  plannedItems?: PlannedItem[];
   selectedMonth: string;
   onOpenQuickAdd: (type?: "income" | "expense" | "savings") => void;
-  onNavigateToTab?: (tab: "transactions" | "savings" | "report") => void;
+  onNavigateToTab?: (tab: "dashboard" | "transactions" | "savings" | "report" | "planned") => void;
+  onOpenAddPlanned?: () => void;
 }
 
 // Universal financial calculation matching original web formulas
@@ -392,6 +396,14 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
           </div>
         </div>
       </div>
+
+      {/* 2.5. Wacana Belanja & Tagihan Pending Widget */}
+      <PlannedSummaryWidget
+        plannedItems={props.plannedItems || []}
+        currentBalance={stats.remainingSalary}
+        onNavigateToTab={props.onNavigateToTab}
+        onOpenAddPlanned={props.onOpenAddPlanned || (() => props.onNavigateToTab?.("planned"))}
+      />
 
       {/* 3. Status Rekonsiliasi Gaji & Pengeluaran (Live Progress Split Bar) */}
       <div className="p-6 sm:p-8 rounded-3xl bg-white border border-[#E8E2D8] shadow-sm space-y-6">

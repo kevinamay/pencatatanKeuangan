@@ -6,6 +6,7 @@ export interface CatPageAnimations {
   savings: CatAnimationVariant;
   report: CatAnimationVariant;
   modal: CatAnimationVariant;
+  planned?: CatAnimationVariant;
 }
 
 export interface CatVariantConfig {

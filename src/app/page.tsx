@@ -10,6 +10,7 @@ import {
   ExpenseItem,
   SavingsAllocation,
   MoneyMarketProduct,
+  PlannedItem,
 } from "@/types/finance";
 import {
   CatPrototypeSwitcher,
@@ -26,6 +27,7 @@ import { CatNavbar } from "@/components/cat-prototype/CatNavbar";
 import { CatTransactionsView } from "@/components/cat-prototype/CatTransactionsView";
 import { CatSavingsView } from "@/components/cat-prototype/CatSavingsView";
 import { CatReportView } from "@/components/cat-prototype/CatReportView";
+import { CatPlannedView } from "@/components/cat-prototype/CatPlannedView";
 import { getCatThemeConfig } from "@/components/cat-prototype/catThemeConfig";
 import { CatFooter } from "@/components/cat-prototype/CatFooter";
 import { SplashScreen } from "@/components/cat-prototype/SplashScreen";
@@ -81,7 +83,7 @@ const QuickAddModal = dynamic(
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<
-    "dashboard" | "transactions" | "savings" | "report"
+    "dashboard" | "transactions" | "savings" | "report" | "planned"
   >("dashboard");
   const [selectedMonth, setSelectedMonth] = useState<string>("2026-11");
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
@@ -102,6 +104,7 @@ export default function Home() {
   const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [savings, setSavings] = useState<SavingsAllocation[]>([]);
   const [moneyMarket, setMoneyMarket] = useState<MoneyMarketProduct[]>([]);
+  const [plannedItems, setPlannedItems] = useState<PlannedItem[]>([]);
   const [isFirebaseConnected, setIsFirebaseConnected] = useState(false);
 
   // Subscribe to FinanceStorage updates & Cloud Sync
@@ -113,6 +116,7 @@ export default function Home() {
       setExpenses(FinanceStorage.getExpenses());
       setSavings(FinanceStorage.getSavings());
       setMoneyMarket(FinanceStorage.getMoneyMarket());
+      setPlannedItems(FinanceStorage.getPlannedItems());
       setIsFirebaseConnected(FinanceStorage.getFirebaseStatus());
     };
 
@@ -126,9 +130,10 @@ export default function Home() {
         tabParam === "transactions" ||
         tabParam === "savings" ||
         tabParam === "report" ||
-        tabParam === "dashboard"
+        tabParam === "dashboard" ||
+        tabParam === "planned"
       ) {
-        setActiveTab(tabParam);
+        setActiveTab(tabParam as any);
       }
       const actionParam = params.get("action");
       if (
@@ -157,9 +162,11 @@ export default function Home() {
       expenses,
       savings,
       moneyMarket,
+      plannedItems,
       selectedMonth,
       onOpenQuickAdd: openQuickAdd,
-      onNavigateToTab: (tab: "transactions" | "savings" | "report") => setActiveTab(tab),
+      onNavigateToTab: (tab: any) => setActiveTab(tab),
+      onOpenAddPlanned: () => setActiveTab("planned"),
     };
 
     switch (catVariant) {
@@ -293,6 +300,21 @@ export default function Home() {
               selectedMonth={selectedMonth}
             />
           )
+        )}
+
+        {activeTab === "planned" && (
+          <CatPlannedView
+            plannedItems={plannedItems}
+            currentBalance={
+              incomes.filter((i) => i.month === selectedMonth).reduce((a, b) => a + b.amount, 0) -
+              expenses.filter((e) => e.month === selectedMonth).reduce((a, b) => a + b.amount, 0) -
+              savings
+                .filter((s) => s.month === selectedMonth && s.fundingSource !== "external")
+                .reduce((a, b) => a + b.amount, 0)
+            }
+            selectedMonth={selectedMonth}
+            variantId={catVariant}
+          />
         )}
       </main>
 

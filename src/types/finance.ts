@@ -94,3 +94,21 @@ export interface MonthlyReconciliation {
   status: "surplus" | "balanced" | "deficit";
 }
 
+export type PlannedItemUrgency = "penting" | "keinginan" | "santai";
+
+export interface PlannedItem {
+  id: string;
+  title: string;
+  estimatedAmount: number;
+  category: ExpenseCategory;
+  urgency: PlannedItemUrgency;
+  targetMonth: string; // YYYY-MM
+  note?: string;
+  isPaid: boolean;
+  paidDate?: string; // YYYY-MM-DD
+  paidAmount?: number;
+  expenseId?: string; // ID transaksi pengeluaran yang terhubung saat centang
+  createdAt: number;
+}
+
+

@@ -10,11 +10,12 @@ import {
   FileText,
   ChevronDown,
   Download,
+  ShoppingBag,
 } from "lucide-react";
 
 interface NavbarProps {
-  activeTab: "dashboard" | "transactions" | "savings" | "report";
-  setActiveTab: (tab: "dashboard" | "transactions" | "savings" | "report") => void;
+  activeTab: "dashboard" | "transactions" | "savings" | "report" | "planned";
+  setActiveTab: (tab: "dashboard" | "transactions" | "savings" | "report" | "planned") => void;
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
   isFirebaseConnected: boolean;
@@ -64,6 +65,12 @@ export const Navbar: React.FC<NavbarProps> = ({
       label: "Tabungan & Pasar Uang",
       shortLabel: "Tabungan",
       icon: TrendingUp,
+    },
+    {
+      id: "planned" as const,
+      label: "Rencana & Wishlist",
+      shortLabel: "Rencana",
+      icon: ShoppingBag,
     },
     {
       id: "report" as const,
