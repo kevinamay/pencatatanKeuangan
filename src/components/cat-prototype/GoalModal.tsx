@@ -12,18 +12,16 @@ interface GoalModalProps {
   onSuccess?: () => void;
 }
 
-const GOAL_CATEGORIES: Array<{ id: GoalCategory; label: string; defaultEmoji: string }> = [
-  { id: "gadget", label: "Gadget & Elektronik", defaultEmoji: "💻" },
-  { id: "liburan", label: "Liburan & Healing", defaultEmoji: "✈️" },
-  { id: "darurat", label: "Dana Darurat", defaultEmoji: "🛡️" },
-  { id: "kendaraan", label: "Kendaraan (Motor/Mobil)", defaultEmoji: "🚗" },
-  { id: "rumah", label: "Rumah / Renovasi", defaultEmoji: "🏡" },
-  { id: "pendidikan", label: "Pendidikan & Kursus", defaultEmoji: "🎓" },
-  { id: "investasi", label: "Modal Usaha / Investasi", defaultEmoji: "📈" },
-  { id: "lainnya", label: "Lainnya", defaultEmoji: "🎯" },
+const GOAL_CATEGORIES: Array<{ id: GoalCategory; label: string }> = [
+  { id: "gadget", label: "Gadget & Elektronik" },
+  { id: "liburan", label: "Liburan & Healing" },
+  { id: "darurat", label: "Dana Darurat" },
+  { id: "kendaraan", label: "Kendaraan (Motor/Mobil)" },
+  { id: "rumah", label: "Rumah / Renovasi" },
+  { id: "pendidikan", label: "Pendidikan & Kursus" },
+  { id: "investasi", label: "Modal Usaha / Investasi" },
+  { id: "lainnya", label: "Lainnya" },
 ];
-
-const PRESET_EMOJIS = ["💻", "📱", "✈️", "🏖️", "🛡️", "🚗", "🛵", "🏡", "🎓", "📈", "💍", "🎁", "🎯", "🐱"];
 
 export const GoalModal: React.FC<GoalModalProps> = ({
   isOpen,
@@ -36,7 +34,6 @@ export const GoalModal: React.FC<GoalModalProps> = ({
   const [currentAmountStr, setCurrentAmountStr] = useState("0");
   const [targetDate, setTargetDate] = useState("");
   const [category, setCategory] = useState<GoalCategory>("gadget");
-  const [iconEmoji, setIconEmoji] = useState("💻");
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -48,7 +45,6 @@ export const GoalModal: React.FC<GoalModalProps> = ({
       setCurrentAmountStr(initialGoal.currentAmount.toString());
       setTargetDate(initialGoal.targetDate || "");
       setCategory(initialGoal.category);
-      setIconEmoji(initialGoal.iconEmoji || "🎯");
       setNote(initialGoal.note || "");
     } else {
       setTitle("");
@@ -59,21 +55,12 @@ export const GoalModal: React.FC<GoalModalProps> = ({
       future.setMonth(future.getMonth() + 6);
       setTargetDate(future.toISOString().slice(0, 7));
       setCategory("gadget");
-      setIconEmoji("💻");
       setNote("");
     }
     setErrorMsg(null);
   }, [initialGoal, isOpen]);
 
   if (!isOpen) return null;
-
-  const handleCategoryChange = (cat: GoalCategory) => {
-    setCategory(cat);
-    const found = GOAL_CATEGORIES.find((c) => c.id === cat);
-    if (found && !initialGoal) {
-      setIconEmoji(found.defaultEmoji);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,7 +91,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({
           currentAmount: cleanCurrent,
           targetDate,
           category,
-          iconEmoji,
+          iconEmoji: "🎯",
           note: note.trim(),
         });
       } else {
@@ -114,7 +101,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({
           currentAmount: cleanCurrent,
           targetDate,
           category,
-          iconEmoji,
+          iconEmoji: "🎯",
           note: note.trim(),
         });
       }
@@ -134,15 +121,15 @@ export const GoalModal: React.FC<GoalModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D8]">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#FAF7F2] border border-[#E8E2D8] flex items-center justify-center text-xl">
-              {iconEmoji}
+            <div className="w-10 h-10 rounded-2xl bg-[#FAF7F2] border border-[#E8E2D8] text-[#854D0E] flex items-center justify-center">
+              <Target className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-base font-black text-stone-900">
                 {initialGoal ? "Edit Celengan Impian" : "Buat Celengan Impian Baru"}
               </h3>
               <p className="text-xs text-stone-500">
-                Tetapkan target tabungan berjangka & pantau progres koin kucing.
+                Tetapkan target tabungan berjangka & pantau progresnya.
               </p>
             </div>
           </div>
@@ -175,29 +162,6 @@ export const GoalModal: React.FC<GoalModalProps> = ({
               placeholder="Contoh: MacBook Pro M3, Liburan ke Sapporo, Dana Darurat"
               className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E2D8] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#854D0E]/20 focus:border-[#854D0E] bg-[#FAF7F2]/50 text-stone-900"
             />
-          </div>
-
-          {/* Emoji Selection */}
-          <div>
-            <label className="block text-xs font-bold text-stone-700 mb-1.5">
-              Pilih Ikon Celengan
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {PRESET_EMOJIS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setIconEmoji(emoji)}
-                  className={`w-9 h-9 rounded-xl border text-base flex items-center justify-center transition-all ${
-                    iconEmoji === emoji
-                      ? "bg-[#FAF7F2] border-[#854D0E] scale-110 shadow-xs"
-                      : "bg-white border-[#E8E2D8] hover:bg-stone-50"
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Target Amount */}
@@ -236,12 +200,12 @@ export const GoalModal: React.FC<GoalModalProps> = ({
               </label>
               <select
                 value={category}
-                onChange={(e) => handleCategoryChange(e.target.value as GoalCategory)}
+                onChange={(e) => setCategory(e.target.value as GoalCategory)}
                 className="w-full px-3 py-2.5 rounded-xl border border-[#E8E2D8] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#854D0E]/20 focus:border-[#854D0E] bg-[#FAF7F2]/50 text-stone-900"
               >
                 {GOAL_CATEGORIES.map((cat) => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.defaultEmoji} {cat.label}
+                    {cat.label}
                   </option>
                 ))}
               </select>

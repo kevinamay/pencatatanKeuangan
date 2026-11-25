@@ -685,15 +685,15 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
                     {/* Top Row: Emoji, Title, Actions */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="text-2xl p-1 bg-white rounded-xl border border-[#E8E2D8] shadow-2xs">
-                          {g.iconEmoji}
-                        </span>
+                        <div className="w-9 h-9 rounded-xl bg-white border border-[#E8E2D8] text-[#854D0E] flex items-center justify-center shadow-2xs flex-shrink-0">
+                          <Target className="w-4 h-4" />
+                        </div>
                         <div className="min-w-0">
                           <h4 className="text-sm font-black text-stone-900 truncate">
                             {g.title}
                           </h4>
                           <span className="text-[10px] text-stone-400 font-medium">
-                            Target: {g.targetDate || "Fleksibel"}
+                            Target: {g.targetDate || "Fleksibel"} • {g.category}
                           </span>
                         </div>
                       </div>

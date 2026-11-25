@@ -76,8 +76,8 @@ export const DepositGoalModal: React.FC<DepositGoalModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D8]">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#FAF7F2] border border-[#E8E2D8] flex items-center justify-center text-xl">
-              {goal.iconEmoji}
+            <div className="w-10 h-10 rounded-2xl bg-[#FAF7F2] border border-[#E8E2D8] text-[#854D0E] flex items-center justify-center">
+              <PiggyBank className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-base font-black text-stone-900">

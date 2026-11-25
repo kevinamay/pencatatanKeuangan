@@ -123,7 +123,9 @@ export const GoalSummaryWidget: React.FC<GoalSummaryWidgetProps> = ({
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xl">{goal.iconEmoji}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-[#E8E2D8] text-[#854D0E] uppercase tracking-wider">
+                      {goal.category}
+                    </span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-[#E8E2D8] text-stone-600">
                       Target: {goal.targetDate || "Fleksibel"}
                     </span>
