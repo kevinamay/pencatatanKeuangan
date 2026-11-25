@@ -725,12 +725,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* ============================================================== */}
-      {/* GRAFIK PENGELUARAN HARIAN (DISTRIBUSI BELANJA PER HARI)        */}
+      {/* GRAFIK ARUS KAS HARIAN (MASUK & KELUAR)                        */}
       {/* ============================================================== */}
       <DailyExpenseChart
         expenses={expenses}
+        incomes={incomes}
         selectedMonth={selectedMonth}
-        onOpenQuickAdd={onOpenQuickAdd}
+        onOpenQuickAdd={() => onOpenQuickAdd()}
       />
 
       {/* Modal Edit Transaksi (Update CRUD) */}

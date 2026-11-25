@@ -625,12 +625,13 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
         </div>
       </div>
 
-      {/* 5. Grafik Pengeluaran Harian */}
+      {/* 5. Grafik Arus Kas Harian (Keluar & Masuk) */}
       <div className="rounded-3xl bg-white border border-[#E8E2D8] p-6 sm:p-7 shadow-xs">
         <DailyExpenseChart
           expenses={props.expenses}
+          incomes={props.incomes}
           selectedMonth={props.selectedMonth}
-          onOpenQuickAdd={() => props.onOpenQuickAdd("expense")}
+          onOpenQuickAdd={(type) => props.onOpenQuickAdd(type || "expense")}
         />
       </div>
 
