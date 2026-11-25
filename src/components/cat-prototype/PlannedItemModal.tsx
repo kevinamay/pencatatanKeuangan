@@ -250,12 +250,6 @@ export const PlannedItemModal: React.FC<PlannedItemModalProps> = ({
                 <span>💰 Alokasi Tabungan</span>
               </button>
             </div>
-            {itemType === "savings" && (
-              <p className="text-[11px] text-emerald-700 font-semibold mt-1.5 flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" />
-                Saat dicentang nanti, otomatis masuk ke <b>Halaman Tabungan & Celengan</b> dan memotong kas utama (gaji).
-              </p>
-            )}
           </div>
 
           {/* 2. Title Input */}
