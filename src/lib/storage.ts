@@ -18,14 +18,14 @@ import {
   FinancialGoal,
 } from "@/types/finance";
 
-// Storage keys untuk fallback lokal (v5 - Support Sumber Dana Investasi & Tabungan)
+// Storage keys untuk fallback lokal (v6 - Clean Slate Fresh Start)
 const LOCAL_STORAGE_KEYS = {
-  INCOMES: "keuangan_incomes_v5",
-  EXPENSES: "keuangan_expenses_v5",
-  SAVINGS: "keuangan_savings_v5",
-  MONEY_MARKET: "keuangan_money_market_v5",
-  PLANNED_ITEMS: "keuangan_planned_v1",
-  GOALS: "keuangan_goals_v1",
+  INCOMES: "keuangan_incomes_v6",
+  EXPENSES: "keuangan_expenses_v6",
+  SAVINGS: "keuangan_savings_v6",
+  MONEY_MARKET: "keuangan_money_market_v6",
+  PLANNED_ITEMS: "keuangan_planned_v2",
+  GOALS: "keuangan_goals_v2",
 };
 
 // Data Awal Bersih (Clean Empty State)
@@ -217,6 +217,12 @@ export class FinanceStorage {
       "keuangan_expenses_v4",
       "keuangan_savings_v4",
       "keuangan_money_market_v4",
+      "keuangan_incomes_v5",
+      "keuangan_expenses_v5",
+      "keuangan_savings_v5",
+      "keuangan_money_market_v5",
+      "keuangan_planned_v1",
+      "keuangan_goals_v1",
     ].forEach((k) => {
       try {
         localStorage.removeItem(k);

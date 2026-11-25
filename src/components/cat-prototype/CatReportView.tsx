@@ -11,6 +11,7 @@ import {
   Award,
   FileSpreadsheet,
   Upload,
+  Trash2,
 } from "lucide-react";
 import {
   IncomeItem,
@@ -20,6 +21,7 @@ import {
 } from "@/types/finance";
 import {
   formatRupiah,
+  FinanceStorage,
 } from "@/lib/storage";
 import { CatAnimation } from "./CatAnimations";
 import { InteractiveCatMascot } from "./InteractiveCatMascot";
@@ -207,6 +209,24 @@ export const CatReportView: React.FC<CatReportViewProps> = ({
             >
               <Printer className="w-4 h-4" />
               <span>Cetak Kuitansi</span>
+            </button>
+
+            <button
+              onClick={async () => {
+                if (
+                  confirm(
+                    "⚠️ PERINGATAN: Apakah Anda yakin ingin MENGHAPUS SEMUA DATA transaksi, tabungan, dan wacana untuk mulai dari awal?"
+                  )
+                ) {
+                  await FinanceStorage.clearAllData();
+                  alert("Seluruh data berhasil dikosongkan. Anda dapat mulai menginput dari awal!");
+                }
+              }}
+              className="px-3.5 py-2.5 rounded-2xl text-xs font-black border border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 transition-all flex items-center gap-1.5 active:scale-95 shadow-2xs"
+              title="Kosongkan seluruh data proyek untuk mulai input dari awal"
+            >
+              <Trash2 className="w-4 h-4 text-rose-600" />
+              <span>Reset Bersih Data</span>
             </button>
           </div>
         </div>
