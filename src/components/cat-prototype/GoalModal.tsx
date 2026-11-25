@@ -7,10 +7,9 @@ import {
   AlertCircle,
   Sparkles,
   Link2,
-  TrendingUp,
 } from "lucide-react";
 import { FinancialGoal, GoalCategory, MoneyMarketProduct } from "@/types/finance";
-import { FinanceStorage, formatRupiah } from "@/lib/storage";
+import { FinanceStorage, formatRupiah, calculateMoneyMarketProfit } from "@/lib/storage";
 
 interface GoalModalProps {
   isOpen: boolean;
@@ -78,11 +77,15 @@ export const GoalModal: React.FC<GoalModalProps> = ({
         if (initialGoal.linkedMoneyMarketId) {
           setLinkedSelection(`mm:${initialGoal.linkedMoneyMarketId}`);
         } else if (initialGoal.linkedAccountName) {
-          const found = mmList.find((m) => m.name === initialGoal.linkedAccountName);
-          if (found) {
-            setLinkedSelection(`mm:${found.id}`);
+          if (initialGoal.linkedAccountName.includes("Semua Portofolio")) {
+            setLinkedSelection("ALL_MM");
           } else {
-            setLinkedSelection(`acc:${initialGoal.linkedAccountName}`);
+            const found = mmList.find((m) => m.name === initialGoal.linkedAccountName);
+            if (found) {
+              setLinkedSelection(`mm:${found.id}`);
+            } else {
+              setLinkedSelection(`acc:${initialGoal.linkedAccountName}`);
+            }
           }
         } else {
           setLinkedSelection("none");
@@ -91,15 +94,15 @@ export const GoalModal: React.FC<GoalModalProps> = ({
         setTitle("");
         setTargetAmountStr("");
         setCurrentAmountStr("0");
-        // Default target date: 6 months ahead
         const future = new Date();
         future.setMonth(future.getMonth() + 6);
         setTargetDate(future.toISOString().slice(0, 7));
         setCategory("rumah");
         setNote("");
 
-        // Default: jika sudah ada produk pasar uang, tawarkan untuk langsung dihubungkan
-        if (mmList.length > 0) {
+        if (mmList.length > 1) {
+          setLinkedSelection("ALL_MM");
+        } else if (mmList.length === 1) {
           setLinkedSelection(`mm:${mmList[0].id}`);
         } else {
           setLinkedSelection("none");
@@ -111,8 +114,24 @@ export const GoalModal: React.FC<GoalModalProps> = ({
 
   if (!isOpen) return null;
 
+  const mmWithCalc = availableMM.map((m) => {
+    const calc = calculateMoneyMarketProfit(
+      m.initialCapital,
+      m.returnRatePa,
+      m.startDate,
+      m.accumulatedReturn
+    );
+    return {
+      ...m,
+      calc,
+    };
+  });
+
+  const totalAllMMCapital = mmWithCalc.reduce((a, b) => a + b.initialCapital, 0);
+  const totalAllMMValue = mmWithCalc.reduce((a, b) => a + b.calc.totalValue, 0);
+
   const selectedMM = linkedSelection.startsWith("mm:")
-    ? availableMM.find((m) => m.id === linkedSelection.replace("mm:", ""))
+    ? mmWithCalc.find((m) => m.id === linkedSelection.replace("mm:", ""))
     : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -139,7 +158,10 @@ export const GoalModal: React.FC<GoalModalProps> = ({
     let linkedMMId: string | undefined = undefined;
     let linkedAccName: string | undefined = undefined;
 
-    if (linkedSelection.startsWith("mm:")) {
+    if (linkedSelection === "ALL_MM") {
+      linkedMMId = undefined;
+      linkedAccName = "Semua Portofolio Pasar Uang";
+    } else if (linkedSelection.startsWith("mm:")) {
       linkedMMId = linkedSelection.replace("mm:", "");
       const found = availableMM.find((m) => m.id === linkedMMId);
       linkedAccName = found?.name;
@@ -307,9 +329,14 @@ export const GoalModal: React.FC<GoalModalProps> = ({
             >
               {availableMM.length > 0 && (
                 <optgroup label="Portofolio Pasar Uang">
-                  {availableMM.map((m) => (
+                  {availableMM.length > 1 && (
+                    <option value="ALL_MM">
+                      🌟 Gabungkan Semua Produk Pasar Uang (Total Nilai: {formatRupiah(totalAllMMValue)} • Modal: {formatRupiah(totalAllMMCapital)})
+                    </option>
+                  )}
+                  {mmWithCalc.map((m) => (
                     <option key={m.id} value={`mm:${m.id}`}>
-                      📈 {m.name} ({m.platform}) — Saldo: {formatRupiah(m.initialCapital)}
+                      📈 {m.name} ({m.platform}) — Nilai: {formatRupiah(m.calc.totalValue)} (Modal: {formatRupiah(m.initialCapital)})
                     </option>
                   ))}
                 </optgroup>
@@ -328,19 +355,52 @@ export const GoalModal: React.FC<GoalModalProps> = ({
               <option value="none">🎯 Simpan di Celengan Mandiri (Tanpa Akun)</option>
             </select>
 
-            {/* Quick button to adopt initial balance if MM has balance */}
-            {selectedMM && selectedMM.initialCapital > 0 && (
-              <div className="p-2.5 rounded-xl bg-white border border-[#E8E2D8] flex items-center justify-between text-xs gap-2">
+            {/* Quick button to adopt initial balance */}
+            {linkedSelection === "ALL_MM" && totalAllMMValue > 0 && (
+              <div className="p-2.5 rounded-xl bg-white border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
                 <span className="text-[11px] text-stone-600">
-                  Tersedia saldo <b>{formatRupiah(selectedMM.initialCapital)}</b> di produk ini.
+                  Total portofolio pasar uang Anda saat ini: <b>{formatRupiah(totalAllMMValue)}</b>.
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setCurrentAmountStr(selectedMM.initialCapital.toString())}
-                  className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-300 text-[#854D0E] font-bold text-[10px] hover:bg-amber-100 active:scale-95 transition-all flex-shrink-0"
-                >
-                  + Tautkan Saldo Ini
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentAmountStr(totalAllMMValue.toString())}
+                    className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-300 text-[#854D0E] font-bold text-[10px] hover:bg-amber-100 active:scale-95 transition-all"
+                  >
+                    + Tautkan Seluruh Nilai ({formatRupiah(totalAllMMValue)})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentAmountStr(totalAllMMCapital.toString())}
+                    className="px-2 py-1 rounded-lg border border-stone-200 text-stone-600 text-[10px] hover:bg-stone-50"
+                  >
+                    Modal Saja ({formatRupiah(totalAllMMCapital)})
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {selectedMM && selectedMM.calc.totalValue > 0 && (
+              <div className="p-2.5 rounded-xl bg-white border border-[#E8E2D8] flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
+                <span className="text-[11px] text-stone-600">
+                  Nilai saat ini: <b>{formatRupiah(selectedMM.calc.totalValue)}</b> (Modal: {formatRupiah(selectedMM.initialCapital)}).
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentAmountStr(selectedMM.calc.totalValue.toString())}
+                    className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-300 text-[#854D0E] font-bold text-[10px] hover:bg-amber-100 active:scale-95 transition-all flex-shrink-0"
+                  >
+                    + Tautkan Nilai Ini ({formatRupiah(selectedMM.calc.totalValue)})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentAmountStr(selectedMM.initialCapital.toString())}
+                    className="px-2 py-1 rounded-lg border border-stone-200 text-stone-600 text-[10px] hover:bg-stone-50"
+                  >
+                    Modal ({formatRupiah(selectedMM.initialCapital)})
+                  </button>
+                </div>
               </div>
             )}
           </div>

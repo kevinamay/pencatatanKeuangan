@@ -815,7 +815,7 @@ export class FinanceStorage {
 
   public static async addMoneyMarketProduct(
     product: Omit<MoneyMarketProduct, "id" | "updatedAt">
-  ): Promise<void> {
+  ): Promise<string> {
     const mmRef = ref(rtdb, "money_market");
     const newRef = push(mmRef);
     const newId = newRef.key || "mm-" + Date.now();
@@ -847,6 +847,8 @@ export class FinanceStorage {
       .catch((err) => {
         console.warn("RTDB addMoneyMarket gagal:", err.message);
       });
+
+    return newId;
   }
 
   public static async topUpMoneyMarket(
@@ -1161,13 +1163,14 @@ export class FinanceStorage {
     goalId: string,
     amount: number,
     sourceName: string,
-    moneyMarketId?: string
+    moneyMarketId?: string,
+    isSetExact: boolean = false
   ): Promise<void> {
     const current = this.getGoals();
     const goal = current.find((x) => x.id === goalId);
     if (!goal) return;
 
-    const newCurrent = goal.currentAmount + amount;
+    const newCurrent = isSetExact ? amount : goal.currentAmount + amount;
     const isCompleted = newCurrent >= goal.targetAmount;
 
     await this.updateGoal(goalId, {

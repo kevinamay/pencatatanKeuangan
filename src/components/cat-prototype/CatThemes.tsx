@@ -67,33 +67,11 @@ export function useFinanceStats(
   moneyMarket: MoneyMarketProduct[],
   selectedMonth: string
 ) {
-  const currentIncomes = incomes.filter((i) => i.month === selectedMonth);
-  const currentExpenses = expenses.filter((e) => e.month === selectedMonth);
-  const currentSavings = savings.filter((s) => s.month === selectedMonth);
+  const validMM = (moneyMarket || []).filter(
+    (m) => m && m.name && m.name.trim() !== "" && m.name !== "-"
+  );
 
-  const totalIncome = currentIncomes.reduce((a, b) => a + b.amount, 0);
-  const totalExpense = currentExpenses.reduce((a, b) => a + b.amount, 0);
-  const totalSavings = currentSavings.reduce((a, b) => a + b.amount, 0);
-
-  // Gaji hanya dikurangi tabungan yang bersumber dari gaji
-  const salarySavings = currentSavings
-    .filter((s) => s.fundingSource !== "external")
-    .reduce((a, b) => a + b.amount, 0);
-  const externalSavings = currentSavings
-    .filter((s) => s.fundingSource === "external")
-    .reduce((a, b) => a + b.amount, 0);
-
-  const remainingSalary = totalIncome - totalExpense - salarySavings;
-
-  const expenseRate = totalIncome > 0 ? (totalExpense / totalIncome) * 100 : 0;
-  const savingsRate = totalIncome > 0 ? (salarySavings / totalIncome) * 100 : 0;
-  const remainingRate = totalIncome > 0 ? (remainingSalary / totalIncome) * 100 : 0;
-
-  const isSurplus = remainingSalary > 0;
-  const isDeficit = remainingSalary < 0 && totalIncome > 0;
-  const isZeroOrNoIncome = totalIncome === 0;
-
-  const mmSummary = moneyMarket.reduce(
+  const mmSummary = validMM.reduce(
     (acc, m) => {
       const calc = calculateMoneyMarketProfit(
         m.initialCapital,
@@ -109,6 +87,50 @@ export function useFinanceStats(
     },
     { totalCapital: 0, totalProfit: 0, totalValue: 0, monthlyYield: 0 }
   );
+
+  const currentIncomes = incomes.filter((i) => i.month === selectedMonth);
+  const currentExpenses = expenses.filter((e) => e.month === selectedMonth);
+  const currentSavings = savings.filter((s) => s.month === selectedMonth);
+
+  const totalIncome = currentIncomes.reduce((a, b) => a + b.amount, 0);
+  const totalExpense = currentExpenses.reduce((a, b) => a + b.amount, 0);
+
+  // Tabungan yang dipotong dari gaji bulan ini (untuk rekonsiliasi sisa gaji)
+  const salarySavings = currentSavings
+    .filter((s) => s.fundingSource !== "external")
+    .reduce((a, b) => a + b.amount, 0);
+
+  // Modal pasar uang yang tercatat di alokasi tabungan bulan ini
+  const recordedMMCapital = currentSavings
+    .filter((s) => s.targetType === "money_market")
+    .reduce((a, b) => a + b.amount, 0);
+
+  // Modal pasar uang aktif yang belum tercatat di alokasi bulan ini (misal Sucorinvest)
+  const unrecordedMMCapital = Math.max(0, mmSummary.totalCapital - recordedMMCapital);
+
+  const externalSavings =
+    currentSavings
+      .filter((s) => s.fundingSource === "external")
+      .reduce((a, b) => a + b.amount, 0) + unrecordedMMCapital;
+
+  // Tabungan Non-MM (Bank, Dana Darurat)
+  const nonMMSavings = currentSavings
+    .filter((s) => s.targetType !== "money_market")
+    .reduce((a, b) => a + b.amount, 0);
+
+  // Total tabungan keseluruhan: Semua modal pokok tabungan bank + seluruh portofolio pasar uang
+  const totalSavings = nonMMSavings + mmSummary.totalCapital;
+  const totalPortfolioWithProfit = nonMMSavings + mmSummary.totalValue;
+
+  const remainingSalary = totalIncome - totalExpense - salarySavings;
+
+  const expenseRate = totalIncome > 0 ? (totalExpense / totalIncome) * 100 : 0;
+  const savingsRate = totalIncome > 0 ? (salarySavings / totalIncome) * 100 : 0;
+  const remainingRate = totalIncome > 0 ? (remainingSalary / totalIncome) * 100 : 0;
+
+  const isSurplus = remainingSalary > 0;
+  const isDeficit = remainingSalary < 0 && totalIncome > 0;
+  const isZeroOrNoIncome = totalIncome === 0;
 
   // Category distribution
   const expenseByCategory: Record<string, number> = {};
@@ -156,6 +178,7 @@ export function useFinanceStats(
     totalIncome,
     totalExpense,
     totalSavings,
+    totalPortfolioWithProfit,
     salarySavings,
     externalSavings,
     remainingSalary,
@@ -384,8 +407,13 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
               {stats.salarySavings > 0
                 ? `${stats.savingsRate.toFixed(1)}% rasio dari gaji`
                 : "Alokasi Mandiri / Luar Gaji"}
-              {stats.externalSavings > 0 && stats.salarySavings > 0 && ` (+${formatRupiah(stats.externalSavings)} luar gaji)`}
+              {stats.externalSavings > 0 && ` (+${formatRupiah(stats.externalSavings)} modal pasar uang)`}
             </p>
+            {stats.mmSummary.totalProfit > 0 && (
+              <span className="text-[11px] font-bold text-emerald-700 block pt-0.5">
+                +{formatRupiah(stats.mmSummary.totalProfit)} profit • Nilai: {formatRupiah(stats.totalPortfolioWithProfit)}
+              </span>
+            )}
           </div>
           <div className="mt-4 pt-3 border-t border-[#E8E2D8] flex items-center justify-between text-xs font-semibold">
             <span className="text-stone-500">Target Ideal: Min 20%</span>

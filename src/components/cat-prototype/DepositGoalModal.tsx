@@ -7,12 +7,7 @@ import {
   Coins,
   AlertCircle,
   Sparkles,
-  CheckCircle2,
-  Wallet,
   Link2,
-  Landmark,
-  TrendingUp,
-  ArrowRight,
 } from "lucide-react";
 import { FinancialGoal, MoneyMarketProduct } from "@/types/finance";
 import { FinanceStorage, formatRupiah, calculateMoneyMarketProfit } from "@/lib/storage";
@@ -37,8 +32,9 @@ export const DepositGoalModal: React.FC<DepositGoalModalProps> = ({
   const [linkedSelection, setLinkedSelection] = useState<string>("none");
 
   // State untuk Tab Hubungkan Saldo yang Sudah Ada
-  const [selectedSourceMMId, setSelectedSourceMMId] = useState<string>("");
+  const [selectedSourceMMId, setSelectedSourceMMId] = useState<string>("ALL_MM");
   const [allocateAmountStr, setAllocateAmountStr] = useState<string>("");
+  const [allocationMode, setAllocationMode] = useState<"exact" | "add">("exact");
 
   const [availableMM, setAvailableMM] = useState<MoneyMarketProduct[]>([]);
   const [availableAccounts, setAvailableAccounts] = useState<string[]>([]);
@@ -68,10 +64,31 @@ export const DepositGoalModal: React.FC<DepositGoalModalProps> = ({
       );
       setAvailableAccounts(accounts);
 
+      // Hitung total pasar uang
+      const totalMMVal = mmList.reduce((acc, m) => {
+        const c = calculateMoneyMarketProfit(
+          m.initialCapital,
+          m.returnRatePa,
+          m.startDate,
+          m.accumulatedReturn
+        );
+        return acc + c.totalValue;
+      }, 0);
+
       // Tentukan default linked selection
       if (goal.linkedMoneyMarketId) {
         setLinkedSelection(`mm:${goal.linkedMoneyMarketId}`);
         setSelectedSourceMMId(goal.linkedMoneyMarketId);
+        const curM = mmList.find((m) => m.id === goal.linkedMoneyMarketId);
+        if (curM) {
+          const c = calculateMoneyMarketProfit(
+            curM.initialCapital,
+            curM.returnRatePa,
+            curM.startDate,
+            curM.accumulatedReturn
+          );
+          setAllocateAmountStr(c.totalValue.toString());
+        }
       } else if (goal.linkedAccountName) {
         const foundMM = mmList.find((m) => m.name === goal.linkedAccountName);
         if (foundMM) {
@@ -79,29 +96,43 @@ export const DepositGoalModal: React.FC<DepositGoalModalProps> = ({
           setSelectedSourceMMId(foundMM.id);
         } else {
           setLinkedSelection(`acc:${goal.linkedAccountName}`);
-          if (mmList.length > 0) setSelectedSourceMMId(mmList[0].id);
+          setSelectedSourceMMId("ALL_MM");
+          setAllocateAmountStr(totalMMVal > 0 ? totalMMVal.toString() : "0");
         }
-      } else if (mmList.length > 0) {
-        setLinkedSelection(`mm:${mmList[0].id}`);
-        setSelectedSourceMMId(mmList[0].id);
       } else {
-        setLinkedSelection("none");
+        setSelectedSourceMMId("ALL_MM");
+        setAllocateAmountStr(totalMMVal > 0 ? totalMMVal.toString() : "0");
+        if (mmList.length > 0) {
+          setLinkedSelection(`mm:${mmList[0].id}`);
+        } else {
+          setLinkedSelection("none");
+        }
       }
-
-      // Default sisa target untuk alokasi saldo yang sudah ada
-      const remainingNeed = Math.max(0, goal.targetAmount - goal.currentAmount);
-      const defaultMM = mmList[0];
-      if (defaultMM) {
-        const initialCap = defaultMM.initialCapital || 0;
-        const defaultAllocate = Math.min(initialCap, remainingNeed > 0 ? remainingNeed : initialCap);
-        setAllocateAmountStr(defaultAllocate.toString());
-      } else {
-        setAllocateAmountStr(remainingNeed.toString());
-      }
+      setAllocationMode("exact");
     }
   }, [goal, isOpen]);
 
   if (!isOpen || !goal) return null;
+
+  // Kalkulasi data pasar uang dengan profit
+  const mmWithCalc = availableMM.map((m) => {
+    const calc = calculateMoneyMarketProfit(
+      m.initialCapital,
+      m.returnRatePa,
+      m.startDate,
+      m.accumulatedReturn
+    );
+    return {
+      ...m,
+      calc,
+    };
+  });
+
+  const totalAllMMCapital = mmWithCalc.reduce((a, b) => a + b.initialCapital, 0);
+  const totalAllMMValue = mmWithCalc.reduce((a, b) => a + b.calc.totalValue, 0);
+  const totalAllMMProfit = mmWithCalc.reduce((a, b) => a + b.calc.estimatedProfit, 0);
+
+  const selectedSourceMM = mmWithCalc.find((m) => m.id === selectedSourceMMId);
 
   const depositAmount = parseFloat(amountStr.replace(/[^0-9]/g, "")) || 0;
   const newCurrentDeposit = goal.currentAmount + depositAmount;
@@ -109,11 +140,10 @@ export const DepositGoalModal: React.FC<DepositGoalModalProps> = ({
   const remainingDeposit = Math.max(0, goal.targetAmount - newCurrentDeposit);
 
   const allocateAmount = parseFloat(allocateAmountStr.replace(/[^0-9]/g, "")) || 0;
-  const newCurrentAllocate = goal.currentAmount + allocateAmount;
+  const newCurrentAllocate =
+    allocationMode === "exact" ? allocateAmount : goal.currentAmount + allocateAmount;
   const progressPercentAllocate = Math.min(100, Math.round((newCurrentAllocate / goal.targetAmount) * 100));
   const remainingAllocate = Math.max(0, goal.targetAmount - newCurrentAllocate);
-
-  const selectedSourceMM = availableMM.find((m) => m.id === selectedSourceMMId);
 
   const handleQuickAdd = (add: number) => {
     const cur = parseFloat(amountStr.replace(/[^0-9]/g, "")) || 0;
@@ -175,16 +205,23 @@ export const DepositGoalModal: React.FC<DepositGoalModalProps> = ({
     setIsSubmitting(true);
     setErrorMsg(null);
 
-    const sourceName = selectedSourceMM
-      ? `${selectedSourceMM.name} (${selectedSourceMM.platform})`
-      : "Tabungan yang Ada";
+    const isSetExact = allocationMode === "exact";
+    const sourceName =
+      selectedSourceMMId === "ALL_MM"
+        ? "Seluruh Portofolio Pasar Uang"
+        : selectedSourceMM
+        ? `${selectedSourceMM.name} (${selectedSourceMM.platform})`
+        : "Tabungan yang Ada";
+
+    const mmId = selectedSourceMMId === "ALL_MM" ? undefined : selectedSourceMMId;
 
     try {
       await FinanceStorage.allocateExistingSavingsToGoal(
         goal.id,
         allocateAmount,
         sourceName,
-        selectedSourceMMId || undefined
+        mmId,
+        isSetExact
       );
       onSuccess?.();
       onClose();
@@ -197,7 +234,7 @@ export const DepositGoalModal: React.FC<DepositGoalModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs animate-fade-in">
-      <div className="bg-white rounded-3xl border border-[#E8E2D8] shadow-2xl max-w-lg w-full p-6 sm:p-7 relative overflow-hidden">
+      <div className="bg-white rounded-3xl border border-[#E8E2D8] shadow-2xl max-w-lg w-full p-6 sm:p-7 relative overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between pb-3.5 border-b border-[#E8E2D8]">
           <div className="flex items-center gap-2.5">
@@ -351,7 +388,7 @@ export const DepositGoalModal: React.FC<DepositGoalModalProps> = ({
                   <optgroup label="Pasar Uang & Investasi (Otomatis Top Up)">
                     {availableMM.map((m) => (
                       <option key={m.id} value={`mm:${m.id}`}>
-                        📈 {m.name} ({m.platform}) — Saldo: {formatRupiah(m.initialCapital)}
+                        📈 {m.name} ({m.platform}) — Saldo Modal: {formatRupiah(m.initialCapital)}
                       </option>
                     ))}
                   </optgroup>
@@ -452,55 +489,121 @@ export const DepositGoalModal: React.FC<DepositGoalModalProps> = ({
                 <span>Hubungkan Saldo Setoran yang Telah Masuk</span>
               </div>
               <p className="text-[11px] text-stone-600 leading-relaxed">
-                Tautkan setoran/investasi yang telah Anda simpan sebelumnya (misal saldo di <b>Sucorinvest Pasar Uang</b>) agar langsung dihitung ke progres celengan ini tanpa perlu transfer dana baru.
+                Tautkan setoran/investasi yang telah Anda simpan (seperti <b>Sucorinvest</b> dan <b>Danamas</b>) langsung ke celengan ini sehingga semua tabungan yang Anda inputkan langsung terhitung di target impian.
               </p>
             </div>
 
             {/* Pilih Produk Pasar Uang yang Ada */}
             <div>
               <label className="block text-xs font-bold text-stone-700 mb-1.5">
-                Pilih Tabungan / Produk Pasar Uang Sumber Saldo <span className="text-rose-500">*</span>
+                Pilih Portofolio / Produk Sumber Saldo <span className="text-rose-500">*</span>
               </label>
               {availableMM.length > 0 ? (
                 <div className="space-y-2">
                   <select
                     value={selectedSourceMMId}
                     onChange={(e) => {
-                      setSelectedSourceMMId(e.target.value);
-                      const m = availableMM.find((item) => item.id === e.target.value);
-                      if (m) {
-                        const rem = Math.max(0, goal.targetAmount - goal.currentAmount);
-                        const autoVal = Math.min(m.initialCapital, rem > 0 ? rem : m.initialCapital);
-                        setAllocateAmountStr(autoVal.toString());
+                      const val = e.target.value;
+                      setSelectedSourceMMId(val);
+                      if (val === "ALL_MM") {
+                        setAllocateAmountStr(totalAllMMValue.toString());
+                        setAllocationMode("exact");
+                      } else {
+                        const found = mmWithCalc.find((item) => item.id === val);
+                        if (found) {
+                          setAllocateAmountStr(found.calc.totalValue.toString());
+                          setAllocationMode("exact");
+                        }
                       }
                     }}
                     className="w-full px-3 py-2.5 rounded-xl border border-[#E8E2D8] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#854D0E]/20 focus:border-[#854D0E] bg-[#FAF7F2]/50 text-stone-900"
                   >
-                    {availableMM.map((m) => (
+                    <option value="ALL_MM">
+                      🌟 Gabungkan Seluruh Portofolio Pasar Uang (Total Nilai: {formatRupiah(totalAllMMValue)} • Modal: {formatRupiah(totalAllMMCapital)})
+                    </option>
+                    {mmWithCalc.map((m) => (
                       <option key={m.id} value={m.id}>
-                        📈 {m.name} ({m.platform}) — Saldo Modal: {formatRupiah(m.initialCapital)}
+                        📈 {m.name} ({m.platform}) — Nilai: {formatRupiah(m.calc.totalValue)} (Modal: {formatRupiah(m.initialCapital)})
                       </option>
                     ))}
                   </select>
 
-                  {selectedSourceMM && (
-                    <div className="p-3 rounded-xl border border-[#E8E2D8] bg-[#FAF7F2] flex items-center justify-between text-xs">
-                      <div>
-                        <span className="font-bold text-stone-800 block">
-                          {selectedSourceMM.name}
-                        </span>
-                        <span className="text-[10px] text-stone-500">
-                          Platform: {selectedSourceMM.platform} • Imbal Hasil: {selectedSourceMM.returnRatePa}%
+                  {selectedSourceMMId === "ALL_MM" ? (
+                    <div className="p-3 rounded-xl border border-amber-200 bg-amber-50/60 space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-amber-900">Seluruh Portofolio Pasar Uang</span>
+                        <span className="font-mono font-black text-amber-950 text-sm">
+                          {formatRupiah(totalAllMMValue)}
                         </span>
                       </div>
-                      <div className="text-right">
-                        <span className="text-[10px] text-stone-400 block">Saldo Modal</span>
-                        <span className="font-mono font-bold text-emerald-700">
-                          {formatRupiah(selectedSourceMM.initialCapital)}
-                        </span>
+                      <p className="text-[11px] text-stone-600">
+                        Menggabungkan seluruh tabungan: {mmWithCalc.map((m) => `${m.name} (${formatRupiah(m.calc.totalValue)})`).join(" + ")}.
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAllocateAmountStr(totalAllMMValue.toString());
+                            setAllocationMode("exact");
+                          }}
+                          className="px-2.5 py-1 rounded-lg border border-amber-300 bg-white text-[11px] font-bold text-[#854D0E] hover:bg-amber-100"
+                        >
+                          Tautkan Seluruh Nilai Portofolio ({formatRupiah(totalAllMMValue)})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAllocateAmountStr(totalAllMMCapital.toString());
+                            setAllocationMode("exact");
+                          }}
+                          className="px-2.5 py-1 rounded-lg border border-[#E8E2D8] bg-white text-[11px] font-bold text-stone-700 hover:bg-stone-50"
+                        >
+                          Tautkan Modal Pokok Saja ({formatRupiah(totalAllMMCapital)})
+                        </button>
                       </div>
                     </div>
-                  )}
+                  ) : selectedSourceMM ? (
+                    <div className="p-3 rounded-xl border border-[#E8E2D8] bg-[#FAF7F2] space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-bold text-stone-800 block">
+                            {selectedSourceMM.name}
+                          </span>
+                          <span className="text-[10px] text-stone-500">
+                            Platform: {selectedSourceMM.platform} • Imbal Hasil: {selectedSourceMM.returnRatePa}% • Profit: +{formatRupiah(selectedSourceMM.calc.estimatedProfit)}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] text-stone-400 block">Nilai Saat Ini</span>
+                          <span className="font-mono font-bold text-emerald-700">
+                            {formatRupiah(selectedSourceMM.calc.totalValue)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAllocateAmountStr(selectedSourceMM.calc.totalValue.toString());
+                            setAllocationMode("exact");
+                          }}
+                          className="px-2.5 py-1 rounded-lg border border-amber-300 bg-white text-[11px] font-bold text-[#854D0E] hover:bg-amber-100"
+                        >
+                          Set Nilai Produk Ini ({formatRupiah(selectedSourceMM.calc.totalValue)})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAllocateAmountStr(selectedSourceMM.initialCapital.toString());
+                            setAllocationMode("add");
+                          }}
+                          className="px-2.5 py-1 rounded-lg border border-[#E8E2D8] bg-white text-[11px] font-bold text-stone-700 hover:bg-stone-50"
+                        >
+                          + Tambahkan Saldo Produk Ini (+{formatRupiah(selectedSourceMM.initialCapital)})
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <div className="p-3 rounded-xl border border-dashed border-[#E8E2D8] text-xs text-stone-500 text-center">
@@ -511,9 +614,35 @@ export const DepositGoalModal: React.FC<DepositGoalModalProps> = ({
 
             {/* Input Nominal yang Dihubungkan */}
             <div>
-              <label className="block text-xs font-bold text-stone-700 mb-1.5">
-                Nominal Saldo yang Dihubungkan ke Celengan (Rp) <span className="text-rose-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-stone-700">
+                  Nominal yang Ditautkan ke Celengan (Rp) <span className="text-rose-500">*</span>
+                </label>
+                <div className="flex items-center gap-1.5 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => setAllocationMode("exact")}
+                    className={`px-2 py-0.5 rounded-md font-bold transition-all ${
+                      allocationMode === "exact"
+                        ? "bg-[#854D0E] text-white"
+                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    }`}
+                  >
+                    Set Total Progres
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllocationMode("add")}
+                    className={`px-2 py-0.5 rounded-md font-bold transition-all ${
+                      allocationMode === "add"
+                        ? "bg-[#854D0E] text-white"
+                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    }`}
+                  >
+                    + Tambahkan ke Progres
+                  </button>
+                </div>
+              </div>
               <div className="relative">
                 <span className="text-xs font-black text-stone-500 absolute left-3.5 top-1/2 -translate-y-1/2">
                   Rp
@@ -530,30 +659,6 @@ export const DepositGoalModal: React.FC<DepositGoalModalProps> = ({
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E8E2D8] text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#854D0E]/20 focus:border-[#854D0E] bg-[#FAF7F2]/50 text-stone-900"
                 />
               </div>
-
-              {selectedSourceMM && (
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  <button
-                    type="button"
-                    onClick={() => setAllocateAmountStr(selectedSourceMM.initialCapital.toString())}
-                    className="px-2.5 py-1 rounded-lg border border-[#E8E2D8] bg-white text-[11px] font-bold text-stone-700 hover:bg-stone-50"
-                  >
-                    Tautkan Seluruh Modal ({formatRupiah(selectedSourceMM.initialCapital)})
-                  </button>
-                  {remainingAllocate > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const val = Math.min(selectedSourceMM.initialCapital, remainingAllocate);
-                        setAllocateAmountStr(val.toString());
-                      }}
-                      className="px-2.5 py-1 rounded-lg border border-amber-300 bg-amber-50 text-[11px] font-bold text-[#854D0E] hover:bg-amber-100"
-                    >
-                      Sesuai Target ({formatRupiah(remainingAllocate)})
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
 
             {/* Preview Setelah Dihubungkan */}
@@ -590,7 +695,7 @@ export const DepositGoalModal: React.FC<DepositGoalModalProps> = ({
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || !selectedSourceMM}
+                disabled={isSubmitting}
                 className="px-5 py-2.5 rounded-xl bg-[#854D0E] hover:bg-[#713F12] text-white text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center gap-1.5"
               >
                 <Link2 className="w-4 h-4" />

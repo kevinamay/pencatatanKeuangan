@@ -84,6 +84,7 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
   const [investNote, setInvestNote] = useState("");
   const [investFundingSource, setInvestFundingSource] = useState<"salary" | "external">("external");
   const [addMMFundingSource, setAddMMFundingSource] = useState<"salary" | "external">("external");
+  const [mmLinkedGoalId, setMmLinkedGoalId] = useState<string>("none");
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
 
   // Simulation State
@@ -165,21 +166,28 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
     { totalCapital: 0, totalProfit: 0, totalValue: 0 }
   );
 
-  // Jika alokasi pasar uang belum tercatat di riwayat tabungan tapi produk pasar uang sudah aktif,
-  // gabungkan secara cerdas agar total portofolio dan daftar alokasi selalu sinkron dan tidak Rp 0
-  const mmAllocations: SavingsAllocation[] =
-    mmSavings.length > 0
-      ? mmSavings
-      : displayMMProducts.map((p) => ({
-          id: `mm-synced-${p.id}`,
-          date: p.startDate,
-          month: p.startDate.slice(0, 7),
-          amount: p.initialCapital,
-          targetType: "money_market" as const,
-          accountName: `${p.name} (${p.platform})`,
-          note: p.notes || "Modal Pokok Pasar Uang",
-          createdAt: p.updatedAt || Date.now(),
-        }));
+  // Pastikan SETIAP produk pasar uang aktif memiliki representasi alokasi tabungan
+  const existingMMNames = new Set(
+    mmSavings.map((s) => (s.accountName || "").toLowerCase().trim())
+  );
+
+  const missingMMAllocations = displayMMProducts
+    .filter((p) => !existingMMNames.has(p.name.toLowerCase().trim()))
+    .map((p) => ({
+      id: `mm-synced-${p.id}`,
+      date: p.startDate,
+      month: p.startDate.slice(0, 7),
+      amount: p.initialCapital,
+      targetType: "money_market" as const,
+      accountName: `${p.name} (${p.platform})`,
+      note: p.notes || "Modal Pokok Pasar Uang",
+      createdAt: p.updatedAt || Date.now(),
+    }));
+
+  const mmAllocations: SavingsAllocation[] = [
+    ...mmSavings,
+    ...missingMMAllocations,
+  ];
 
   const effectiveSavings: SavingsAllocation[] = [
     ...savings.filter((s) => s.targetType !== "money_market"),
@@ -207,7 +215,7 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
       return;
     }
 
-    await FinanceStorage.addMoneyMarketProduct({
+    const newMMId = await FinanceStorage.addMoneyMarketProduct({
       name: mmName,
       platform: mmPlatform,
       initialCapital: cap,
@@ -226,8 +234,19 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
       note: `Modal Pokok Awal (${mmPlatform})`,
     });
 
+    if (mmLinkedGoalId && mmLinkedGoalId !== "none") {
+      await FinanceStorage.allocateExistingSavingsToGoal(
+        mmLinkedGoalId,
+        cap,
+        `${mmName} (${mmPlatform})`,
+        newMMId,
+        false
+      );
+    }
+
     setMmName("");
     setMmCapital("");
+    setMmLinkedGoalId("none");
     setShowAddMMModal(false);
   };
 
@@ -1057,6 +1076,29 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
                   style={{ borderColor: theme.cardBorder }}
                 />
               </div>
+
+              {goals.filter((g) => !g.isCompleted).length > 0 && (
+                <div>
+                  <label className="block mb-1 text-slate-400">
+                    Alokasikan Modal Ini ke Celengan Impian? (Opsional)
+                  </label>
+                  <select
+                    value={mmLinkedGoalId}
+                    onChange={(e) => setMmLinkedGoalId(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border bg-transparent font-medium"
+                    style={{ borderColor: theme.cardBorder }}
+                  >
+                    <option value="none">Simpan Saja di Portofolio (Tanpa Celengan)</option>
+                    {goals
+                      .filter((g) => !g.isCompleted)
+                      .map((g) => (
+                        <option key={g.id} value={g.id}>
+                          🎯 {g.title} (Target: {formatRupiah(g.targetAmount)})
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
 
               <div className="flex justify-end gap-2 pt-3">
                 <button

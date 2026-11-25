@@ -50,35 +50,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigateToTab,
   onOpenQuickAdd,
 }) => {
-  const currentIncomes = incomes.filter((item) => item.month === selectedMonth);
-  const currentExpenses = expenses.filter((item) => item.month === selectedMonth);
-  const currentSavings = savings.filter((item) => item.month === selectedMonth);
+  const validMM = (moneyMarket || []).filter(
+    (m) => m && m.name && m.name.trim() !== "" && m.name !== "-"
+  );
 
-  const totalIncome = currentIncomes.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalExpense = currentExpenses.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalSavings = currentSavings.reduce((acc, curr) => acc + curr.amount, 0);
-
-  // Tabungan yang dipotong dari gaji (fundingSource !== "external")
-  const salarySavings = currentSavings
-    .filter((item) => item.fundingSource !== "external")
-    .reduce((acc, curr) => acc + curr.amount, 0);
-  // Tabungan mandiri di luar gaji (fundingSource === "external")
-  const externalSavings = currentSavings
-    .filter((item) => item.fundingSource === "external")
-    .reduce((acc, curr) => acc + curr.amount, 0);
-
-  // Sisa Gaji Bersih HANYA dikurangi tabungan yang bersumber dari gaji
-  const remainingSalary = totalIncome - totalExpense - salarySavings;
-
-  const expenseRate = totalIncome > 0 ? (totalExpense / totalIncome) * 100 : 0;
-  const savingsRate = totalIncome > 0 ? (salarySavings / totalIncome) * 100 : 0;
-  const remainingRate = totalIncome > 0 ? (remainingSalary / totalIncome) * 100 : 0;
-
-  const isSurplus = remainingSalary > 0;
-  const isDeficit = remainingSalary < 0 && totalIncome > 0;
-  const isZeroOrNoIncome = totalIncome === 0;
-
-  const mmSummary = moneyMarket.reduce(
+  const mmSummary = validMM.reduce(
     (acc, item) => {
       const calc = calculateMoneyMarketProfit(
         item.initialCapital,
@@ -94,6 +70,52 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
     { totalCapital: 0, totalProfit: 0, totalValue: 0, monthlyYield: 0 }
   );
+
+  const currentIncomes = incomes.filter((item) => item.month === selectedMonth);
+  const currentExpenses = expenses.filter((item) => item.month === selectedMonth);
+  const currentSavings = savings.filter((item) => item.month === selectedMonth);
+
+  const totalIncome = currentIncomes.reduce((acc, curr) => acc + curr.amount, 0);
+  const totalExpense = currentExpenses.reduce((acc, curr) => acc + curr.amount, 0);
+
+  // Tabungan yang dipotong dari gaji (fundingSource !== "external")
+  const salarySavings = currentSavings
+    .filter((item) => item.fundingSource !== "external")
+    .reduce((acc, curr) => acc + curr.amount, 0);
+
+  // Modal pasar uang yang tercatat di alokasi tabungan bulan ini
+  const recordedMMCapital = currentSavings
+    .filter((s) => s.targetType === "money_market")
+    .reduce((a, b) => a + b.amount, 0);
+
+  // Modal pasar uang aktif yang belum masuk ke alokasi bulan ini (misal Sucorinvest)
+  const unrecordedMMCapital = Math.max(0, mmSummary.totalCapital - recordedMMCapital);
+
+  // Tabungan mandiri di luar gaji
+  const externalSavings =
+    currentSavings
+      .filter((item) => item.fundingSource === "external")
+      .reduce((acc, curr) => acc + curr.amount, 0) + unrecordedMMCapital;
+
+  // Tabungan Non-MM (Bank reguler, darurat)
+  const nonMMSavings = currentSavings
+    .filter((s) => s.targetType !== "money_market")
+    .reduce((a, b) => a + b.amount, 0);
+
+  // Total tabungan keseluruhan: Semua modal pokok tabungan bank + seluruh portofolio modal pasar uang
+  const totalSavings = nonMMSavings + mmSummary.totalCapital;
+  const totalPortfolioWithProfit = nonMMSavings + mmSummary.totalValue;
+
+  // Sisa Gaji Bersih HANYA dikurangi tabungan yang bersumber dari gaji
+  const remainingSalary = totalIncome - totalExpense - salarySavings;
+
+  const expenseRate = totalIncome > 0 ? (totalExpense / totalIncome) * 100 : 0;
+  const savingsRate = totalIncome > 0 ? (salarySavings / totalIncome) * 100 : 0;
+  const remainingRate = totalIncome > 0 ? (remainingSalary / totalIncome) * 100 : 0;
+
+  const isSurplus = remainingSalary > 0;
+  const isDeficit = remainingSalary < 0 && totalIncome > 0;
+  const isZeroOrNoIncome = totalIncome === 0;
 
   const expenseByCategory: Record<string, number> = {};
   currentExpenses.forEach((exp) => {
