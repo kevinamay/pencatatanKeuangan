@@ -137,38 +137,33 @@ export const PlannedItemModal: React.FC<PlannedItemModalProps> = ({
       const targetGoal = itemType === "savings" && selectedGoalId !== "none" ? selectedGoalId : undefined;
       const targetMM = itemType === "savings" && selectedMMId !== "none" ? selectedMMId : undefined;
 
+      const payload: any = {
+        title: title.trim(),
+        estimatedAmount: cleanAmount,
+        category: finalCategory,
+        urgency,
+        targetMonth,
+        note: note.trim(),
+        itemType,
+      };
+
+      if (itemType === "savings") {
+        payload.savingsTargetType = savingsTargetType;
+        if (targetGoal) payload.goalId = targetGoal;
+        if (targetMM) payload.moneyMarketId = targetMM;
+      }
+
       if (initialItem) {
-        await FinanceStorage.updatePlannedItem(initialItem.id, {
-          title: title.trim(),
-          estimatedAmount: cleanAmount,
-          category: finalCategory,
-          urgency,
-          targetMonth,
-          note: note.trim(),
-          itemType,
-          savingsTargetType: itemType === "savings" ? savingsTargetType : undefined,
-          goalId: targetGoal,
-          moneyMarketId: targetMM,
-        });
+        await FinanceStorage.updatePlannedItem(initialItem.id, payload);
       } else {
-        await FinanceStorage.addPlannedItem({
-          title: title.trim(),
-          estimatedAmount: cleanAmount,
-          category: finalCategory,
-          urgency,
-          targetMonth,
-          note: note.trim(),
-          itemType,
-          savingsTargetType: itemType === "savings" ? savingsTargetType : undefined,
-          goalId: targetGoal,
-          moneyMarketId: targetMM,
-        });
+        await FinanceStorage.addPlannedItem(payload);
       }
 
       onSuccess?.();
       onClose();
-    } catch {
-      setErrorMsg("Gagal menyimpan wacana. Silakan coba lagi.");
+    } catch (err: any) {
+      console.error("Gagal menyimpan wacana:", err);
+      setErrorMsg(err?.message || "Gagal menyimpan wacana. Silakan coba lagi.");
     } finally {
       setIsSubmitting(false);
     }

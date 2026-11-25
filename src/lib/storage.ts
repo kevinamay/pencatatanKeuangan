@@ -28,6 +28,22 @@ const LOCAL_STORAGE_KEYS = {
   GOALS: "keuangan_goals_v2",
 };
 
+// Helper sanitasi objek untuk Firebase RTDB (menghapus undefined agar set / update tidak crash)
+export function cleanForFirebase<T extends Record<string, any>>(obj: T): any {
+  if (!obj || typeof obj !== "object") return obj;
+  const cleaned: any = Array.isArray(obj) ? [] : {};
+  for (const [key, val] of Object.entries(obj)) {
+    if (val !== undefined) {
+      if (val !== null && typeof val === "object" && !(val instanceof Date)) {
+        cleaned[key] = cleanForFirebase(val);
+      } else {
+        cleaned[key] = val;
+      }
+    }
+  }
+  return cleaned;
+}
+
 // Data Awal Bersih (Clean Empty State)
 const DEFAULT_INCOMES: IncomeItem[] = [];
 const DEFAULT_EXPENSES: ExpenseItem[] = [];
@@ -958,14 +974,18 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.PLANNED_ITEMS, updated);
     this.notify();
 
-    set(newRef, newItem)
-      .then(() => {
-        this.isFirebaseConnected = true;
-        this.notify();
-      })
-      .catch((err) => {
-        console.warn("RTDB addPlannedItem gagal:", err.message);
-      });
+    try {
+      set(newRef, cleanForFirebase(newItem))
+        .then(() => {
+          this.isFirebaseConnected = true;
+          this.notify();
+        })
+        .catch((err) => {
+          console.warn("RTDB addPlannedItem gagal:", err?.message);
+        });
+    } catch (err: any) {
+      console.warn("RTDB synchronous addPlannedItem error:", err?.message);
+    }
 
     return newId;
   }
@@ -1212,14 +1232,18 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.GOALS, updated);
     this.notify();
 
-    set(newRef, newGoal)
-      .then(() => {
-        this.isFirebaseConnected = true;
-        this.notify();
-      })
-      .catch((err) => {
-        console.warn("RTDB addGoal gagal:", err.message);
-      });
+    try {
+      set(newRef, cleanForFirebase(newGoal))
+        .then(() => {
+          this.isFirebaseConnected = true;
+          this.notify();
+        })
+        .catch((err) => {
+          console.warn("RTDB addGoal gagal:", err?.message);
+        });
+    } catch (err: any) {
+      console.warn("RTDB synchronous addGoal error:", err?.message);
+    }
 
     return newId;
   }
