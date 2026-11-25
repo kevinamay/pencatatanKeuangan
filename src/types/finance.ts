@@ -130,6 +130,8 @@ export interface FinancialGoal {
   category: GoalCategory;
   iconEmoji: string;
   note?: string;
+  linkedMoneyMarketId?: string;
+  linkedAccountName?: string;
   isCompleted: boolean;
   completedDate?: string;
   createdAt: number;

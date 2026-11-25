@@ -1100,12 +1100,15 @@ export class FinanceStorage {
     });
   }
 
-  // Setor ke celengan impian: Menambah saldo celengan & mencatat SavingsAllocation bulanan
+  // Setor ke celengan impian: Menambah saldo celengan & mencatat SavingsAllocation bulanan,
+  // serta otomatis sinkron ke produk tabungan / pasar uang yang dipilih
   public static async depositToGoal(
     goalId: string,
     amount: number,
     date: string,
-    fundingSource: "salary" | "external" = "salary"
+    fundingSource: "salary" | "external" = "salary",
+    linkedAccountName?: string,
+    linkedMoneyMarketId?: string
   ): Promise<void> {
     const current = this.getGoals();
     const goal = current.find((x) => x.id === goalId);
@@ -1114,22 +1117,88 @@ export class FinanceStorage {
     const newCurrent = goal.currentAmount + amount;
     const isCompleted = newCurrent >= goal.targetAmount;
 
-    // 1. Catat ke Alokasi Tabungan Bulanan
+    // 1. Jika terhubung ke produk pasar uang, otomatis top up produk pasar uang tersebut
+    const targetMMId = linkedMoneyMarketId || goal.linkedMoneyMarketId;
+    if (targetMMId) {
+      await this.topUpMoneyMarket(
+        targetMMId,
+        amount,
+        date,
+        `Setoran Celengan: ${goal.title}`
+      );
+    }
+
+    // 2. Tentukan nama akun tabungan
+    const targetAccName =
+      linkedAccountName ||
+      goal.linkedAccountName ||
+      (targetMMId ? this.getMoneyMarket().find((m) => m.id === targetMMId)?.name : null) ||
+      `Celengan: ${goal.title}`;
+
+    // 3. Catat ke Alokasi Tabungan Bulanan (tampil di Daftar Alokasi Tabungan)
     await this.addSavings({
       date,
       month: date.slice(0, 7),
       amount,
-      targetType: "goal",
-      accountName: `Celengan: ${goal.title}`,
+      targetType: targetMMId ? "money_market" : "goal",
+      accountName: targetAccName,
       fundingSource,
       note: `Setoran ke celengan impian [${goal.title}]`,
     });
 
-    // 2. Perbarui progres saldo Celengan
+    // 4. Perbarui progres saldo Celengan
     await this.updateGoal(goalId, {
       currentAmount: newCurrent,
       isCompleted,
       completedDate: isCompleted ? date : undefined,
+      linkedMoneyMarketId: targetMMId,
+      linkedAccountName: targetAccName,
+    });
+  }
+
+  // Alokasikan saldo dari tabungan/pasar uang yang SUDAH ADA ke Celengan Impian
+  public static async allocateExistingSavingsToGoal(
+    goalId: string,
+    amount: number,
+    sourceName: string,
+    moneyMarketId?: string
+  ): Promise<void> {
+    const current = this.getGoals();
+    const goal = current.find((x) => x.id === goalId);
+    if (!goal) return;
+
+    const newCurrent = goal.currentAmount + amount;
+    const isCompleted = newCurrent >= goal.targetAmount;
+
+    await this.updateGoal(goalId, {
+      currentAmount: newCurrent,
+      isCompleted,
+      completedDate: isCompleted ? new Date().toISOString().split("T")[0] : undefined,
+      linkedMoneyMarketId: moneyMarketId || goal.linkedMoneyMarketId,
+      linkedAccountName: sourceName,
+    });
+  }
+
+  // Hubungkan Celengan ke Tabungan / Pasar Uang yang ada, dengan opsi alokasi saldo awal
+  public static async linkGoalToSavings(
+    goalId: string,
+    sourceName: string,
+    moneyMarketId?: string,
+    allocateAmount: number = 0
+  ): Promise<void> {
+    const current = this.getGoals();
+    const goal = current.find((x) => x.id === goalId);
+    if (!goal) return;
+
+    const newCurrent = allocateAmount > 0 ? goal.currentAmount + allocateAmount : goal.currentAmount;
+    const isCompleted = newCurrent >= goal.targetAmount;
+
+    await this.updateGoal(goalId, {
+      currentAmount: newCurrent,
+      isCompleted,
+      completedDate: isCompleted ? new Date().toISOString().split("T")[0] : undefined,
+      linkedMoneyMarketId: moneyMarketId || goal.linkedMoneyMarketId,
+      linkedAccountName: sourceName,
     });
   }
 }

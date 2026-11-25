@@ -1,8 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, Target, AlertCircle, Sparkles, Calendar, HeartHandshake } from "lucide-react";
-import { FinancialGoal, GoalCategory } from "@/types/finance";
+import {
+  X,
+  Target,
+  AlertCircle,
+  Sparkles,
+  Link2,
+  TrendingUp,
+} from "lucide-react";
+import { FinancialGoal, GoalCategory, MoneyMarketProduct } from "@/types/finance";
 import { FinanceStorage, formatRupiah } from "@/lib/storage";
 
 interface GoalModalProps {
@@ -35,32 +42,78 @@ export const GoalModal: React.FC<GoalModalProps> = ({
   const [targetDate, setTargetDate] = useState("");
   const [category, setCategory] = useState<GoalCategory>("gadget");
   const [note, setNote] = useState("");
+  const [linkedSelection, setLinkedSelection] = useState<string>("none");
+
+  const [availableMM, setAvailableMM] = useState<MoneyMarketProduct[]>([]);
+  const [availableAccounts, setAvailableAccounts] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (initialGoal) {
-      setTitle(initialGoal.title);
-      setTargetAmountStr(initialGoal.targetAmount.toString());
-      setCurrentAmountStr(initialGoal.currentAmount.toString());
-      setTargetDate(initialGoal.targetDate || "");
-      setCategory(initialGoal.category);
-      setNote(initialGoal.note || "");
-    } else {
-      setTitle("");
-      setTargetAmountStr("");
-      setCurrentAmountStr("0");
-      // Default target date: 6 months ahead
-      const future = new Date();
-      future.setMonth(future.getMonth() + 6);
-      setTargetDate(future.toISOString().slice(0, 7));
-      setCategory("gadget");
-      setNote("");
+    if (isOpen) {
+      // Ambil daftar produk pasar uang & tabungan yang ada
+      const mmList = FinanceStorage.getMoneyMarket().filter(
+        (m) => m && m.name && m.name.trim() !== "" && m.name !== "-"
+      );
+      setAvailableMM(mmList);
+
+      const savings = FinanceStorage.getSavings();
+      const accounts = Array.from(
+        new Set(
+          savings
+            .map((s) => s.accountName)
+            .filter((name): name is string => Boolean(name && name.trim()))
+        )
+      );
+      setAvailableAccounts(accounts);
+
+      if (initialGoal) {
+        setTitle(initialGoal.title);
+        setTargetAmountStr(initialGoal.targetAmount.toString());
+        setCurrentAmountStr(initialGoal.currentAmount.toString());
+        setTargetDate(initialGoal.targetDate || "");
+        setCategory(initialGoal.category);
+        setNote(initialGoal.note || "");
+
+        if (initialGoal.linkedMoneyMarketId) {
+          setLinkedSelection(`mm:${initialGoal.linkedMoneyMarketId}`);
+        } else if (initialGoal.linkedAccountName) {
+          const found = mmList.find((m) => m.name === initialGoal.linkedAccountName);
+          if (found) {
+            setLinkedSelection(`mm:${found.id}`);
+          } else {
+            setLinkedSelection(`acc:${initialGoal.linkedAccountName}`);
+          }
+        } else {
+          setLinkedSelection("none");
+        }
+      } else {
+        setTitle("");
+        setTargetAmountStr("");
+        setCurrentAmountStr("0");
+        // Default target date: 6 months ahead
+        const future = new Date();
+        future.setMonth(future.getMonth() + 6);
+        setTargetDate(future.toISOString().slice(0, 7));
+        setCategory("rumah");
+        setNote("");
+
+        // Default: jika sudah ada produk pasar uang, tawarkan untuk langsung dihubungkan
+        if (mmList.length > 0) {
+          setLinkedSelection(`mm:${mmList[0].id}`);
+        } else {
+          setLinkedSelection("none");
+        }
+      }
+      setErrorMsg(null);
     }
-    setErrorMsg(null);
   }, [initialGoal, isOpen]);
 
   if (!isOpen) return null;
+
+  const selectedMM = linkedSelection.startsWith("mm:")
+    ? availableMM.find((m) => m.id === linkedSelection.replace("mm:", ""))
+    : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,6 +136,17 @@ export const GoalModal: React.FC<GoalModalProps> = ({
     setIsSubmitting(true);
     setErrorMsg(null);
 
+    let linkedMMId: string | undefined = undefined;
+    let linkedAccName: string | undefined = undefined;
+
+    if (linkedSelection.startsWith("mm:")) {
+      linkedMMId = linkedSelection.replace("mm:", "");
+      const found = availableMM.find((m) => m.id === linkedMMId);
+      linkedAccName = found?.name;
+    } else if (linkedSelection.startsWith("acc:")) {
+      linkedAccName = linkedSelection.replace("acc:", "");
+    }
+
     try {
       if (initialGoal) {
         await FinanceStorage.updateGoal(initialGoal.id, {
@@ -93,6 +157,8 @@ export const GoalModal: React.FC<GoalModalProps> = ({
           category,
           iconEmoji: "🎯",
           note: note.trim(),
+          linkedMoneyMarketId: linkedMMId,
+          linkedAccountName: linkedAccName,
         });
       } else {
         await FinanceStorage.addGoal({
@@ -103,6 +169,8 @@ export const GoalModal: React.FC<GoalModalProps> = ({
           category,
           iconEmoji: "🎯",
           note: note.trim(),
+          linkedMoneyMarketId: linkedMMId,
+          linkedAccountName: linkedAccName,
         });
       }
 
@@ -117,7 +185,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs animate-fade-in">
-      <div className="bg-white rounded-3xl border border-[#E8E2D8] shadow-2xl max-w-lg w-full p-6 sm:p-7 relative overflow-hidden">
+      <div className="bg-white rounded-3xl border border-[#E8E2D8] shadow-2xl max-w-lg w-full p-6 sm:p-7 relative overflow-hidden max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D8]">
           <div className="flex items-center gap-2.5">
@@ -129,7 +197,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({
                 {initialGoal ? "Edit Celengan Impian" : "Buat Celengan Impian Baru"}
               </h3>
               <p className="text-xs text-stone-500">
-                Tetapkan target tabungan berjangka & pantau progresnya.
+                Tetapkan target tabungan berjangka & hubungkan ke portofolio Anda.
               </p>
             </div>
           </div>
@@ -159,7 +227,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Contoh: MacBook Pro M3, Liburan ke Sapporo, Dana Darurat"
+              placeholder="Contoh: Renovasi Rumah, MacBook Pro M3, Dana Darurat"
               className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E2D8] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#854D0E]/20 focus:border-[#854D0E] bg-[#FAF7F2]/50 text-stone-900"
             />
           </div>
@@ -225,7 +293,59 @@ export const GoalModal: React.FC<GoalModalProps> = ({
             </div>
           </div>
 
-          {/* Already Saved (Initial Balance if any) */}
+          {/* Hubungkan ke Tabungan / Pasar Uang yang Ada */}
+          <div className="p-3.5 rounded-2xl bg-[#FAF7F2] border border-[#E8E2D8] space-y-2.5">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-stone-800">
+              <Link2 className="w-4 h-4 text-[#854D0E]" />
+              <span>Hubungkan ke Tabungan / Pasar Uang yang Ada</span>
+            </div>
+
+            <select
+              value={linkedSelection}
+              onChange={(e) => setLinkedSelection(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-[#E8E2D8] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#854D0E]/20 focus:border-[#854D0E] bg-white text-stone-900"
+            >
+              {availableMM.length > 0 && (
+                <optgroup label="Portofolio Pasar Uang">
+                  {availableMM.map((m) => (
+                    <option key={m.id} value={`mm:${m.id}`}>
+                      📈 {m.name} ({m.platform}) — Saldo: {formatRupiah(m.initialCapital)}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+
+              {availableAccounts.length > 0 && (
+                <optgroup label="Rekening Tabungan">
+                  {availableAccounts.map((acc) => (
+                    <option key={acc} value={`acc:${acc}`}>
+                      🏦 {acc}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+
+              <option value="none">🎯 Simpan di Celengan Mandiri (Tanpa Akun)</option>
+            </select>
+
+            {/* Quick button to adopt initial balance if MM has balance */}
+            {selectedMM && selectedMM.initialCapital > 0 && (
+              <div className="p-2.5 rounded-xl bg-white border border-[#E8E2D8] flex items-center justify-between text-xs gap-2">
+                <span className="text-[11px] text-stone-600">
+                  Tersedia saldo <b>{formatRupiah(selectedMM.initialCapital)}</b> di produk ini.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentAmountStr(selectedMM.initialCapital.toString())}
+                  className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-300 text-[#854D0E] font-bold text-[10px] hover:bg-amber-100 active:scale-95 transition-all flex-shrink-0"
+                >
+                  + Tautkan Saldo Ini
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Saldo Awal yang Sudah Terkumpul */}
           <div>
             <label className="block text-xs font-bold text-stone-700 mb-1.5">
               Saldo Awal yang Sudah Terkumpul (Opsional)
@@ -236,7 +356,11 @@ export const GoalModal: React.FC<GoalModalProps> = ({
               </span>
               <input
                 type="text"
-                value={currentAmountStr && currentAmountStr !== "0" ? parseInt(currentAmountStr, 10).toLocaleString("id-ID") : ""}
+                value={
+                  currentAmountStr && currentAmountStr !== "0"
+                    ? parseInt(currentAmountStr, 10).toLocaleString("id-ID")
+                    : ""
+                }
                 onChange={(e) => {
                   const raw = e.target.value.replace(/[^0-9]/g, "");
                   setCurrentAmountStr(raw || "0");
@@ -256,7 +380,7 @@ export const GoalModal: React.FC<GoalModalProps> = ({
               type="text"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Contoh: Beli saat promo Black Friday, tabung tiap gajian..."
+              placeholder="Contoh: Rencana renovasi dapur & ruang tamu..."
               className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8E2D8] text-xs focus:outline-none focus:ring-2 focus:ring-[#854D0E]/20 focus:border-[#854D0E] bg-[#FAF7F2]/50 text-stone-900"
             />
           </div>
@@ -277,7 +401,13 @@ export const GoalModal: React.FC<GoalModalProps> = ({
               className="px-5 py-2.5 rounded-xl bg-[#854D0E] hover:bg-[#713F12] text-white text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center gap-1.5"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{isSubmitting ? "Menyimpan..." : initialGoal ? "Perbarui Impian" : "Simpan Celengan"}</span>
+              <span>
+                {isSubmitting
+                  ? "Menyimpan..."
+                  : initialGoal
+                  ? "Perbarui Impian"
+                  : "Simpan Celengan"}
+              </span>
             </button>
           </div>
         </form>

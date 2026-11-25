@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Target, Plus, ArrowRight, Sparkles, CheckCircle2, Coins } from "lucide-react";
+import { Target, Plus, ArrowRight, Sparkles, CheckCircle2, Coins, Link2 } from "lucide-react";
 import { FinancialGoal } from "@/types/finance";
 import { formatRupiah } from "@/lib/storage";
 import { DepositGoalModal } from "./DepositGoalModal";
@@ -133,6 +133,12 @@ export const GoalSummaryWidget: React.FC<GoalSummaryWidgetProps> = ({
                   <h4 className="text-xs font-black text-stone-900 mt-2 line-clamp-1">
                     {goal.title}
                   </h4>
+                  {goal.linkedAccountName && (
+                    <div className="flex items-center gap-1 text-[10px] text-amber-800 font-bold mt-1 truncate">
+                      <Link2 className="w-2.5 h-2.5 text-[#854D0E] flex-shrink-0" />
+                      <span className="truncate">Terhubung: {goal.linkedAccountName}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-baseline mt-1">
                     <span className="text-xs font-bold font-mono text-[#854D0E]">
                       {formatRupiah(goal.currentAmount)}

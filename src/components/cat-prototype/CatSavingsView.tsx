@@ -18,6 +18,7 @@ import {
   Cat,
   Fish,
   Sparkles,
+  Link2,
 } from "lucide-react";
 import {
   SavingsAllocation,
@@ -117,24 +118,14 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
   >("all");
   const [editingTx, setEditingTx] = useState<EditableTransaction | null>(null);
 
+  const validMMProducts = (moneyMarket || []).filter(
+    (m) => m && m.name && m.name.trim() !== "" && m.name !== "-"
+  );
+
   const mmSavings = savings.filter((s) => s.targetType === "money_market");
   const emergencySavings = savings.filter((s) => s.targetType === "emergency");
   const otherSavings = savings.filter(
     (s) => s.targetType === "regular" || s.targetType === "goal"
-  );
-
-  const filteredSavings = savings.filter((s) => {
-    if (savingsFilter === "money_market") return s.targetType === "money_market";
-    if (savingsFilter === "emergency") return s.targetType === "emergency";
-    if (savingsFilter === "other")
-      return s.targetType === "regular" || s.targetType === "goal";
-    return true;
-  });
-
-  const totalSavingsAll = savings.reduce((acc, curr) => acc + curr.amount, 0);
-
-  const validMMProducts = (moneyMarket || []).filter(
-    (m) => m && m.name && m.name.trim() !== "" && m.name !== "-"
   );
 
   const displayMMProducts: MoneyMarketProduct[] =
@@ -173,6 +164,37 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
     },
     { totalCapital: 0, totalProfit: 0, totalValue: 0 }
   );
+
+  // Jika alokasi pasar uang belum tercatat di riwayat tabungan tapi produk pasar uang sudah aktif,
+  // gabungkan secara cerdas agar total portofolio dan daftar alokasi selalu sinkron dan tidak Rp 0
+  const mmAllocations: SavingsAllocation[] =
+    mmSavings.length > 0
+      ? mmSavings
+      : displayMMProducts.map((p) => ({
+          id: `mm-synced-${p.id}`,
+          date: p.startDate,
+          month: p.startDate.slice(0, 7),
+          amount: p.initialCapital,
+          targetType: "money_market" as const,
+          accountName: `${p.name} (${p.platform})`,
+          note: p.notes || "Modal Pokok Pasar Uang",
+          createdAt: p.updatedAt || Date.now(),
+        }));
+
+  const effectiveSavings: SavingsAllocation[] = [
+    ...savings.filter((s) => s.targetType !== "money_market"),
+    ...mmAllocations,
+  ];
+
+  const filteredSavings = effectiveSavings.filter((s) => {
+    if (savingsFilter === "money_market") return s.targetType === "money_market";
+    if (savingsFilter === "emergency") return s.targetType === "emergency";
+    if (savingsFilter === "other")
+      return s.targetType === "regular" || s.targetType === "goal";
+    return true;
+  });
+
+  const totalSavingsAll = effectiveSavings.reduce((acc, curr) => acc + curr.amount, 0);
 
   const totalGrandPortfolio = totalSavingsAll + mmSummary.totalProfit;
 
@@ -725,6 +747,25 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
 
                     {/* Progress Bar & Amount */}
                     <div className="space-y-1.5">
+                      {/* Linked Account Badge */}
+                      {g.linkedAccountName ? (
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-amber-50/80 border border-amber-200/80 text-[10px] text-amber-900 font-bold w-fit">
+                          <Link2 className="w-3 h-3 text-[#854D0E] flex-shrink-0" />
+                          <span className="truncate">
+                            Terhubung: <b className="text-[#854D0E]">{g.linkedAccountName}</b>
+                          </span>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setDepositGoal(g)}
+                          className="flex items-center gap-1 text-[10px] font-bold text-[#854D0E] hover:underline"
+                        >
+                          <Link2 className="w-3 h-3" />
+                          <span>+ Hubungkan ke Tabungan / Pasar Uang</span>
+                        </button>
+                      )}
+
                       <div className="flex justify-between items-baseline text-xs">
                         <span className="font-mono font-black text-[#854D0E]">
                           {formatRupiah(g.currentAmount)}
@@ -764,7 +805,7 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
                       className="px-3 py-1.5 rounded-xl bg-[#854D0E] hover:bg-[#713F12] text-white text-xs font-bold active:scale-95 transition-all flex items-center gap-1.5 shadow-2xs"
                     >
                       <Coins className="w-3.5 h-3.5" />
-                      <span>+ Setor Tabungan</span>
+                      <span>+ Setor / Hubungkan Saldo</span>
                     </button>
                   </div>
                 </div>
