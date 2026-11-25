@@ -97,7 +97,7 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
   return (
     <>
       <header
-        className={`sticky top-0 z-40 w-full border-b transition-colors duration-300 print:hidden ${
+        className={`sticky top-0 z-40 w-full max-w-full overflow-x-clip border-b transition-colors duration-300 print:hidden ${
           theme.isDark
             ? "bg-[#0A0E17]/95 backdrop-blur-md border-white/10 text-white"
             : "bg-white/95 backdrop-blur-md border-slate-200 text-slate-900"
@@ -106,15 +106,15 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
           borderBottomColor: theme.cardBorder,
         }}
       >
-        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+        <div className="max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
             {/* Logo with Dynamic Page-Specific Cat Mascot & Mobile Hamburger */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-3 shrink min-w-0">
               {/* Mobile Hamburger Menu Button */}
               <button
                 type="button"
                 onClick={() => setIsMobileSidebarOpen(true)}
-                className="p-1.5 -ml-1 rounded-xl transition-all md:hidden flex items-center justify-center active:scale-95 cursor-pointer"
+                className="p-1.5 rounded-xl transition-all md:hidden flex items-center justify-center active:scale-95 cursor-pointer shrink-0"
                 style={{
                   color: theme.accent,
                   backgroundColor: `${theme.accent}15`,
@@ -126,7 +126,7 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
               </button>
 
               <div
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-xs border transition-transform hover:scale-105 flex-shrink-0"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center overflow-hidden shadow-xs border transition-transform hover:scale-105 shrink-0"
                 style={{
                   backgroundColor: theme.isDark ? "#1E293B" : theme.bgPage,
                   borderColor: theme.cardBorder,
@@ -136,7 +136,7 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
                 <CatAnimation variant={tabAnimation} className="w-7 h-7 sm:w-8 sm:h-8" />
               </div>
 
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col min-w-0 shrink">
                 <span
                   className="text-sm sm:text-lg font-black tracking-tight font-mono truncate"
                   style={{ color: theme.accent }}
@@ -259,8 +259,10 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
 
       {/* Drawer Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-72 max-w-[85vw] flex flex-col shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
-          isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 max-w-[85vw] flex flex-col shadow-2xl transition-all duration-300 ease-in-out md:hidden ${
+          isMobileSidebarOpen
+            ? "translate-x-0 opacity-100 visible pointer-events-auto"
+            : "-translate-x-full opacity-0 invisible pointer-events-none"
         }`}
         style={{
           backgroundColor: theme.isDark ? "#0F172A" : "#FAF7F2",

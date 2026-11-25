@@ -191,8 +191,10 @@ export const Navbar: React.FC<NavbarProps> = ({
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-72 max-w-[85vw] flex flex-col bg-white border-r border-[#FFD9D9] shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
-          isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 max-w-[85vw] flex flex-col bg-white border-r border-[#FFD9D9] shadow-2xl transition-all duration-300 ease-in-out md:hidden ${
+          isMobileSidebarOpen
+            ? "translate-x-0 opacity-100 visible pointer-events-auto"
+            : "-translate-x-full opacity-0 invisible pointer-events-none"
         }`}
       >
         {/* Drawer Header */}

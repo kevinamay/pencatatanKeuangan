@@ -464,7 +464,7 @@ export const DailyExpenseChart: React.FC<DailyExpenseChartProps> = ({
           </div>
 
           {/* Garis / Area Chart SVG */}
-          <div className="overflow-x-auto pb-2">
+          <div className="overflow-x-auto pb-2 w-full max-w-full min-w-0">
             <div className="min-w-[700px]">
               <svg
                 viewBox={`0 0 ${svgWidth} ${svgHeight}`}

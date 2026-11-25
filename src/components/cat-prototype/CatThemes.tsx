@@ -229,7 +229,7 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-fade-in pb-16">
+    <div className="space-y-6 sm:space-y-8 animate-fade-in pb-16 w-full min-w-0 max-w-full overflow-x-hidden">
       {/* 0. In-App Daily Reminder Banner */}
       <DailyReminderBanner
         incomes={props.incomes}
@@ -238,20 +238,20 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
       />
 
       {/* 1. Hero: Tokyo Editorial Card with BIGGER Sleeping Kitty Mascot */}
-      <div className="rounded-3xl bg-white border border-[#E8E2D8] p-5 sm:p-8 sm:p-10 shadow-sm relative overflow-hidden transition-all duration-300">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+      <div className="rounded-3xl bg-white border border-[#E8E2D8] p-4 sm:p-8 sm:p-10 shadow-sm relative overflow-hidden transition-all duration-300 w-full max-w-full">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8">
           {/* Left: Financial Statement */}
-          <div className="space-y-3.5 text-center lg:text-left max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FAF7F2] text-[#854D0E] text-xs font-bold border border-[#E8E2D8] shadow-2xs">
+          <div className="space-y-3.5 text-center lg:text-left w-full max-w-xl min-w-0">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-[#FAF7F2] text-[#854D0E] text-[11px] sm:text-xs font-bold border border-[#E8E2D8] shadow-2xs max-w-full">
               <span>☕</span>
-              <span>Tokyo Wabi-Sabi FinPlan • Sistem Rekonsiliasi Keuangan</span>
+              <span className="truncate">Tokyo Wabi-Sabi FinPlan • Rekonsiliasi Keuangan</span>
             </div>
 
             <p className="text-xs uppercase font-bold text-stone-500 tracking-wider">
               Sisa Gaji Bersih Tersedia ({props.selectedMonth})
             </p>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#292524] tracking-tight font-mono">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-[#292524] tracking-tight font-mono break-all sm:break-normal">
               {formatRupiah(stats.remainingSalary)}
             </h1>
 
@@ -632,7 +632,7 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
       </div>
 
       {/* 5. Grafik Arus Kas Harian (Keluar & Masuk) */}
-      <div className="rounded-3xl bg-white border border-[#E8E2D8] p-6 sm:p-7 shadow-xs">
+      <div className="rounded-3xl bg-white border border-[#E8E2D8] p-4 sm:p-7 shadow-xs w-full max-w-full overflow-hidden min-w-0">
         <DailyExpenseChart
           expenses={props.expenses}
           incomes={props.incomes}

@@ -197,14 +197,14 @@ export default function Home() {
         <SplashScreen onFinish={() => setShowSplash(false)} />
       )}
       <div
-        className="min-h-screen flex flex-col font-sans print:bg-white print:min-h-0 print:p-0 print:m-0 transition-colors duration-300"
+        className="min-h-screen flex flex-col font-sans print:bg-white print:min-h-0 print:p-0 print:m-0 transition-colors duration-300 w-full max-w-full overflow-x-hidden min-w-0"
         style={{
           backgroundColor: isCatMode ? currentCatTheme.bgPage : "#FFF9F9",
           color: isCatMode ? currentCatTheme.textColor : "#1c0606",
         }}
       >
       {/* Header: Cat Themed Navbar or Original Swiss Minimalist */}
-      <div className="print:hidden">
+      <div className="print:hidden w-full max-w-full overflow-x-clip">
         {isCatMode ? (
           <CatNavbar
             activeTab={activeTab}
@@ -228,7 +228,7 @@ export default function Home() {
       </div>
 
       {/* Main Single Fixed View Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-10 print:p-0 print:m-0 print:max-w-none print:w-full">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-10 print:p-0 print:m-0 print:max-w-none print:w-full min-w-0 max-w-full overflow-x-hidden">
         {activeTab === "dashboard" && (
           isCatMode ? (
             renderCatVariant()

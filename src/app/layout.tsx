@@ -61,7 +61,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className="min-h-full flex flex-col bg-[#FAF7F2] text-stone-900 antialiased selection:bg-amber-200">
+      <body className="min-h-full flex flex-col bg-[#FAF7F2] text-stone-900 antialiased selection:bg-amber-200 overflow-x-hidden w-full max-w-full">
         {children}
         <PWAInstallBanner />
       </body>
