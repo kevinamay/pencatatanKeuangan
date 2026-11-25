@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   FileText,
   Printer,
@@ -9,6 +9,8 @@ import {
   Sparkles,
   Cat,
   Award,
+  FileSpreadsheet,
+  Upload,
 } from "lucide-react";
 import {
   IncomeItem,
@@ -22,6 +24,7 @@ import {
 import { CatAnimation } from "./CatAnimations";
 import { InteractiveCatMascot } from "./InteractiveCatMascot";
 import { getCatThemeConfig } from "./catThemeConfig";
+import { ImportStatementModal } from "./ImportStatementModal";
 
 interface CatReportViewProps {
   incomes: IncomeItem[];
@@ -64,8 +67,66 @@ export const CatReportView: React.FC<CatReportViewProps> = ({
   const isDeficit = remainingSalary < 0;
   const isHealthy = !isDeficit && totalIncome > 0;
 
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleExportCSV = () => {
+    // Generate CSV content with UTF-8 BOM
+    const headers = ["Tanggal", "Jenis", "Kategori", "Keterangan", "Nominal", "Sumber Dana"];
+    const rows: string[] = [];
+
+    currentIncomes.forEach((item) => {
+      rows.push(
+        [
+          item.date || `${selectedMonth}-01`,
+          "Pemasukan",
+          item.category || "Gaji",
+          `"${(item.source || item.note || "").replace(/"/g, '""')}"`,
+          item.amount,
+          `"${(item.source || "Gaji").replace(/"/g, '""')}"`,
+        ].join(",")
+      );
+    });
+
+    currentExpenses.forEach((item) => {
+      rows.push(
+        [
+          item.date || `${selectedMonth}-01`,
+          "Pengeluaran",
+          item.category || "Umum",
+          `"${(item.title || item.note || "").replace(/"/g, '""')}"`,
+          item.amount,
+          "-",
+        ].join(",")
+      );
+    });
+
+    currentSavings.forEach((item) => {
+      rows.push(
+        [
+          item.date || `${selectedMonth}-01`,
+          "Tabungan",
+          item.targetType || "Simpanan",
+          `"${(item.accountName || item.note || "").replace(/"/g, '""')}"`,
+          item.amount,
+          item.fundingSource === "external" ? "Luar Gaji (THR/Bonus)" : "Dari Gaji",
+        ].join(",")
+      );
+    });
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Laporan-Keuangan-TokyoNeko-${selectedMonth}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -103,21 +164,51 @@ export const CatReportView: React.FC<CatReportViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center gap-4">
           <InteractiveCatMascot
             animation={theme.pageAnimations.report}
             theme={theme}
             size="lg"
           />
 
-          <button
-            onClick={handlePrint}
-            className="px-4 py-3 rounded-2xl text-white text-xs font-black shadow-md hover:brightness-110 active:scale-95 transition-all flex items-center gap-2"
-            style={{ backgroundColor: theme.accent }}
-          >
-            <Printer className="w-4 h-4" />
-            <span>Cetak Kuitansi Rekonsiliasi</span>
-          </button>
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2.5">
+            <button
+              onClick={handleExportCSV}
+              className="px-3.5 py-2.5 rounded-2xl text-xs font-black border transition-all flex items-center gap-1.5 shadow-2xs hover:bg-stone-50 active:scale-95"
+              style={{
+                borderColor: theme.cardBorder,
+                color: theme.textColor,
+                backgroundColor: theme.isDark ? "#1F2937" : "#FFFFFF",
+              }}
+              title="Unduh seluruh data transaksi bulan ini ke format Excel / CSV"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <span>Export Excel (.CSV)</span>
+            </button>
+
+            <button
+              onClick={() => setIsImportModalOpen(true)}
+              className="px-3.5 py-2.5 rounded-2xl text-xs font-black border transition-all flex items-center gap-1.5 shadow-2xs hover:bg-stone-50 active:scale-95"
+              style={{
+                borderColor: theme.cardBorder,
+                color: theme.textColor,
+                backgroundColor: theme.isDark ? "#1F2937" : "#FFFFFF",
+              }}
+              title="Upload mutasi rekening BCA, Mandiri, Jenius, GoPay, OVO"
+            >
+              <Upload className="w-4 h-4 text-blue-600" />
+              <span>Import Mutasi Bank</span>
+            </button>
+
+            <button
+              onClick={handlePrint}
+              className="px-4 py-2.5 rounded-2xl text-white text-xs font-black shadow-md hover:brightness-110 active:scale-95 transition-all flex items-center gap-2"
+              style={{ backgroundColor: theme.accent }}
+            >
+              <Printer className="w-4 h-4" />
+              <span>Cetak Kuitansi</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -326,6 +417,17 @@ export const CatReportView: React.FC<CatReportViewProps> = ({
           <span className="font-mono text-[10px]">VERIFIED-{variantId}-CAT</span>
         </div>
       </div>
+
+      {/* Bank & E-Wallet Statement Import Modal */}
+      <ImportStatementModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        selectedMonth={selectedMonth}
+        onImportSuccess={() => {
+          // Refresh or let parent re-render
+          window.location.reload();
+        }}
+      />
     </div>
   );
 };

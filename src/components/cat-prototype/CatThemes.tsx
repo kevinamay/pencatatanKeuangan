@@ -39,6 +39,8 @@ import {
   EditTransactionModal,
   EditableTransaction,
 } from "@/components/EditTransactionModal";
+import { CatCoachCard } from "./CatCoachCard";
+import { DailyReminderBanner } from "./DailyReminderBanner";
 
 export interface CatVariantProps {
   incomes: IncomeItem[];
@@ -192,6 +194,13 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-fade-in pb-16">
+      {/* 0. In-App Daily Reminder Banner */}
+      <DailyReminderBanner
+        incomes={props.incomes}
+        expenses={props.expenses}
+        onOpenQuickAdd={props.onOpenQuickAdd}
+      />
+
       {/* 1. Hero: Tokyo Editorial Card with BIGGER Sleeping Kitty Mascot */}
       <div className="rounded-3xl bg-white border border-[#E8E2D8] p-5 sm:p-8 sm:p-10 shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
@@ -280,6 +289,15 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
           </div>
         </div>
       </div>
+
+      {/* 1.5. Interactive Cat Coach & Gamification Card */}
+      <CatCoachCard
+        totalIncome={stats.totalIncome}
+        totalExpense={stats.totalExpense}
+        totalSavings={stats.totalSavings}
+        remainingSalary={stats.remainingSalary}
+        monthName={props.selectedMonth}
+      />
 
       {/* 2. 3 Pillar Summary Cards (Income, Expense, Wealth Allocation) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
