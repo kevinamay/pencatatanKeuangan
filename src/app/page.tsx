@@ -11,6 +11,7 @@ import {
   SavingsAllocation,
   MoneyMarketProduct,
   PlannedItem,
+  FinancialGoal,
 } from "@/types/finance";
 import {
   CatPrototypeSwitcher,
@@ -105,6 +106,7 @@ export default function Home() {
   const [savings, setSavings] = useState<SavingsAllocation[]>([]);
   const [moneyMarket, setMoneyMarket] = useState<MoneyMarketProduct[]>([]);
   const [plannedItems, setPlannedItems] = useState<PlannedItem[]>([]);
+  const [goals, setGoals] = useState<FinancialGoal[]>([]);
   const [isFirebaseConnected, setIsFirebaseConnected] = useState(false);
 
   // Subscribe to FinanceStorage updates & Cloud Sync
@@ -117,6 +119,7 @@ export default function Home() {
       setSavings(FinanceStorage.getSavings());
       setMoneyMarket(FinanceStorage.getMoneyMarket());
       setPlannedItems(FinanceStorage.getPlannedItems());
+      setGoals(FinanceStorage.getGoals());
       setIsFirebaseConnected(FinanceStorage.getFirebaseStatus());
     };
 
@@ -163,6 +166,7 @@ export default function Home() {
       savings,
       moneyMarket,
       plannedItems,
+      goals,
       selectedMonth,
       onOpenQuickAdd: openQuickAdd,
       onNavigateToTab: (tab: any) => setActiveTab(tab),
@@ -267,6 +271,7 @@ export default function Home() {
             <CatSavingsView
               savings={savings}
               moneyMarket={moneyMarket}
+              goals={goals}
               selectedMonth={selectedMonth}
               onOpenQuickAdd={() => openQuickAdd("savings")}
               variantId={catVariant}

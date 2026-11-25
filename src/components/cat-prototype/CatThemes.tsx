@@ -26,6 +26,7 @@ import {
   SavingsAllocation,
   MoneyMarketProduct,
   PlannedItem,
+  FinancialGoal,
 } from "@/types/finance";
 import {
   formatRupiah,
@@ -43,6 +44,7 @@ import {
 import { CatCoachCard } from "./CatCoachCard";
 import { DailyReminderBanner } from "./DailyReminderBanner";
 import { PlannedSummaryWidget } from "./PlannedSummaryWidget";
+import { GoalSummaryWidget } from "./GoalSummaryWidget";
 
 export interface CatVariantProps {
   incomes: IncomeItem[];
@@ -50,6 +52,7 @@ export interface CatVariantProps {
   savings: SavingsAllocation[];
   moneyMarket: MoneyMarketProduct[];
   plannedItems?: PlannedItem[];
+  goals?: FinancialGoal[];
   selectedMonth: string;
   onOpenQuickAdd: (type?: "income" | "expense" | "savings") => void;
   onNavigateToTab?: (tab: "dashboard" | "transactions" | "savings" | "report" | "planned") => void;
@@ -403,6 +406,12 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
         currentBalance={stats.remainingSalary}
         onNavigateToTab={props.onNavigateToTab}
         onOpenAddPlanned={props.onOpenAddPlanned || (() => props.onNavigateToTab?.("planned"))}
+      />
+
+      {/* 2.6. Celengan Impian / Financial Goal Tracker Widget */}
+      <GoalSummaryWidget
+        goals={props.goals || []}
+        onNavigateToTab={props.onNavigateToTab}
       />
 
       {/* 3. Status Rekonsiliasi Gaji & Pengeluaran (Live Progress Split Bar) */}

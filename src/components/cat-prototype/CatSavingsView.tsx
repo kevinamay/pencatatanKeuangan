@@ -22,6 +22,7 @@ import {
 import {
   SavingsAllocation,
   MoneyMarketProduct,
+  FinancialGoal,
 } from "@/types/finance";
 import {
   FinanceStorage,
@@ -37,10 +38,13 @@ import { InvestmentChart } from "@/components/InvestmentChart";
 import { CatAnimation } from "./CatAnimations";
 import { InteractiveCatMascot } from "./InteractiveCatMascot";
 import { getCatThemeConfig } from "./catThemeConfig";
+import { GoalModal } from "./GoalModal";
+import { DepositGoalModal } from "./DepositGoalModal";
 
 interface CatSavingsViewProps {
   savings: SavingsAllocation[];
   moneyMarket: MoneyMarketProduct[];
+  goals?: FinancialGoal[];
   selectedMonth: string;
   onOpenQuickAdd?: () => void;
   variantId: number;
@@ -49,11 +53,17 @@ interface CatSavingsViewProps {
 export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
   savings,
   moneyMarket,
+  goals = [],
   selectedMonth,
   onOpenQuickAdd,
   variantId,
 }) => {
   const theme = getCatThemeConfig(variantId);
+
+  // Financial Goals (Celengan Impian) State
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<FinancialGoal | null>(null);
+  const [depositGoal, setDepositGoal] = useState<FinancialGoal | null>(null);
 
   const [showAddMMModal, setShowAddMMModal] = useState(false);
   const [showInvestModal, setShowInvestModal] = useState<{
@@ -586,7 +596,183 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
         </div>
       </div>
 
-      {/* Interactive Growth Simulator */}
+      {/* Celengan Impian & Target Tabungan Section */}
+      <div
+        className="rounded-3xl p-6 sm:p-8 border shadow-sm space-y-6"
+        style={{
+          backgroundColor: theme.isDark ? "#111827" : "#FFFFFF",
+          borderColor: theme.cardBorder,
+        }}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5" style={{ color: theme.accent }} />
+              <h3
+                className="text-lg font-black"
+                style={{ color: theme.isDark ? "#FFFFFF" : theme.textColor }}
+              >
+                Celengan Impian & Target Tabungan
+              </h3>
+            </div>
+            <p className="text-xs text-slate-400">
+              Kumpulkan dana berjangka untuk target gadget, liburan, atau dana darurat. Setiap setoran otomatis tercatat di alokasi tabungan.
+            </p>
+          </div>
+
+          <button
+            onClick={() => {
+              setEditingGoal(null);
+              setIsGoalModalOpen(true);
+            }}
+            className="px-4 py-2.5 rounded-2xl text-white text-xs font-black shadow-md hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 self-start sm:self-auto"
+            style={{ backgroundColor: theme.accent }}
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>+ Buat Impian Baru</span>
+          </button>
+        </div>
+
+        {goals.length === 0 ? (
+          <div className="py-10 text-center space-y-3 border border-dashed border-[#E8E2D8] rounded-2xl bg-[#FAF7F2]/40">
+            <div className="w-12 h-12 rounded-2xl bg-white text-[#854D0E] flex items-center justify-center text-xl mx-auto border border-[#E8E2D8]">
+              🎯
+            </div>
+            <h4 className="text-sm font-bold text-stone-800">
+              Belum ada Celengan Impian yang dibuat
+            </h4>
+            <p className="text-xs text-stone-400 max-w-sm mx-auto">
+              Mulai rencanakan pembelian laptop, liburan impian, atau dana darurat Anda sekarang!
+            </p>
+            <button
+              onClick={() => {
+                setEditingGoal(null);
+                setIsGoalModalOpen(true);
+              }}
+              className="px-4 py-2 rounded-xl bg-[#854D0E] text-white text-xs font-bold hover:bg-[#713F12] transition-all"
+            >
+              + Buat Celengan Impian
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {goals.map((g) => {
+              const percent = Math.min(100, Math.round((g.currentAmount / g.targetAmount) * 100));
+              const remaining = Math.max(0, g.targetAmount - g.currentAmount);
+
+              // Calculate monthly recommendation if targetDate exists
+              let monthlyNeededText = "";
+              if (g.targetDate && remaining > 0) {
+                const now = new Date();
+                const [targetYear, targetMonthNum] = g.targetDate.split("-").map(Number);
+                const currentMonths = now.getFullYear() * 12 + now.getMonth();
+                const targetMonths = targetYear * 12 + (targetMonthNum - 1);
+                const diffMonths = Math.max(1, targetMonths - currentMonths + 1);
+                const perMonth = Math.ceil(remaining / diffMonths);
+                monthlyNeededText = `Nabung ~${formatRupiah(perMonth)}/bln (${diffMonths} bln)`;
+              }
+
+              return (
+                <div
+                  key={g.id}
+                  className={`rounded-2xl p-4 border transition-all flex flex-col justify-between gap-4 ${
+                    g.isCompleted
+                      ? "bg-amber-50/40 border-amber-300"
+                      : "bg-[#FAF7F2]/40 hover:bg-[#FAF7F2] border-[#E8E2D8]"
+                  }`}
+                >
+                  <div className="space-y-3">
+                    {/* Top Row: Emoji, Title, Actions */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-2xl p-1 bg-white rounded-xl border border-[#E8E2D8] shadow-2xs">
+                          {g.iconEmoji}
+                        </span>
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-black text-stone-900 truncate">
+                            {g.title}
+                          </h4>
+                          <span className="text-[10px] text-stone-400 font-medium">
+                            Target: {g.targetDate || "Fleksibel"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => {
+                            setEditingGoal(g);
+                            setIsGoalModalOpen(true);
+                          }}
+                          className="p-1 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100"
+                          title="Edit"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Hapus celengan impian "${g.title}"?`)) {
+                              FinanceStorage.deleteGoal(g.id);
+                            }
+                          }}
+                          className="p-1 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50"
+                          title="Hapus"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar & Amount */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-baseline text-xs">
+                        <span className="font-mono font-black text-[#854D0E]">
+                          {formatRupiah(g.currentAmount)}
+                        </span>
+                        <span className="font-mono text-[11px] text-stone-400">
+                          / {formatRupiah(g.targetAmount)}
+                        </span>
+                      </div>
+
+                      <div className="w-full h-2 bg-stone-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${
+                            g.isCompleted ? "bg-amber-500" : "bg-[#854D0E]"
+                          }`}
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
+
+                      <div className="flex justify-between items-center text-[10px] font-bold">
+                        <span className={g.isCompleted ? "text-amber-700" : "text-stone-500"}>
+                          {g.isCompleted ? "🎉 100% Tercapai!" : `${percent}% Tercapai`}
+                        </span>
+                        {monthlyNeededText && !g.isCompleted && (
+                          <span className="text-[#854D0E] font-medium">{monthlyNeededText}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Action: Setor Tabungan */}
+                  <div className="pt-2 border-t border-stone-200/50 flex items-center justify-between">
+                    <span className="text-[10px] text-stone-400">
+                      {g.isCompleted ? "Selesai" : `Sisa ${formatRupiah(remaining)}`}
+                    </span>
+                    <button
+                      onClick={() => setDepositGoal(g)}
+                      className="px-3 py-1.5 rounded-xl bg-[#854D0E] hover:bg-[#713F12] text-white text-xs font-bold active:scale-95 transition-all flex items-center gap-1.5 shadow-2xs"
+                    >
+                      <Coins className="w-3.5 h-3.5" />
+                      <span>+ Setor Tabungan</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
       <div
         className="rounded-3xl p-6 sm:p-8 border shadow-sm space-y-6"
         style={{
@@ -878,6 +1064,23 @@ export const CatSavingsView: React.FC<CatSavingsViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Goal Creation & Edit Modal */}
+      <GoalModal
+        isOpen={isGoalModalOpen}
+        onClose={() => {
+          setIsGoalModalOpen(false);
+          setEditingGoal(null);
+        }}
+        initialGoal={editingGoal}
+      />
+
+      {/* Goal Deposit Modal */}
+      <DepositGoalModal
+        isOpen={depositGoal !== null}
+        onClose={() => setDepositGoal(null)}
+        goal={depositGoal}
+      />
     </div>
   );
 };

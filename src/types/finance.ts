@@ -111,4 +111,29 @@ export interface PlannedItem {
   createdAt: number;
 }
 
+export type GoalCategory =
+  | "gadget"
+  | "liburan"
+  | "darurat"
+  | "kendaraan"
+  | "rumah"
+  | "pendidikan"
+  | "investasi"
+  | "lainnya";
+
+export interface FinancialGoal {
+  id: string;
+  title: string;
+  targetAmount: number;
+  currentAmount: number;
+  targetDate: string; // YYYY-MM
+  category: GoalCategory;
+  iconEmoji: string;
+  note?: string;
+  isCompleted: boolean;
+  completedDate?: string;
+  createdAt: number;
+}
+
+
 

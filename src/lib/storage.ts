@@ -13,6 +13,7 @@ import {
   SavingsAllocation,
   MoneyMarketProduct,
   PlannedItem,
+  FinancialGoal,
 } from "@/types/finance";
 
 // Storage keys untuk fallback lokal (v5 - Support Sumber Dana Investasi & Tabungan)
@@ -22,6 +23,7 @@ const LOCAL_STORAGE_KEYS = {
   SAVINGS: "keuangan_savings_v5",
   MONEY_MARKET: "keuangan_money_market_v5",
   PLANNED_ITEMS: "keuangan_planned_v1",
+  GOALS: "keuangan_goals_v1",
 };
 
 // Data Awal Bersih (Clean Empty State)
@@ -30,6 +32,7 @@ const DEFAULT_EXPENSES: ExpenseItem[] = [];
 const DEFAULT_SAVINGS: SavingsAllocation[] = [];
 const DEFAULT_MONEY_MARKET: MoneyMarketProduct[] = [];
 const DEFAULT_PLANNED_ITEMS: PlannedItem[] = [];
+const DEFAULT_GOALS: FinancialGoal[] = [];
 
 // Helper: Format Rupiah
 export function formatRupiah(value: number | string | undefined | null): string {
@@ -374,6 +377,33 @@ export class FinanceStorage {
           this.notify();
         }
       );
+
+      // 6. Listener Financial Goals (Celengan Impian / Target Tabungan)
+      const goalsRef = ref(rtdb, "financial_goals");
+      onValue(
+        goalsRef,
+        (snapshot) => {
+          this.isFirebaseConnected = true;
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            const list: FinancialGoal[] = Object.entries(data).map(
+              ([key, val]: [string, any]) => ({
+                ...val,
+                id: key,
+              })
+            );
+            setLocalData(LOCAL_STORAGE_KEYS.GOALS, list);
+          } else {
+            setLocalData(LOCAL_STORAGE_KEYS.GOALS, []);
+          }
+          this.notify();
+        },
+        (err) => {
+          console.warn("RTDB [financial_goals] error:", err.message);
+          this.isFirebaseConnected = false;
+          this.notify();
+        }
+      );
     } catch (e) {
       console.warn("RTDB init error:", e);
       this.isFirebaseConnected = false;
@@ -445,6 +475,7 @@ export class FinanceStorage {
     setLocalData(LOCAL_STORAGE_KEYS.SAVINGS, []);
     setLocalData(LOCAL_STORAGE_KEYS.MONEY_MARKET, []);
     setLocalData(LOCAL_STORAGE_KEYS.PLANNED_ITEMS, []);
+    setLocalData(LOCAL_STORAGE_KEYS.GOALS, []);
     this.notify();
 
     remove(ref(rtdb, "incomes")).catch(() => {});
@@ -452,6 +483,7 @@ export class FinanceStorage {
     remove(ref(rtdb, "savings")).catch(() => {});
     remove(ref(rtdb, "money_market")).catch(() => {});
     remove(ref(rtdb, "planned_items")).catch(() => {});
+    remove(ref(rtdb, "financial_goals")).catch(() => {});
   }
 
   // --- INCOMES (GAJI / PEMASUKAN) ---
@@ -989,6 +1021,115 @@ export class FinanceStorage {
       isPaid: true,
       paidDate,
       paidAmount: actualAmount,
+    });
+  }
+
+  // --- FINANCIAL GOALS (CELENGAN IMPIAN & TARGET TABUNGAN) ---
+  public static getGoals(): FinancialGoal[] {
+    return getLocalData(LOCAL_STORAGE_KEYS.GOALS, DEFAULT_GOALS);
+  }
+
+  public static async addGoal(
+    item: Omit<FinancialGoal, "id" | "createdAt" | "isCompleted">
+  ): Promise<string> {
+    const goalsRef = ref(rtdb, "financial_goals");
+    const newRef = push(goalsRef);
+    const newId = newRef.key || "goal-" + Date.now();
+    const newGoal: FinancialGoal = {
+      ...item,
+      id: newId,
+      isCompleted: item.currentAmount >= item.targetAmount,
+      createdAt: Date.now(),
+    };
+
+    const current = this.getGoals();
+    const updated = [newGoal, ...current.filter((x) => x.id !== newId)];
+    setLocalData(LOCAL_STORAGE_KEYS.GOALS, updated);
+    this.notify();
+
+    set(newRef, newGoal)
+      .then(() => {
+        this.isFirebaseConnected = true;
+        this.notify();
+      })
+      .catch((err) => {
+        console.warn("RTDB addGoal gagal:", err.message);
+      });
+
+    return newId;
+  }
+
+  public static async updateGoal(
+    id: string,
+    updated: Partial<Omit<FinancialGoal, "id" | "createdAt">>
+  ): Promise<void> {
+    const current = this.getGoals();
+    const idx = current.findIndex((x) => x.id === id);
+    if (idx === -1) return;
+
+    const merged: FinancialGoal = {
+      ...current[idx],
+      ...updated,
+    };
+    if (merged.currentAmount >= merged.targetAmount && !merged.isCompleted) {
+      merged.isCompleted = true;
+      merged.completedDate = new Date().toISOString().split("T")[0];
+    }
+
+    current[idx] = merged;
+    setLocalData(LOCAL_STORAGE_KEYS.GOALS, current);
+    this.notify();
+
+    update(ref(rtdb, `financial_goals/${id}`), merged)
+      .then(() => {
+        this.isFirebaseConnected = true;
+        this.notify();
+      })
+      .catch((err) => {
+        console.warn("RTDB updateGoal gagal:", err.message);
+      });
+  }
+
+  public static async deleteGoal(id: string): Promise<void> {
+    const current = this.getGoals().filter((x) => x.id !== id);
+    setLocalData(LOCAL_STORAGE_KEYS.GOALS, current);
+    this.notify();
+
+    remove(ref(rtdb, `financial_goals/${id}`)).catch((err) => {
+      console.warn("RTDB deleteGoal gagal:", err.message);
+    });
+  }
+
+  // Setor ke celengan impian: Menambah saldo celengan & mencatat SavingsAllocation bulanan
+  public static async depositToGoal(
+    goalId: string,
+    amount: number,
+    date: string,
+    fundingSource: "salary" | "external" = "salary"
+  ): Promise<void> {
+    const current = this.getGoals();
+    const goal = current.find((x) => x.id === goalId);
+    if (!goal) return;
+
+    const newCurrent = goal.currentAmount + amount;
+    const isCompleted = newCurrent >= goal.targetAmount;
+
+    // 1. Catat ke Alokasi Tabungan Bulanan
+    await this.addSavings({
+      date,
+      month: date.slice(0, 7),
+      amount,
+      targetType: "goal",
+      accountName: `Celengan: ${goal.title}`,
+      fundingSource,
+      note: `Setoran ke celengan impian [${goal.title}]`,
+    });
+
+    // 2. Perbarui progres saldo Celengan
+    await this.updateGoal(goalId, {
+      currentAmount: newCurrent,
+      isCompleted,
+      completedDate: isCompleted ? date : undefined,
     });
   }
 }
