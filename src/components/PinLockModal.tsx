@@ -268,22 +268,6 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
           </p>
         </div>
 
-        {/* Tombol Batal saat Konfirmasi */}
-        {mode === "confirm" && (
-          <button
-            type="button"
-            onClick={() => {
-              setMode("setup");
-              setEnteredPin("");
-              setTempFirstPin("");
-              setErrorMsg(null);
-            }}
-            className="text-xs font-bold text-[#854D0E] hover:underline cursor-pointer"
-          >
-            ← Batal & Ulangi Buat PIN
-          </button>
-        )}
-
         {/* Indikator 6 Digit Bulat */}
         <div className="flex items-center gap-3 py-1">
           {[0, 1, 2, 3, 4, 5].map((index) => {
