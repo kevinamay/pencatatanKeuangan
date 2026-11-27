@@ -19,6 +19,8 @@ import {
   Target,
   Pencil,
   Trash2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   IncomeItem,
@@ -39,6 +41,8 @@ interface DashboardViewProps {
   moneyMarket: MoneyMarketProduct[];
   onNavigateToTab: (tab: "transactions" | "savings" | "report") => void;
   onOpenQuickAdd: () => void;
+  isBalanceHidden?: boolean;
+  onToggleHideBalance?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -49,6 +53,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   moneyMarket,
   onNavigateToTab,
   onOpenQuickAdd,
+  isBalanceHidden = false,
+  onToggleHideBalance,
 }) => {
   const validMM = (moneyMarket || []).filter(
     (m) => m && m.name && m.name.trim() !== "" && m.name !== "-"
@@ -192,21 +198,33 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <span>Executive Neo-Bank • Sistem Rekonsiliasi Keuangan</span>
             </div>
 
-            <p className="text-xs sm:text-sm text-[#FFD9D9] uppercase font-bold tracking-wider pt-1">
-              Sisa Gaji Bersih Tersedia ({selectedMonth})
-            </p>
+            <div className="flex items-center justify-center lg:justify-start gap-2 pt-1">
+              <p className="text-xs sm:text-sm text-[#FFD9D9] uppercase font-bold tracking-wider">
+                Sisa Gaji Bersih Tersedia ({selectedMonth})
+              </p>
+              {onToggleHideBalance && (
+                <button
+                  type="button"
+                  onClick={onToggleHideBalance}
+                  className="p-1 rounded-lg text-white/70 hover:text-white bg-white/10 hover:bg-white/20 transition cursor-pointer"
+                  title={isBalanceHidden ? "Tampilkan Saldo" : "Sembunyikan Saldo (Mode Privasi)"}
+                >
+                  {isBalanceHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              )}
+            </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight">
-              {formatRupiah(remainingSalary)}
+              {isBalanceHidden ? "Rp ••••••" : formatRupiah(remainingSalary)}
             </h1>
 
             <p className="text-xs sm:text-sm text-[#FFD9D9] font-medium leading-relaxed">
-              Total Gaji: <span className="text-white font-bold">{formatRupiah(totalIncome)}</span> • 
-              Terpotong Belanja: <span className="text-white font-bold">{formatRupiah(totalExpense)}</span> • 
-              Tabungan dari Gaji: <span className="text-white font-bold">{formatRupiah(salarySavings)}</span>
+              Total Gaji: <span className="text-white font-bold">{isBalanceHidden ? "••••••" : formatRupiah(totalIncome)}</span> • 
+              Terpotong Belanja: <span className="text-white font-bold">{isBalanceHidden ? "••••••" : formatRupiah(totalExpense)}</span> • 
+              Tabungan dari Gaji: <span className="text-white font-bold">{isBalanceHidden ? "••••••" : formatRupiah(salarySavings)}</span>
               {externalSavings > 0 && (
                 <>
-                  {" "}• Tabungan Luar Gaji: <span className="text-emerald-200 font-bold">+{formatRupiah(externalSavings)}</span>
+                  {" "}• Tabungan Luar Gaji: <span className="text-emerald-200 font-bold">+{isBalanceHidden ? "••••••" : formatRupiah(externalSavings)}</span>
                 </>
               )}
             </p>
@@ -291,7 +309,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="space-y-1">
             <h3 className="text-3xl font-black text-[#8B0000] tracking-tight">
-              {formatRupiah(totalIncome)}
+              {isBalanceHidden ? "Rp ••••••" : formatRupiah(totalIncome)}
             </h3>
             <p className="text-xs text-slate-500 font-bold">
               100% Arus Kas Masuk • {currentIncomes.length} transaksi penerimaan
@@ -317,7 +335,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="space-y-1">
             <h3 className="text-3xl font-black text-slate-900 tracking-tight">
-              {formatRupiah(totalExpense)}
+              {isBalanceHidden ? "Rp ••••••" : formatRupiah(totalExpense)}
             </h3>
             <p className="text-xs font-bold text-rose-600">
               {expenseRate.toFixed(1)}% dari gaji • {currentExpenses.length} pos pengeluaran
@@ -349,13 +367,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="space-y-1">
             <h3 className="text-3xl font-black text-[#8B0000] tracking-tight">
-              {formatRupiah(totalSavings)}
+              {isBalanceHidden ? "Rp ••••••" : formatRupiah(totalSavings)}
             </h3>
             <p className="text-xs font-bold text-[#8B0000]">
               {salarySavings > 0
                 ? `${savingsRate.toFixed(1)}% rasio dari gaji`
                 : "Alokasi Mandiri / Luar Gaji"}
-              {externalSavings > 0 && salarySavings > 0 && ` (+${formatRupiah(externalSavings)} luar gaji)`}
+              {externalSavings > 0 && salarySavings > 0 && ` (+${isBalanceHidden ? "••••••" : formatRupiah(externalSavings)} luar gaji)`}
             </p>
           </div>
           <div className="mt-4 pt-3 border-t border-[#FFD9D9]/60 flex items-center justify-between text-xs font-semibold">

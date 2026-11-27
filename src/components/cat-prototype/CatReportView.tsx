@@ -36,6 +36,7 @@ interface CatReportViewProps {
   selectedMonth: string;
   variantId: number;
   onOpenBackupExport?: () => void;
+  isBalanceHidden?: boolean;
 }
 
 export const CatReportView: React.FC<CatReportViewProps> = ({
@@ -45,6 +46,7 @@ export const CatReportView: React.FC<CatReportViewProps> = ({
   selectedMonth,
   variantId,
   onOpenBackupExport,
+  isBalanceHidden = false,
 }) => {
   const theme = getCatThemeConfig(variantId);
 
@@ -316,7 +318,7 @@ export const CatReportView: React.FC<CatReportViewProps> = ({
                 <span>[+]</span> Total Gaji & Pemasukan Masuk
               </span>
               <span className="font-black font-mono text-emerald-700">
-                {formatRupiah(totalIncome)}
+                {isBalanceHidden ? "Rp ••••••" : formatRupiah(totalIncome)}
               </span>
             </div>
 
@@ -326,7 +328,7 @@ export const CatReportView: React.FC<CatReportViewProps> = ({
                 <span>[-]</span> Total Seluruh Belanja / Pengeluaran
               </span>
               <span className="font-black font-mono text-rose-700">
-                ({formatRupiah(totalExpense)})
+                {isBalanceHidden ? "(Rp ••••••)" : `(${formatRupiah(totalExpense)})`}
               </span>
             </div>
 
@@ -336,7 +338,7 @@ export const CatReportView: React.FC<CatReportViewProps> = ({
                 <span>[-]</span> Alokasi Tabungan & Investasi (Dari Gaji)
               </span>
               <span className="font-black font-mono text-blue-700">
-                ({formatRupiah(salarySavings)})
+                {isBalanceHidden ? "(Rp ••••••)" : `(${formatRupiah(salarySavings)})`}
               </span>
             </div>
 
@@ -347,7 +349,7 @@ export const CatReportView: React.FC<CatReportViewProps> = ({
                   <span>ℹ️</span> Investasi Tambahan (Di luar gaji / THR)
                 </span>
                 <span className="font-mono font-bold">
-                  +{formatRupiah(externalSavings)}
+                  {isBalanceHidden ? "+Rp ••••••" : `+${formatRupiah(externalSavings)}`}
                 </span>
               </div>
             )}
@@ -367,7 +369,7 @@ export const CatReportView: React.FC<CatReportViewProps> = ({
                   isDeficit ? "text-rose-600" : "text-slate-900"
                 }`}
               >
-                {formatRupiah(remainingSalary)}
+                {isBalanceHidden ? "Rp ••••••" : formatRupiah(remainingSalary)}
               </span>
             </div>
           </div>

@@ -11,12 +11,14 @@ interface GoalSummaryWidgetProps {
   goals: FinancialGoal[];
   onNavigateToTab?: (tab: "dashboard" | "transactions" | "savings" | "report" | "planned") => void;
   onOpenAddGoal?: () => void;
+  isBalanceHidden?: boolean;
 }
 
 export const GoalSummaryWidget: React.FC<GoalSummaryWidgetProps> = ({
   goals,
   onNavigateToTab,
   onOpenAddGoal,
+  isBalanceHidden = false,
 }) => {
   const [selectedGoalForDeposit, setSelectedGoalForDeposit] = useState<FinancialGoal | null>(null);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
@@ -77,10 +79,10 @@ export const GoalSummaryWidget: React.FC<GoalSummaryWidgetProps> = ({
           </span>
           <div className="flex items-baseline gap-2">
             <span className="text-base font-black font-mono text-[#854D0E]">
-              {formatRupiah(totalCollected)}
+              {isBalanceHidden ? "Rp ••••••" : formatRupiah(totalCollected)}
             </span>
             <span className="text-xs text-stone-400 font-medium">
-              dari target {formatRupiah(totalTarget)}
+              dari target {isBalanceHidden ? "Rp ••••••" : formatRupiah(totalTarget)}
             </span>
           </div>
         </div>
@@ -141,10 +143,10 @@ export const GoalSummaryWidget: React.FC<GoalSummaryWidgetProps> = ({
                   )}
                   <div className="flex justify-between items-baseline mt-1">
                     <span className="text-xs font-bold font-mono text-[#854D0E]">
-                      {formatRupiah(goal.currentAmount)}
+                      {isBalanceHidden ? "Rp ••••••" : formatRupiah(goal.currentAmount)}
                     </span>
                     <span className="text-[10px] text-stone-400 font-mono">
-                      / {formatRupiah(goal.targetAmount)}
+                      / {isBalanceHidden ? "••••••" : formatRupiah(goal.targetAmount)}
                     </span>
                   </div>
 

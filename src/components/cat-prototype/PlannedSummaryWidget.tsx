@@ -10,6 +10,7 @@ interface PlannedSummaryWidgetProps {
   currentBalance: number;
   onNavigateToTab?: (tab: "dashboard" | "transactions" | "savings" | "report" | "planned") => void;
   onOpenAddPlanned: () => void;
+  isBalanceHidden?: boolean;
 }
 
 export const PlannedSummaryWidget: React.FC<PlannedSummaryWidgetProps> = ({
@@ -17,6 +18,7 @@ export const PlannedSummaryWidget: React.FC<PlannedSummaryWidgetProps> = ({
   currentBalance,
   onNavigateToTab,
   onOpenAddPlanned,
+  isBalanceHidden = false,
 }) => {
   const activeItems = plannedItems.filter((item) => !item.isPaid);
   const totalPlannedAmount = activeItems.reduce((acc, curr) => acc + curr.estimatedAmount, 0);
@@ -79,7 +81,7 @@ export const PlannedSummaryWidget: React.FC<PlannedSummaryWidgetProps> = ({
             Total Estimasi Wacana
           </span>
           <span className="text-base font-black font-mono text-stone-800 mt-1">
-            {formatRupiah(totalPlannedAmount)}
+            {isBalanceHidden ? "Rp ••••••" : formatRupiah(totalPlannedAmount)}
           </span>
           <div className="flex items-center gap-2 text-[10px] font-medium text-stone-400 mt-2">
             <span>🔴 {pentingCount} Penting</span>
@@ -96,7 +98,7 @@ export const PlannedSummaryWidget: React.FC<PlannedSummaryWidgetProps> = ({
             Sisa Saldo Riil Saat Ini
           </span>
           <span className="text-base font-black font-mono text-emerald-700 mt-1">
-            {formatRupiah(currentBalance)}
+            {isBalanceHidden ? "Rp ••••••" : formatRupiah(currentBalance)}
           </span>
           <span className="text-[10px] text-stone-400 mt-2">
             Saldo bersih dari gaji setelah dikurangi pengeluaran riil
@@ -117,7 +119,7 @@ export const PlannedSummaryWidget: React.FC<PlannedSummaryWidgetProps> = ({
               isDeficit ? "text-rose-600" : "text-stone-800"
             }`}
           >
-            {formatRupiah(projectedBalance)}
+            {isBalanceHidden ? "Rp ••••••" : formatRupiah(projectedBalance)}
           </span>
           <span
             className={`text-[10px] font-medium mt-2 ${

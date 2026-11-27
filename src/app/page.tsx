@@ -263,6 +263,8 @@ export default function Home() {
               moneyMarket={moneyMarket}
               onNavigateToTab={(tab) => setActiveTab(tab)}
               onOpenQuickAdd={() => openQuickAdd("income")}
+              isBalanceHidden={isBalanceHidden}
+              onToggleHideBalance={handleToggleHideBalance}
             />
           )
         )}
@@ -318,6 +320,7 @@ export default function Home() {
               selectedMonth={selectedMonth}
               variantId={catVariant}
               onOpenBackupExport={() => setIsBackupModalOpen(true)}
+              isBalanceHidden={isBalanceHidden}
             />
           ) : (
             <ReconciliationReportView

@@ -375,7 +375,7 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
           </div>
           <div className="space-y-1">
             <h3 className="text-3xl font-black text-stone-900 tracking-tight font-mono">
-              {formatRupiah(stats.totalIncome)}
+              {props.isBalanceHidden ? "Rp ••••••" : formatRupiah(stats.totalIncome)}
             </h3>
             <p className="text-xs text-stone-500 font-medium">
               100% Arus Kas Masuk • {stats.currentIncomes.length} transaksi penerimaan
@@ -401,7 +401,7 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
           </div>
           <div className="space-y-1">
             <h3 className="text-3xl font-black text-stone-900 tracking-tight font-mono">
-              {formatRupiah(stats.totalExpense)}
+              {props.isBalanceHidden ? "Rp ••••••" : formatRupiah(stats.totalExpense)}
             </h3>
             <p className="text-xs font-bold text-rose-700">
               {stats.expenseRate.toFixed(1)}% dari gaji • {stats.currentExpenses.length} pos pengeluaran
@@ -433,17 +433,17 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
           </div>
           <div className="space-y-1">
             <h3 className="text-3xl font-black text-[#854D0E] tracking-tight font-mono">
-              {formatRupiah(stats.totalSavings)}
+              {props.isBalanceHidden ? "Rp ••••••" : formatRupiah(stats.totalSavings)}
             </h3>
             <p className="text-xs font-bold text-[#854D0E]">
               {stats.salarySavings > 0
                 ? `${stats.savingsRate.toFixed(1)}% rasio dari gaji`
                 : "Alokasi Mandiri / Luar Gaji"}
-              {stats.externalSavings > 0 && ` (+${formatRupiah(stats.externalSavings)} modal pasar uang)`}
+              {stats.externalSavings > 0 && ` (+${props.isBalanceHidden ? "••••••" : formatRupiah(stats.externalSavings)} modal pasar uang)`}
             </p>
             {stats.mmSummary.totalProfit > 0 && (
               <span className="text-[11px] font-bold text-emerald-700 block pt-0.5">
-                +{formatRupiah(stats.mmSummary.totalProfit)} profit • Nilai: {formatRupiah(stats.totalPortfolioWithProfit)}
+                +{props.isBalanceHidden ? "••••••" : formatRupiah(stats.mmSummary.totalProfit)} profit • Nilai: {props.isBalanceHidden ? "••••••" : formatRupiah(stats.totalPortfolioWithProfit)}
               </span>
             )}
           </div>
@@ -466,12 +466,14 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
         currentBalance={stats.remainingSalary}
         onNavigateToTab={props.onNavigateToTab}
         onOpenAddPlanned={props.onOpenAddPlanned || (() => props.onNavigateToTab?.("planned"))}
+        isBalanceHidden={props.isBalanceHidden}
       />
 
       {/* 2.6. Celengan Impian / Financial Goal Tracker Widget */}
       <GoalSummaryWidget
         goals={props.goals || []}
         onNavigateToTab={props.onNavigateToTab}
+        isBalanceHidden={props.isBalanceHidden}
       />
 
       {/* 3. Status Rekonsiliasi Gaji & Pengeluaran (Live Progress Split Bar) */}
@@ -537,13 +539,13 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-rose-500" />
               <span className="text-stone-600">
-                Pengeluaran: <strong className="text-stone-900">{formatRupiah(stats.totalExpense)} ({stats.expenseRate.toFixed(1)}%)</strong>
+                Pengeluaran: <strong className="text-stone-900">{props.isBalanceHidden ? "••••••" : formatRupiah(stats.totalExpense)} ({stats.expenseRate.toFixed(1)}%)</strong>
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-[#854D0E]" />
               <span className="text-stone-600">
-                Alokasi Tabungan: <strong className="text-[#854D0E]">{formatRupiah(stats.totalSavings)} ({stats.savingsRate.toFixed(1)}%)</strong>
+                Alokasi Tabungan: <strong className="text-[#854D0E]">{props.isBalanceHidden ? "••••••" : formatRupiah(stats.totalSavings)} ({stats.savingsRate.toFixed(1)}%)</strong>
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -555,7 +557,7 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
               <span className="text-stone-600">
                 Sisa Kas Bersih:{" "}
                 <strong className={stats.isDeficit ? "text-rose-600" : "text-emerald-700"}>
-                  {formatRupiah(stats.remainingSalary)} ({stats.remainingRate.toFixed(1)}%)
+                  {props.isBalanceHidden ? "••••••" : formatRupiah(stats.remainingSalary)} ({stats.remainingRate.toFixed(1)}%)
                 </strong>
               </span>
             </div>
@@ -583,21 +585,21 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
                 Total Nilai (Modal + Keuntungan)
               </p>
               <h3 className="text-3xl font-black text-white tracking-tight font-mono">
-                {formatRupiah(stats.mmSummary.totalValue)}
+                {props.isBalanceHidden ? "Rp ••••••" : formatRupiah(stats.mmSummary.totalValue)}
               </h3>
             </div>
 
             <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 text-xs">
               <div className="flex justify-between items-center text-stone-300">
                 <span>Total Modal Disetor:</span>
-                <span className="font-bold text-white">{formatRupiah(stats.mmSummary.totalCapital)}</span>
+                <span className="font-bold text-white">{props.isBalanceHidden ? "••••••" : formatRupiah(stats.mmSummary.totalCapital)}</span>
               </div>
               <div className="flex justify-between items-center text-emerald-400">
                 <span className="flex items-center gap-1 font-bold">
                   <ArrowUpRight className="w-3.5 h-3.5" />
                   Keuntungan Berjalan:
                 </span>
-                <span className="font-black font-mono">+{formatRupiah(stats.mmSummary.totalProfit)}</span>
+                <span className="font-black font-mono">+{props.isBalanceHidden ? "••••••" : formatRupiah(stats.mmSummary.totalProfit)}</span>
               </div>
             </div>
           </div>
@@ -640,7 +642,7 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
                     <div className="flex justify-between text-xs font-semibold">
                       <span className="text-stone-700">{cat}</span>
                       <span className="font-mono text-stone-900">
-                        {formatRupiah(amount)} ({pct.toFixed(0)}%)
+                        {props.isBalanceHidden ? "••••••" : formatRupiah(amount)} ({pct.toFixed(0)}%)
                       </span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-stone-100 overflow-hidden">
@@ -737,8 +739,14 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
                           : "text-[#854D0E]"
                       }`}
                     >
-                      {isIncome ? "+" : isExpense ? "-" : ""}
-                      {formatRupiah(tx.amount)}
+                      {props.isBalanceHidden ? (
+                        "Rp ••••••"
+                      ) : (
+                        <>
+                          {isIncome ? "+" : isExpense ? "-" : ""}
+                          {formatRupiah(tx.amount)}
+                        </>
+                      )}
                     </span>
 
                     <div className="flex items-center gap-1">
