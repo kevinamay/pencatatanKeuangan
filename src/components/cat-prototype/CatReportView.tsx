@@ -35,6 +35,7 @@ interface CatReportViewProps {
   moneyMarket?: MoneyMarketProduct[];
   selectedMonth: string;
   variantId: number;
+  onOpenBackupExport?: () => void;
 }
 
 export const CatReportView: React.FC<CatReportViewProps> = ({
@@ -43,6 +44,7 @@ export const CatReportView: React.FC<CatReportViewProps> = ({
   savings,
   selectedMonth,
   variantId,
+  onOpenBackupExport,
 }) => {
   const theme = getCatThemeConfig(variantId);
 
@@ -175,17 +177,17 @@ export const CatReportView: React.FC<CatReportViewProps> = ({
 
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2.5">
             <button
-              onClick={handleExportCSV}
-              className="px-3.5 py-2.5 rounded-2xl text-xs font-black border transition-all flex items-center gap-1.5 shadow-2xs hover:bg-stone-50 active:scale-95"
+              onClick={() => (onOpenBackupExport ? onOpenBackupExport() : handleExportCSV())}
+              className="px-3.5 py-2.5 rounded-2xl text-xs font-black border transition-all flex items-center gap-1.5 shadow-2xs hover:bg-stone-50 active:scale-95 cursor-pointer"
               style={{
                 borderColor: theme.cardBorder,
                 color: theme.textColor,
                 backgroundColor: theme.isDark ? "#1F2937" : "#FFFFFF",
               }}
-              title="Unduh seluruh data transaksi bulan ini ke format Excel / CSV"
+              title="Unduh seluruh data transaksi bulan ini ke format Excel (.xlsx) atau cadangkan data"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              <span>Export Excel (.CSV)</span>
+              <span>Export Excel (.xlsx)</span>
             </button>
 
             <button

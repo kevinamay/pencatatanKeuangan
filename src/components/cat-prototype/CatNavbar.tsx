@@ -14,6 +14,8 @@ import {
   Menu,
   X,
   ChevronRight,
+  FileSpreadsheet,
+  KeyRound,
 } from "lucide-react";
 import { CatAnimation } from "./CatAnimations";
 import { getCatThemeConfig } from "./catThemeConfig";
@@ -26,6 +28,8 @@ interface CatNavbarProps {
   isFirebaseConnected: boolean;
   onOpenQuickAdd: () => void;
   variantId: number;
+  onOpenBackupExport?: () => void;
+  onOpenChangePin?: () => void;
 }
 
 const MONTH_OPTIONS = [
@@ -46,6 +50,8 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
   isFirebaseConnected,
   onOpenQuickAdd,
   variantId,
+  onOpenBackupExport,
+  onOpenChangePin,
 }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const theme = getCatThemeConfig(variantId);
@@ -228,6 +234,24 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
                 </select>
               </div>
 
+              {/* Backup & Export Button (Desktop) */}
+              {onOpenBackupExport && (
+                <button
+                  type="button"
+                  onClick={onOpenBackupExport}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer"
+                  style={{
+                    backgroundColor: theme.isDark ? "#1E293B" : "#FAF7F2",
+                    borderColor: theme.cardBorder,
+                    color: theme.isDark ? "#E2E8F0" : "#44403C",
+                  }}
+                  title="Ekspor Laporan Excel & Backup Database"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Ekspor</span>
+                </button>
+              )}
+
               {/* Quick Add Button */}
               <button
                 onClick={onOpenQuickAdd}
@@ -387,6 +411,34 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
           className="p-4 border-t space-y-2"
           style={{ borderColor: theme.cardBorder }}
         >
+          {/* Backup & Export inside sidebar */}
+          {onOpenBackupExport && (
+            <button
+              onClick={() => {
+                setIsMobileSidebarOpen(false);
+                onOpenBackupExport();
+              }}
+              className="w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border active:scale-95 transition-all cursor-pointer bg-white text-stone-800 border-[#E8E2D8] hover:bg-stone-50"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <span>Ekspor Excel & Backup Data</span>
+            </button>
+          )}
+
+          {/* Change PIN inside sidebar */}
+          {onOpenChangePin && (
+            <button
+              onClick={() => {
+                setIsMobileSidebarOpen(false);
+                onOpenChangePin();
+              }}
+              className="w-full py-2 px-3 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 border active:scale-95 transition-all cursor-pointer bg-[#FAF7F2] text-stone-600 border-[#E8E2D8] hover:bg-stone-100"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-amber-700" />
+              <span>Ganti PIN Keamanan (6-Digit)</span>
+            </button>
+          )}
+
           {/* Quick Add inside sidebar */}
           <button
             onClick={() => {

@@ -19,6 +19,8 @@ import {
   Trash2,
   ShieldCheck,
   Landmark,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   IncomeItem,
@@ -55,6 +57,8 @@ export interface CatVariantProps {
   plannedItems?: PlannedItem[];
   goals?: FinancialGoal[];
   selectedMonth: string;
+  isBalanceHidden?: boolean;
+  onToggleHideBalance?: () => void;
   onOpenQuickAdd: (type?: "income" | "expense" | "savings") => void;
   onNavigateToTab?: (tab: "dashboard" | "transactions" | "savings" | "report" | "planned") => void;
   onOpenAddPlanned?: () => void;
@@ -247,20 +251,42 @@ export const Variant2TokyoPaper: React.FC<CatVariantProps> = (props) => {
               <span className="truncate">Tokyo Wabi-Sabi FinPlan • Rekonsiliasi Keuangan</span>
             </div>
 
-            <p className="text-xs uppercase font-bold text-stone-500 tracking-wider">
-              Sisa Gaji Bersih Tersedia ({props.selectedMonth})
-            </p>
+            <div className="flex items-center justify-center lg:justify-start gap-2.5">
+              <p className="text-xs uppercase font-bold text-stone-500 tracking-wider">
+                Sisa Gaji Bersih Tersedia ({props.selectedMonth})
+              </p>
+              {props.onToggleHideBalance && (
+                <button
+                  type="button"
+                  onClick={props.onToggleHideBalance}
+                  className="px-2 py-0.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer flex items-center gap-1 text-[11px] font-bold border border-transparent hover:border-[#E8E2D8]"
+                  title={props.isBalanceHidden ? "Tampilkan Saldo" : "Sembunyikan Saldo (Mode Privasi)"}
+                >
+                  {props.isBalanceHidden ? (
+                    <>
+                      <EyeOff className="w-3.5 h-3.5 text-amber-700" />
+                      <span className="text-[10px] text-amber-800">Privasi</span>
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-3.5 h-3.5 text-stone-400" />
+                      <span className="text-[10px] text-stone-400">Tutup</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-[#292524] tracking-tight font-mono break-all sm:break-normal">
-              {formatRupiah(stats.remainingSalary)}
+              {props.isBalanceHidden ? "Rp ••••••" : formatRupiah(stats.remainingSalary)}
             </h1>
 
             <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
-              Total Gaji: <span className="text-stone-900 font-bold">{formatRupiah(stats.totalIncome)}</span> • 
-              Terpotong Belanja: <span className="text-stone-900 font-bold">{formatRupiah(stats.totalExpense)}</span> • 
-              Tabungan dari Gaji: <span className="text-stone-900 font-bold">{formatRupiah(stats.salarySavings)}</span>
+              Total Gaji: <span className="text-stone-900 font-bold">{props.isBalanceHidden ? "••••••" : formatRupiah(stats.totalIncome)}</span> • 
+              Terpotong Belanja: <span className="text-stone-900 font-bold">{props.isBalanceHidden ? "••••••" : formatRupiah(stats.totalExpense)}</span> • 
+              Tabungan dari Gaji: <span className="text-stone-900 font-bold">{props.isBalanceHidden ? "••••••" : formatRupiah(stats.salarySavings)}</span>
               {stats.externalSavings > 0 && (
-                <> • Tabungan Luar Gaji: <span className="text-[#854D0E] font-bold">+{formatRupiah(stats.externalSavings)}</span></>
+                <> • Tabungan Luar Gaji: <span className="text-[#854D0E] font-bold">+{props.isBalanceHidden ? "••••••" : formatRupiah(stats.externalSavings)}</span></>
               )}
             </p>
 

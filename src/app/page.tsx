@@ -32,6 +32,9 @@ import { CatPlannedView } from "@/components/cat-prototype/CatPlannedView";
 import { getCatThemeConfig } from "@/components/cat-prototype/catThemeConfig";
 import { CatFooter } from "@/components/cat-prototype/CatFooter";
 import { SplashScreen } from "@/components/cat-prototype/SplashScreen";
+import { PinLockModal } from "@/components/PinLockModal";
+import { PinSecurityService } from "@/lib/pinSecurity";
+import { BackupExportModal } from "@/components/BackupExportModal";
 
 // Tab Loading Skeleton (Swiss Minimalist Theme)
 const ViewLoadingSkeleton = ({ title }: { title: string }) => (
@@ -94,6 +97,21 @@ export default function Home() {
   const [isCatMode, setIsCatMode] = useState<boolean>(true);
   const [catVariant, setCatVariant] = useState<number>(2);
   const [showSplash, setShowSplash] = useState<boolean>(true);
+
+  // Modal & Security States
+  const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
+  const [isChangePinOpen, setIsChangePinOpen] = useState(false);
+  const [isBalanceHidden, setIsBalanceHidden] = useState(false);
+
+  useEffect(() => {
+    setIsBalanceHidden(PinSecurityService.isBalanceHidden());
+  }, []);
+
+  const handleToggleHideBalance = () => {
+    const next = !isBalanceHidden;
+    setIsBalanceHidden(next);
+    PinSecurityService.setBalanceHidden(next);
+  };
 
   const openQuickAdd = (type?: "income" | "expense" | "savings") => {
     setQuickAddType(type || (activeTab === "savings" ? "savings" : "income"));
@@ -168,6 +186,8 @@ export default function Home() {
       plannedItems,
       goals,
       selectedMonth,
+      isBalanceHidden,
+      onToggleHideBalance: handleToggleHideBalance,
       onOpenQuickAdd: openQuickAdd,
       onNavigateToTab: (tab: any) => setActiveTab(tab),
       onOpenAddPlanned: () => setActiveTab("planned"),
@@ -214,6 +234,8 @@ export default function Home() {
             isFirebaseConnected={isFirebaseConnected}
             onOpenQuickAdd={() => openQuickAdd()}
             variantId={catVariant}
+            onOpenBackupExport={() => setIsBackupModalOpen(true)}
+            onOpenChangePin={() => setIsChangePinOpen(true)}
           />
         ) : (
           <Navbar
@@ -295,6 +317,7 @@ export default function Home() {
               moneyMarket={moneyMarket}
               selectedMonth={selectedMonth}
               variantId={catVariant}
+              onOpenBackupExport={() => setIsBackupModalOpen(true)}
             />
           ) : (
             <ReconciliationReportView
@@ -339,6 +362,32 @@ export default function Home() {
 
       {/* Footer with Lottie Rainbow Cat Remix Animation (by Victor Aremu) */}
       <CatFooter currentCatTheme={currentCatTheme} />
+
+      {/* Security PIN Lock System (Layar Utama & Background Resume) */}
+      <PinLockModal />
+
+      {/* Change PIN Modal */}
+      {isChangePinOpen && (
+        <PinLockModal
+          isChangeMode={true}
+          onCloseChangeMode={() => setIsChangePinOpen(false)}
+        />
+      )}
+
+      {/* Backup & Export Multi-Sheet Excel (.xlsx) / JSON Modal */}
+      <BackupExportModal
+        isOpen={isBackupModalOpen}
+        onClose={() => setIsBackupModalOpen(false)}
+        dataPayload={{
+          month: selectedMonth,
+          incomes,
+          expenses,
+          savings,
+          moneyMarket,
+          plannedItems,
+          financialGoals: goals,
+        }}
+      />
     </div>
   </>
 );
