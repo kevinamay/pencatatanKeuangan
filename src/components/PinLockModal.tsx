@@ -53,6 +53,9 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
     if (isChangeMode) {
       setMode("change_old");
       setIsLocked(true);
+      setEnteredPin("");
+      setErrorMsg(null);
+      setSuccessMsg(null);
     } else if (hasPin) {
       setMode("verify");
       if (PinSecurityService.isSessionUnlocked()) {
@@ -61,7 +64,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
         setIsLocked(true);
       }
     } else {
-      setMode("verify");
+      setMode("setup");
       setIsLocked(true);
     }
   }, [isChangeMode]);
@@ -206,6 +209,9 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
       } else if (e.key === "Backspace") {
         handleDelete();
       } else if (e.key === "Escape" && isChangeMode) {
+        if (PinSecurityService.isSessionUnlocked()) {
+          setIsLocked(false);
+        }
         onCloseChangeMode?.();
       }
     };
@@ -297,7 +303,12 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
       {/* Tombol Tutup jika dalam mode Ganti PIN */}
       {isChangeMode && (
         <button
-          onClick={onCloseChangeMode}
+          onClick={() => {
+            if (PinSecurityService.isSessionUnlocked()) {
+              setIsLocked(false);
+            }
+            onCloseChangeMode?.();
+          }}
           className="absolute top-5 right-5 p-2 rounded-full text-stone-400 hover:text-stone-700 bg-white/80 border border-[#E8E2D8] transition cursor-pointer"
           title="Batal"
         >

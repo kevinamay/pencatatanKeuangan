@@ -363,16 +363,11 @@ export default function Home() {
       {/* Footer with Lottie Rainbow Cat Remix Animation (by Victor Aremu) */}
       <CatFooter currentCatTheme={currentCatTheme} />
 
-      {/* Security PIN Lock System (Layar Utama & Background Resume) */}
-      <PinLockModal />
-
-      {/* Change PIN Modal */}
-      {isChangePinOpen && (
-        <PinLockModal
-          isChangeMode={true}
-          onCloseChangeMode={() => setIsChangePinOpen(false)}
-        />
-      )}
+      {/* Security PIN Lock System (Layar Utama, Background Resume, dan Ganti PIN) */}
+      <PinLockModal
+        isChangeMode={isChangePinOpen}
+        onCloseChangeMode={() => setIsChangePinOpen(false)}
+      />
 
       {/* Backup & Export Multi-Sheet Excel (.xlsx) / JSON Modal */}
       <BackupExportModal
