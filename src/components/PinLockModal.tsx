@@ -18,6 +18,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
 }) => {
   const [isLocked, setIsLocked] = useState(true);
   const [isConfigured, setIsConfigured] = useState(false);
+  const [isCheckingCloud, setIsCheckingCloud] = useState(true);
   const [mode, setMode] = useState<
     "setup" | "confirm" | "verify" | "change_old" | "change_new" | "forgot_email" | "forgot_otp"
   >("verify");
@@ -35,38 +36,57 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
 
   // Inisialisasi status PIN & sinkronisasi dengan Firebase
   useEffect(() => {
+    let isMounted = true;
     if (typeof window === "undefined") return;
 
     PinSecurityService.initSync(() => {
+      if (!isMounted) return;
       const hasPin = PinSecurityService.isPinConfigured();
       setIsConfigured(hasPin);
     });
 
-    const hasPin = PinSecurityService.isPinConfigured();
-    setIsConfigured(hasPin);
-
     // Ambil email pemulihan terdaftar
     PinSecurityService.getRecoveryEmail().then((email) => {
-      if (email) setRecoveryEmail(email);
+      if (email && isMounted) setRecoveryEmail(email);
     });
 
-    if (isChangeMode) {
-      setMode("change_old");
-      setIsLocked(true);
-      setEnteredPin("");
-      setErrorMsg(null);
-      setSuccessMsg(null);
-    } else if (hasPin) {
-      setMode("verify");
-      if (PinSecurityService.isSessionUnlocked()) {
-        setIsLocked(false);
+    const initPinMode = async () => {
+      if (isChangeMode) {
+        setMode("change_old");
+        setIsLocked(true);
+        setEnteredPin("");
+        setErrorMsg(null);
+        setSuccessMsg(null);
+        setIsCheckingCloud(false);
+        return;
+      }
+
+      // Cek apakah sudah ada PIN (baik lokal maupun di Firebase)
+      const hasPin = await PinSecurityService.checkCloudPin();
+      if (!isMounted) return;
+
+      setIsConfigured(hasPin);
+
+      if (hasPin) {
+        setMode("verify");
+        if (PinSecurityService.isSessionUnlocked()) {
+          setIsLocked(false);
+        } else {
+          setIsLocked(true);
+        }
       } else {
+        // Pengguna baru: Belum ada PIN sama sekali di Firebase maupun lokal
+        setMode("setup");
         setIsLocked(true);
       }
-    } else {
-      setMode("setup");
-      setIsLocked(true);
-    }
+      setIsCheckingCloud(false);
+    };
+
+    initPinMode();
+
+    return () => {
+      isMounted = false;
+    };
   }, [isChangeMode]);
 
   // Listener Auto-Lock saat tab berganti atau aplikasi diminimize ke background
@@ -126,6 +146,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
         setTempFirstPin(enteredPin);
         setEnteredPin("");
         setMode("confirm");
+        setSuccessMsg("Langkah 1 selesai! Ketik ulang 6 digit PIN untuk konfirmasi.");
       } else if (mode === "confirm") {
         if (enteredPin === tempFirstPin) {
           await PinSecurityService.setupNewPin(enteredPin);
@@ -133,6 +154,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
           setIsLocked(false);
           setEnteredPin("");
           setTempFirstPin("");
+          setSuccessMsg(null);
           onUnlocked?.();
         } else {
           setErrorMsg("Konfirmasi PIN tidak cocok. Silakan ulangi.");
@@ -150,7 +172,8 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
         } else {
           const configured = PinSecurityService.isPinConfigured();
           if (!configured) {
-            setErrorMsg("Belum ada PIN terdaftar. Ketuk 'Buat PIN Baru' di bawah.");
+            setErrorMsg("Belum ada PIN terdaftar. Silakan daftarkan PIN baru.");
+            setMode("setup");
           } else {
             setErrorMsg("PIN salah. Silakan coba lagi.");
           }
@@ -256,6 +279,29 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
     }
   };
 
+  if (isCheckingCloud && !PinSecurityService.isPinConfigured() && !isChangeMode) {
+    return (
+      <div className="fixed inset-0 z-100 bg-[#FAF7F2]/95 backdrop-blur-md flex flex-col items-center justify-center p-4 select-none animate-fade-in text-stone-900">
+        <div className="w-full max-w-xs flex flex-col items-center text-center space-y-4">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-white border border-[#E8E2D8] p-2 shadow-md flex items-center justify-center relative">
+            <CatAnimation variant="sleeping" className="w-full h-full" />
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#854D0E] text-white flex items-center justify-center shadow-xs border-2 border-white">
+              <Lock className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-base sm:text-lg font-black text-stone-900 tracking-tight">
+              Memeriksa Keamanan PIN...
+            </h2>
+            <p className="text-xs text-stone-400">
+              Sinkronisasi data privasi Tokyo Neko
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!isLocked) return null;
 
   const getTitle = () => {
@@ -265,7 +311,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
       case "forgot_otp":
         return "Masukkan Kode Email";
       case "setup":
-        return "Buat PIN Keamanan Baru";
+        return isConfigured ? "Buat PIN Keamanan Baru" : "Daftarkan PIN Keamanan";
       case "confirm":
         return "Konfirmasi Ulang PIN Anda";
       case "change_old":
@@ -285,9 +331,11 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
       case "forgot_otp":
         return `Kode verifikasi 6 digit telah dikirim ke ${recoveryEmail}.`;
       case "setup":
-        return "Tentukan 6 digit PIN baru untuk mengamankan data Anda.";
+        return isConfigured
+          ? "Tentukan 6 digit PIN baru untuk mengamankan data Anda."
+          : "Selamat datang! Buat 6 digit PIN untuk mengamankan catatan keuangan Anda.";
       case "confirm":
-        return "Ketik kembali 6 digit angka yang sama persis.";
+        return "Ketik kembali 6 digit angka yang baru saja Anda buat.";
       case "change_old":
         return "Verifikasi identitas Anda dengan PIN saat ini.";
       case "change_new":
@@ -334,6 +382,18 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
             {getSubtitle()}
           </p>
         </div>
+
+        {/* Indikator Langkah untuk Setup & Confirm Mode */}
+        {(mode === "setup" || mode === "confirm") && (
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200/80 text-[11px] font-bold text-[#854D0E] shadow-2xs animate-fade-in">
+            <Sparkles className="w-3 h-3 text-[#854D0E]" />
+            <span>
+              {mode === "setup"
+                ? "Langkah 1 dari 2 • Buat 6 Digit PIN"
+                : "Langkah 2 dari 2 • Konfirmasi 6 Digit PIN"}
+            </span>
+          </div>
+        )}
 
         {/* Notifikasi Sukses */}
         {successMsg && (
@@ -514,7 +574,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
               </div>
             )}
 
-            {!isChangeMode && mode === "setup" && (
+            {!isChangeMode && mode === "setup" && isConfigured && (
               <div className="pt-2">
                 <button
                   type="button"

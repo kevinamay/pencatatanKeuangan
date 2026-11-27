@@ -1,5 +1,3 @@
-"use client";
-
 import { rtdb } from "./firebase";
 import { ref, set, get, onValue, remove } from "firebase/database";
 
@@ -94,6 +92,38 @@ export class PinSecurityService {
   public static isPinConfigured(): boolean {
     if (typeof window === "undefined") return false;
     return !!(this.cachedFirebaseHash || localStorage.getItem(STORAGE_KEYS.PIN_HASH));
+  }
+
+  /**
+   * Mengecek apakah PIN sudah ada di Cloud (Firebase RTDB) atau LocalStorage secara asynchronous
+   * Memastikan tidak ada race condition saat aplikasi dibuka di device baru
+   */
+  public static async checkCloudPin(): Promise<boolean> {
+    if (this.cachedFirebaseHash) return true;
+    if (typeof window !== "undefined") {
+      const local = localStorage.getItem(STORAGE_KEYS.PIN_HASH);
+      if (local && local.length > 0) {
+        this.cachedFirebaseHash = local;
+        return true;
+      }
+    }
+    try {
+      const snap = await get(ref(rtdb, "app_security/pin_hash"));
+      if (snap.exists()) {
+        const val = snap.val();
+        if (typeof val === "string" && val.length > 0) {
+          this.cachedFirebaseHash = val;
+          if (typeof window !== "undefined") {
+            localStorage.setItem(STORAGE_KEYS.PIN_HASH, val);
+            localStorage.setItem(STORAGE_KEYS.PIN_ENABLED, "true");
+          }
+          return true;
+        }
+      }
+    } catch (e) {
+      console.warn("Gagal cek cloud PIN:", e);
+    }
+    return false;
   }
 
   /**
