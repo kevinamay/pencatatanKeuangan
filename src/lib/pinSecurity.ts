@@ -1,8 +1,12 @@
 "use client";
 
+import { rtdb } from "./firebase";
+import { ref, set, get, onValue, remove } from "firebase/database";
+
 /**
  * Layanan Keamanan PIN 6-Digit & Mode Privasi Saldo
- * - Hash SHA-256 tersimpan di localStorage
+ * - Sinkronisasi dua arah ke Firebase Realtime Database (/app_security/pin_hash)
+ * - Hash SHA-256 tersimpan di localStorage & Firebase Cloud
  * - Auto-lock saat app blur atau visibilityState berubah ke hidden
  * - Toggle sembunyikan nominal saldo (Mode Mata Tertutup)
  */
@@ -14,7 +18,7 @@ const STORAGE_KEYS = {
 };
 
 /**
- * Hash PIN menggunakan Web Crypto API SHA-256
+ * Hash PIN menggunakan Web Crypto API SHA-256 dengan salt
  */
 async function hashPin(pin: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -26,13 +30,46 @@ async function hashPin(pin: string): Promise<string> {
 
 export class PinSecurityService {
   private static sessionUnlocked = false;
+  private static cachedFirebaseHash: string | null = null;
+  private static isInitialized = false;
 
   /**
-   * Mengecek apakah PIN sudah dibuat sebelumnya
+   * Menginisialisasi sinkronisasi status PIN dengan Firebase Realtime Database
+   */
+  public static initSync(onUpdate?: () => void): void {
+    if (typeof window === "undefined" || this.isInitialized) return;
+    this.isInitialized = true;
+
+    try {
+      const pinRef = ref(rtdb, "app_security/pin_hash");
+      onValue(
+        pinRef,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const cloudHash = snapshot.val();
+            if (typeof cloudHash === "string" && cloudHash.length > 0) {
+              this.cachedFirebaseHash = cloudHash;
+              localStorage.setItem(STORAGE_KEYS.PIN_HASH, cloudHash);
+              localStorage.setItem(STORAGE_KEYS.PIN_ENABLED, "true");
+              onUpdate?.();
+            }
+          }
+        },
+        (err) => {
+          console.warn("RTDB [app_security] error:", err.message);
+        }
+      );
+    } catch (e) {
+      console.warn("Failed to init pin sync:", e);
+    }
+  }
+
+  /**
+   * Mengecek apakah PIN sudah dibuat sebelumnya (baik di LocalStorage maupun Firebase)
    */
   public static isPinConfigured(): boolean {
     if (typeof window === "undefined") return false;
-    return !!localStorage.getItem(STORAGE_KEYS.PIN_HASH);
+    return !!(this.cachedFirebaseHash || localStorage.getItem(STORAGE_KEYS.PIN_HASH));
   }
 
   /**
@@ -57,7 +94,7 @@ export class PinSecurityService {
   }
 
   /**
-   * Mendaftarkan / membuat PIN baru pertama kali
+   * Mendaftarkan / membuat PIN baru pertama kali dan sinkron ke Firebase
    */
   public static async setupNewPin(pin: string): Promise<boolean> {
     if (pin.length !== 6 || !/^\d{6}$/.test(pin)) {
@@ -66,16 +103,40 @@ export class PinSecurityService {
     const hash = await hashPin(pin);
     localStorage.setItem(STORAGE_KEYS.PIN_HASH, hash);
     localStorage.setItem(STORAGE_KEYS.PIN_ENABLED, "true");
+    this.cachedFirebaseHash = hash;
     this.sessionUnlocked = true;
+
+    try {
+      await set(ref(rtdb, "app_security/pin_hash"), hash);
+    } catch (e) {
+      console.warn("Gagal simpan PIN ke Firebase:", e);
+    }
     return true;
   }
 
   /**
-   * Memverifikasi PIN input pengguna
+   * Memverifikasi PIN input pengguna (cek lokal dan Firebase)
    */
   public static async verifyPin(pin: string): Promise<boolean> {
     if (typeof window === "undefined") return false;
-    const storedHash = localStorage.getItem(STORAGE_KEYS.PIN_HASH);
+    let storedHash = this.cachedFirebaseHash || localStorage.getItem(STORAGE_KEYS.PIN_HASH);
+
+    // Jika belum ada di memori lokal, coba ambil sekali dari Firebase
+    if (!storedHash) {
+      try {
+        const snap = await get(ref(rtdb, "app_security/pin_hash"));
+        if (snap.exists()) {
+          storedHash = snap.val();
+          if (storedHash) {
+            this.cachedFirebaseHash = storedHash;
+            localStorage.setItem(STORAGE_KEYS.PIN_HASH, storedHash);
+          }
+        }
+      } catch (e) {
+        console.warn("Gagal get PIN dari Firebase:", e);
+      }
+    }
+
     if (!storedHash) return false;
 
     const inputHash = await hashPin(pin);
@@ -87,7 +148,7 @@ export class PinSecurityService {
   }
 
   /**
-   * Mengganti PIN lama dengan PIN baru
+   * Mengganti PIN lama dengan PIN baru (update lokal dan Firebase)
    */
   public static async changePin(oldPin: string, newPin: string): Promise<{ success: boolean; message: string }> {
     const isOldValid = await this.verifyPin(oldPin);
@@ -99,7 +160,31 @@ export class PinSecurityService {
     }
     const newHash = await hashPin(newPin);
     localStorage.setItem(STORAGE_KEYS.PIN_HASH, newHash);
+    this.cachedFirebaseHash = newHash;
+
+    try {
+      await set(ref(rtdb, "app_security/pin_hash"), newHash);
+    } catch (e) {
+      console.warn("Gagal update PIN di Firebase:", e);
+    }
+
     return { success: true, message: "PIN keamanan berhasil diperbarui." };
+  }
+
+  /**
+   * Mereset PIN keamanan (menghapus dari lokal dan Firebase)
+   */
+  public static async resetPin(): Promise<void> {
+    localStorage.removeItem(STORAGE_KEYS.PIN_HASH);
+    localStorage.removeItem(STORAGE_KEYS.PIN_ENABLED);
+    this.cachedFirebaseHash = null;
+    this.sessionUnlocked = false;
+
+    try {
+      await remove(ref(rtdb, "app_security/pin_hash"));
+    } catch (e) {
+      console.warn("Gagal reset PIN di Firebase:", e);
+    }
   }
 
   /**

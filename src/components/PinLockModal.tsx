@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Lock, ShieldCheck, KeyRound, Delete, AlertCircle, X, Sparkles } from "lucide-react";
+import { Lock, ShieldCheck, KeyRound, Delete, AlertCircle, X, Sparkles, RefreshCw } from "lucide-react";
 import { PinSecurityService } from "@/lib/pinSecurity";
 import { CatAnimation } from "./cat-prototype/CatAnimations";
 
@@ -25,9 +25,15 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
 
-  // Inisialisasi status PIN saat pertama kali dimuat
+  // Inisialisasi status PIN & sinkronisasi dengan Firebase
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // Inisialisasi sync Firebase realtime untuk PIN
+    PinSecurityService.initSync(() => {
+      const hasPin = PinSecurityService.isPinConfigured();
+      setIsConfigured(hasPin);
+    });
 
     const hasPin = PinSecurityService.isPinConfigured();
     setIsConfigured(hasPin);
@@ -35,12 +41,16 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
     if (isChangeMode) {
       setMode("change_old");
       setIsLocked(true);
-    } else if (!hasPin) {
-      setMode("setup");
-      setIsLocked(true);
-    } else if (PinSecurityService.isSessionUnlocked()) {
-      setIsLocked(false);
+    } else if (hasPin) {
+      // Jika sudah ada PIN terdaftar, default langsung ke mode Masuk PIN
+      setMode("verify");
+      if (PinSecurityService.isSessionUnlocked()) {
+        setIsLocked(false);
+      } else {
+        setIsLocked(true);
+      }
     } else {
+      // Jika belum ada PIN sama sekali, buka tab Masuk PIN (atau user bisa tap Buat PIN Baru)
       setMode("verify");
       setIsLocked(true);
     }
@@ -54,9 +64,8 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
       if (document.visibilityState === "hidden") {
         PinSecurityService.lockSession();
       } else if (document.visibilityState === "visible") {
-        if (PinSecurityService.isPinConfigured() && !PinSecurityService.isSessionUnlocked()) {
+        if (!PinSecurityService.isSessionUnlocked()) {
           setIsLocked(true);
-          setMode("verify");
           setEnteredPin("");
           setErrorMsg(null);
         }
@@ -123,14 +132,19 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
           setEnteredPin("");
           onUnlocked?.();
         } else {
-          setErrorMsg("PIN salah. Silakan coba lagi.");
+          const configured = PinSecurityService.isPinConfigured();
+          if (!configured) {
+            setErrorMsg("Belum ada PIN terdaftar. Silakan pilih tab 'Buat PIN Baru'.");
+          } else {
+            setErrorMsg("PIN salah. Silakan coba lagi.");
+          }
           triggerShake();
           setEnteredPin("");
         }
       } else if (mode === "change_old") {
         const valid = await PinSecurityService.verifyPin(enteredPin);
         if (valid) {
-          setTempFirstPin(enteredPin); // simpan pin lama
+          setTempFirstPin(enteredPin);
           setEnteredPin("");
           setMode("change_new");
         } else {
@@ -177,6 +191,17 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
     };
   }, [isLocked, handleKeyPress, handleDelete, isChangeMode, onCloseChangeMode]);
 
+  const handleResetPin = async () => {
+    if (confirm("Apakah Anda yakin ingin mereset PIN keamanan? Anda akan diarahkan untuk membuat PIN 6-digit yang baru.")) {
+      await PinSecurityService.resetPin();
+      setIsConfigured(false);
+      setMode("setup");
+      setEnteredPin("");
+      setTempFirstPin("");
+      setErrorMsg(null);
+    }
+  };
+
   if (!isLocked) return null;
 
   const getTitle = () => {
@@ -198,7 +223,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
   const getSubtitle = () => {
     switch (mode) {
       case "setup":
-        return "Lindungi privasi catatan keuangan Anda dengan 6 digit PIN.";
+        return "Tentukan 6 digit PIN baru untuk mengamankan data Anda.";
       case "confirm":
         return "Ketik kembali 6 digit angka yang sama persis.";
       case "change_old":
@@ -207,7 +232,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
         return "Tentukan 6 digit nomor PIN baru yang mudah Anda ingat.";
       case "verify":
       default:
-        return "Tokyo Neko FinPlan terkunci demi keamanan data Anda.";
+        return "Ketik 6 digit PIN yang sudah Anda daftarkan untuk masuk.";
     }
   };
 
@@ -224,24 +249,78 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
         </button>
       )}
 
-      <div className={`w-full max-w-xs flex flex-col items-center text-center space-y-6 ${isShaking ? "animate-shake" : ""}`}>
+      <div className={`w-full max-w-xs flex flex-col items-center text-center space-y-4 sm:space-y-5 ${isShaking ? "animate-shake" : ""}`}>
         {/* Ikon Neko Mascot / Kunci */}
-        <div className="w-20 h-20 rounded-3xl bg-white border border-[#E8E2D8] p-2 shadow-md flex items-center justify-center relative">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-white border border-[#E8E2D8] p-2 shadow-md flex items-center justify-center relative">
           <CatAnimation variant="maneki" className="w-full h-full" />
-          <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#854D0E] text-white flex items-center justify-center shadow-xs border-2 border-white">
+          <div className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#854D0E] text-white flex items-center justify-center shadow-xs border-2 border-white">
             <Lock className="w-3.5 h-3.5" />
           </div>
         </div>
 
+        {/* Tab Switcher: Masuk dengan PIN vs Buat PIN Baru */}
+        {!isChangeMode && mode !== "confirm" && (
+          <div className="flex items-center gap-1 p-1 rounded-2xl bg-stone-200/60 border border-[#E8E2D8] text-xs font-bold w-full max-w-[270px]">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("verify");
+                setEnteredPin("");
+                setErrorMsg(null);
+              }}
+              className={`flex-1 py-1.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                mode === "verify"
+                  ? "bg-white text-stone-900 shadow-xs border border-[#E8E2D8] font-black"
+                  : "text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              <KeyRound className="w-3.5 h-3.5 text-[#854D0E]" />
+              <span>Masuk PIN</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("setup");
+                setEnteredPin("");
+                setErrorMsg(null);
+              }}
+              className={`flex-1 py-1.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                mode === "setup"
+                  ? "bg-white text-stone-900 shadow-xs border border-[#E8E2D8] font-black"
+                  : "text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              <span>Buat PIN Baru</span>
+            </button>
+          </div>
+        )}
+
         {/* Teks Judul */}
         <div className="space-y-1">
-          <h2 className="text-xl font-black text-stone-900 tracking-tight">
+          <h2 className="text-lg sm:text-xl font-black text-stone-900 tracking-tight leading-tight">
             {getTitle()}
           </h2>
           <p className="text-xs text-stone-500 max-w-xs leading-relaxed">
             {getSubtitle()}
           </p>
         </div>
+
+        {/* Tombol Batal saat Konfirmasi */}
+        {mode === "confirm" && (
+          <button
+            type="button"
+            onClick={() => {
+              setMode("setup");
+              setEnteredPin("");
+              setTempFirstPin("");
+              setErrorMsg(null);
+            }}
+            className="text-xs font-bold text-[#854D0E] hover:underline cursor-pointer"
+          >
+            ← Batal & Ulangi Buat PIN
+          </button>
+        )}
 
         {/* Indikator 6 Digit Bulat */}
         <div className="flex items-center gap-3 py-1">
@@ -250,7 +329,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
             return (
               <div
                 key={index}
-                className={`w-4 h-4 rounded-full transition-all duration-200 border ${
+                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full transition-all duration-200 border ${
                   isFilled
                     ? "bg-[#854D0E] border-[#854D0E] scale-110 shadow-xs"
                     : "bg-white border-[#D6CEC2]"
@@ -262,20 +341,20 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
 
         {/* Pesan Kesalahan */}
         {errorMsg && (
-          <div className="flex items-center gap-1.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl animate-fade-in">
-            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+          <div className="flex items-center gap-1.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl animate-fade-in max-w-xs text-left">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         {/* Numpad Sentuh Mobile Ramah */}
-        <div className="grid grid-cols-3 gap-3 w-full max-w-[260px] pt-2">
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-3 w-full max-w-[260px] pt-1">
           {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((digit) => (
             <button
               key={digit}
               type="button"
               onClick={() => handleKeyPress(digit)}
-              className="h-14 rounded-2xl bg-white hover:bg-stone-100/80 active:bg-amber-100/60 active:scale-95 border border-[#E8E2D8] text-xl font-bold text-stone-800 shadow-xs transition-all flex items-center justify-center cursor-pointer"
+              className="h-13 sm:h-14 rounded-2xl bg-white hover:bg-stone-100/80 active:bg-amber-100/60 active:scale-95 border border-[#E8E2D8] text-xl font-bold text-stone-800 shadow-xs transition-all flex items-center justify-center cursor-pointer"
             >
               {digit}
             </button>
@@ -283,29 +362,70 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
           <button
             type="button"
             onClick={handleClear}
-            className="h-14 rounded-2xl bg-[#FAF7F2] hover:bg-stone-200/50 active:scale-95 text-xs font-bold text-stone-500 transition-all flex items-center justify-center cursor-pointer"
+            className="h-13 sm:h-14 rounded-2xl bg-[#FAF7F2] hover:bg-stone-200/50 active:scale-95 text-xs font-bold text-stone-500 transition-all flex items-center justify-center cursor-pointer"
           >
             Hapus
           </button>
           <button
             type="button"
             onClick={() => handleKeyPress("0")}
-            className="h-14 rounded-2xl bg-white hover:bg-stone-100/80 active:bg-amber-100/60 active:scale-95 border border-[#E8E2D8] text-xl font-bold text-stone-800 shadow-xs transition-all flex items-center justify-center cursor-pointer"
+            className="h-13 sm:h-14 rounded-2xl bg-white hover:bg-stone-100/80 active:bg-amber-100/60 active:scale-95 border border-[#E8E2D8] text-xl font-bold text-stone-800 shadow-xs transition-all flex items-center justify-center cursor-pointer"
           >
             0
           </button>
           <button
             type="button"
             onClick={handleDelete}
-            className="h-14 rounded-2xl bg-[#FAF7F2] hover:bg-stone-200/50 active:scale-95 text-stone-600 transition-all flex items-center justify-center cursor-pointer"
+            className="h-13 sm:h-14 rounded-2xl bg-[#FAF7F2] hover:bg-stone-200/50 active:scale-95 text-stone-600 transition-all flex items-center justify-center cursor-pointer"
             title="Backspace"
           >
             <Delete className="w-5 h-5" />
           </button>
         </div>
 
+        {/* Tombol Bantuan Tambahan di Bawah */}
+        {!isChangeMode && mode === "verify" && (
+          <div className="flex items-center justify-center gap-4 text-xs font-bold text-stone-500 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("setup");
+                setEnteredPin("");
+                setErrorMsg(null);
+              }}
+              className="text-[#854D0E] hover:underline cursor-pointer"
+            >
+              + Buat PIN Baru
+            </button>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={handleResetPin}
+              className="text-stone-400 hover:text-stone-700 transition cursor-pointer"
+            >
+              Lupa PIN?
+            </button>
+          </div>
+        )}
+
+        {!isChangeMode && mode === "setup" && (
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("verify");
+                setEnteredPin("");
+                setErrorMsg(null);
+              }}
+              className="text-xs font-bold text-[#854D0E] hover:underline cursor-pointer"
+            >
+              Sudah punya PIN? Masuk di sini →
+            </button>
+          </div>
+        )}
+
         {/* Footer Brand */}
-        <div className="pt-2">
+        <div className="pt-1">
           <p className="text-[10px] text-stone-400 font-mono tracking-widest uppercase">
             TOKYO NEKO • PRIVASI TERJAGA 🐾
           </p>
