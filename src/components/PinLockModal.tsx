@@ -258,44 +258,6 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
           </div>
         </div>
 
-        {/* Tab Switcher: Masuk dengan PIN vs Buat PIN Baru */}
-        {!isChangeMode && mode !== "confirm" && (
-          <div className="flex items-center gap-1 p-1 rounded-2xl bg-stone-200/60 border border-[#E8E2D8] text-xs font-bold w-full max-w-[270px]">
-            <button
-              type="button"
-              onClick={() => {
-                setMode("verify");
-                setEnteredPin("");
-                setErrorMsg(null);
-              }}
-              className={`flex-1 py-1.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                mode === "verify"
-                  ? "bg-white text-stone-900 shadow-xs border border-[#E8E2D8] font-black"
-                  : "text-stone-500 hover:text-stone-800"
-              }`}
-            >
-              <KeyRound className="w-3.5 h-3.5 text-[#854D0E]" />
-              <span>Masuk PIN</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("setup");
-                setEnteredPin("");
-                setErrorMsg(null);
-              }}
-              className={`flex-1 py-1.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                mode === "setup"
-                  ? "bg-white text-stone-900 shadow-xs border border-[#E8E2D8] font-black"
-                  : "text-stone-500 hover:text-stone-800"
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              <span>Buat PIN Baru</span>
-            </button>
-          </div>
-        )}
-
         {/* Teks Judul */}
         <div className="space-y-1">
           <h2 className="text-lg sm:text-xl font-black text-stone-900 tracking-tight leading-tight">
@@ -383,9 +345,16 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
           </button>
         </div>
 
-        {/* Tombol Bantuan Tambahan di Bawah */}
+        {/* Tombol Bantuan Tambahan di Bawah Numpad */}
         {!isChangeMode && mode === "verify" && (
-          <div className="flex items-center justify-center gap-4 text-xs font-bold text-stone-500 pt-1">
+          <div className="flex flex-col items-center gap-1.5 pt-2">
+            <button
+              type="button"
+              onClick={handleResetPin}
+              className="text-xs font-bold text-stone-500 hover:text-stone-800 transition cursor-pointer"
+            >
+              Lupa PIN?
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -393,23 +362,15 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
                 setEnteredPin("");
                 setErrorMsg(null);
               }}
-              className="text-[#854D0E] hover:underline cursor-pointer"
+              className="text-[11px] font-medium text-stone-400 hover:text-[#854D0E] transition cursor-pointer"
             >
-              + Buat PIN Baru
-            </button>
-            <span>•</span>
-            <button
-              type="button"
-              onClick={handleResetPin}
-              className="text-stone-400 hover:text-stone-700 transition cursor-pointer"
-            >
-              Lupa PIN?
+              Belum punya PIN? <span className="underline font-bold text-[#854D0E]">Buat PIN Baru</span>
             </button>
           </div>
         )}
 
         {!isChangeMode && mode === "setup" && (
-          <div className="pt-1">
+          <div className="pt-2">
             <button
               type="button"
               onClick={() => {
@@ -417,9 +378,9 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
                 setEnteredPin("");
                 setErrorMsg(null);
               }}
-              className="text-xs font-bold text-[#854D0E] hover:underline cursor-pointer"
+              className="text-xs font-bold text-stone-500 hover:text-[#854D0E] transition cursor-pointer"
             >
-              Sudah punya PIN? Masuk di sini →
+              Sudah punya PIN? <span className="underline font-bold text-[#854D0E]">Masuk di sini →</span>
             </button>
           </div>
         )}
