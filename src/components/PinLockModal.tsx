@@ -20,7 +20,15 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
   const [isConfigured, setIsConfigured] = useState(false);
   const [isCheckingCloud, setIsCheckingCloud] = useState(true);
   const [mode, setMode] = useState<
-    "setup" | "confirm" | "verify" | "change_old" | "change_new" | "forgot_email" | "forgot_otp"
+    | "setup"
+    | "confirm"
+    | "setup_email"
+    | "verify"
+    | "change_old"
+    | "change_new"
+    | "change_email"
+    | "forgot_email"
+    | "forgot_otp"
   >("verify");
 
   const [enteredPin, setEnteredPin] = useState("");
@@ -31,8 +39,10 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
 
   // Email pemulihan
   const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [customEmailInput, setCustomEmailInput] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
 
   // Inisialisasi status PIN & sinkronisasi dengan Firebase
   useEffect(() => {
@@ -47,7 +57,10 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
 
     // Ambil email pemulihan terdaftar
     PinSecurityService.getRecoveryEmail().then((email) => {
-      if (email && isMounted) setRecoveryEmail(email);
+      if (email && isMounted) {
+        setRecoveryEmail(email);
+        setCustomEmailInput(email);
+      }
     });
 
     const initPinMode = async () => {
@@ -151,11 +164,18 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
         if (enteredPin === tempFirstPin) {
           await PinSecurityService.setupNewPin(enteredPin);
           setIsConfigured(true);
-          setIsLocked(false);
           setEnteredPin("");
           setTempFirstPin("");
           setSuccessMsg(null);
-          onUnlocked?.();
+
+          // Cek apakah sudah ada email pemulihan terdaftar
+          const existingEmail = await PinSecurityService.getRecoveryEmail();
+          if (!existingEmail) {
+            setMode("setup_email");
+          } else {
+            setIsLocked(false);
+            onUnlocked?.();
+          }
         } else {
           setErrorMsg("Konfirmasi PIN tidak cocok. Silakan ulangi.");
           triggerShake();
@@ -224,7 +244,8 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
 
   // Listener keyboard fisik (numpad komputer)
   useEffect(() => {
-    if (!isLocked || mode === "forgot_email") return;
+    const isInputMode = mode === "forgot_email" || mode === "setup_email" || mode === "change_email";
+    if (!isLocked || isInputMode) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (/^[0-9]$/.test(e.key)) {
@@ -244,6 +265,38 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isLocked, mode, handleKeyPress, handleDelete, isChangeMode, onCloseChangeMode]);
+
+  // Handler saat menyimpan email pemulihan
+  const handleSaveRecoveryEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customEmailInput || !customEmailInput.includes("@") || !customEmailInput.includes(".")) {
+      setErrorMsg("Masukkan format alamat email yang valid.");
+      triggerShake();
+      return;
+    }
+
+    setIsSavingEmail(true);
+    setErrorMsg(null);
+    await PinSecurityService.setRecoveryEmail(customEmailInput);
+    setRecoveryEmail(customEmailInput);
+    setIsSavingEmail(false);
+    setSuccessMsg("Email pemulihan berhasil disimpan!");
+
+    setTimeout(() => {
+      setSuccessMsg(null);
+      if (mode === "setup_email") {
+        setIsLocked(false);
+        onUnlocked?.();
+      } else if (mode === "change_email") {
+        if (isChangeMode) {
+          onCloseChangeMode?.();
+        }
+        if (PinSecurityService.isSessionUnlocked()) {
+          setIsLocked(false);
+        }
+      }
+    }, 700);
+  };
 
   // Handler saat meminta reset via email
   const handleRequestEmailReset = async (e: React.FormEvent) => {
@@ -310,6 +363,10 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
         return "Pemulihan PIN via Email";
       case "forgot_otp":
         return "Masukkan Kode Email";
+      case "setup_email":
+        return "Daftarkan Email Pemulihan";
+      case "change_email":
+        return "Pengaturan Email Pemulihan";
       case "setup":
         return isConfigured ? "Buat PIN Keamanan Baru" : "Daftarkan PIN Keamanan";
       case "confirm":
@@ -330,6 +387,10 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
         return "Ketik email pemulihan terdaftar untuk menerima kode verifikasi reset PIN.";
       case "forgot_otp":
         return `Kode verifikasi 6 digit telah dikirim ke ${recoveryEmail}.`;
+      case "setup_email":
+        return "Masukkan email Anda untuk memulihkan PIN jika suatu saat lupa.";
+      case "change_email":
+        return "Kelola email pemulihan untuk menerima kode reset jika Anda lupa PIN.";
       case "setup":
         return isConfigured
           ? "Tentukan 6 digit PIN baru untuk mengamankan data Anda."
@@ -365,11 +426,56 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
       )}
 
       <div className={`w-full max-w-xs flex flex-col items-center text-center space-y-4 sm:space-y-5 ${isShaking ? "animate-shake" : ""}`}>
+        {/* Tab Pemilih Pengaturan Keamanan PIN & Email (Khusus Mode Kelola / Ganti) */}
+        {isChangeMode && (
+          <div className="flex items-center p-1 bg-stone-100/90 rounded-2xl border border-[#E8E2D8] w-full max-w-[260px] shadow-2xs">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("change_old");
+                setEnteredPin("");
+                setErrorMsg(null);
+                setSuccessMsg(null);
+              }}
+              className={`flex-1 py-1 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                mode === "change_old" || mode === "change_new"
+                  ? "bg-white text-stone-900 shadow-xs border border-[#E8E2D8]"
+                  : "text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              <KeyRound className="w-3.5 h-3.5 text-[#854D0E]" />
+              <span>Ganti PIN</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("change_email");
+                setCustomEmailInput(recoveryEmail || "");
+                setEnteredPin("");
+                setErrorMsg(null);
+                setSuccessMsg(null);
+              }}
+              className={`flex-1 py-1 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                mode === "change_email"
+                  ? "bg-white text-stone-900 shadow-xs border border-[#E8E2D8]"
+                  : "text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              <Mail className="w-3.5 h-3.5 text-[#854D0E]" />
+              <span>Email</span>
+            </button>
+          </div>
+        )}
+
         {/* Ikon Neko Mascot / Kunci / Email */}
         <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-white border border-[#E8E2D8] p-2 shadow-md flex items-center justify-center relative">
           <CatAnimation variant="maneki" className="w-full h-full" />
           <div className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#854D0E] text-white flex items-center justify-center shadow-xs border-2 border-white">
-            {mode === "forgot_email" ? <Mail className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+            {mode === "forgot_email" || mode === "setup_email" || mode === "change_email" ? (
+              <Mail className="w-3.5 h-3.5" />
+            ) : (
+              <Lock className="w-3.5 h-3.5" />
+            )}
           </div>
         </div>
 
@@ -412,9 +518,92 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
         )}
 
         {/* ============================================================== */}
-        {/* TAMPILAN KHUSUS FORM EMAIL (FORGOT EMAIL) */}
+        {/* TAMPILAN KHUSUS FORM EMAIL (FORGOT_EMAIL, SETUP_EMAIL, CHANGE_EMAIL) */}
         {/* ============================================================== */}
-        {mode === "forgot_email" ? (
+        {mode === "setup_email" ? (
+          <form onSubmit={handleSaveRecoveryEmail} className="w-full space-y-3 pt-1">
+            <div className="space-y-1 text-left">
+              <label className="text-[11px] font-bold text-stone-600 flex items-center gap-1">
+                <Mail className="w-3 h-3 text-[#854D0E]" />
+                Alamat Email Pemulihan:
+              </label>
+              <input
+                type="email"
+                required
+                value={customEmailInput}
+                onChange={(e) => setCustomEmailInput(e.target.value)}
+                placeholder="nama@email.com"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E8E2D8] text-xs font-semibold text-stone-800 outline-none focus:border-[#854D0E] shadow-2xs transition"
+              />
+              <p className="text-[10px] text-stone-400 leading-relaxed">
+                Digunakan untuk menerima kode verifikasi jika Anda lupa PIN.
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSavingEmail}
+              className="w-full py-2.5 px-4 rounded-xl bg-[#854D0E] hover:bg-[#713F12] text-white font-bold text-xs shadow-xs active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{isSavingEmail ? "Menyimpan..." : "Simpan Email & Selesai"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsLocked(false);
+                onUnlocked?.();
+              }}
+              className="w-full py-1 text-xs font-medium text-stone-400 hover:text-stone-700 transition cursor-pointer"
+            >
+              Lewati untuk Sekarang →
+            </button>
+          </form>
+        ) : mode === "change_email" ? (
+          <form onSubmit={handleSaveRecoveryEmail} className="w-full space-y-3 pt-1">
+            <div className="space-y-1.5 text-left">
+              <label className="text-[11px] font-bold text-stone-600 flex items-center gap-1">
+                <Mail className="w-3 h-3 text-[#854D0E]" />
+                Alamat Email Pemulihan:
+              </label>
+              <input
+                type="email"
+                required
+                value={customEmailInput}
+                onChange={(e) => setCustomEmailInput(e.target.value)}
+                placeholder="nama@email.com"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E8E2D8] text-xs font-semibold text-stone-800 outline-none focus:border-[#854D0E] shadow-2xs transition"
+              />
+              <p className="text-[11px] text-stone-400">
+                {recoveryEmail
+                  ? `Email aktif saat ini: ${recoveryEmail}`
+                  : "Belum ada email pemulihan terdaftar."}
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSavingEmail}
+              className="w-full py-2.5 px-4 rounded-xl bg-[#854D0E] hover:bg-[#713F12] text-white font-bold text-xs shadow-xs active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{isSavingEmail ? "Menyimpan..." : "Simpan Perubahan Email"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMode("change_old");
+                setErrorMsg(null);
+              }}
+              className="w-full py-1.5 text-xs font-bold text-stone-500 hover:text-stone-800 transition cursor-pointer flex items-center justify-center gap-1"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Kembali ke Ganti PIN</span>
+            </button>
+          </form>
+        ) : mode === "forgot_email" ? (
           <form onSubmit={handleRequestEmailReset} className="w-full space-y-3 pt-1">
             <div className="space-y-1 text-left">
               <label className="text-[11px] font-bold text-stone-600 flex items-center gap-1">

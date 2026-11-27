@@ -252,6 +252,24 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
                 </button>
               )}
 
+              {/* Security PIN & Email Button (Desktop) */}
+              {onOpenChangePin && (
+                <button
+                  type="button"
+                  onClick={onOpenChangePin}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all active:scale-95 cursor-pointer"
+                  style={{
+                    backgroundColor: theme.isDark ? "#1E293B" : "#FAF7F2",
+                    borderColor: theme.cardBorder,
+                    color: theme.isDark ? "#E2E8F0" : "#44403C",
+                  }}
+                  title="Keamanan PIN & Email Pemulihan"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Keamanan</span>
+                </button>
+              )}
+
               {/* Quick Add Button */}
               <button
                 onClick={onOpenQuickAdd}
@@ -435,7 +453,7 @@ export const CatNavbar: React.FC<CatNavbarProps> = ({
               className="w-full py-2 px-3 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 border active:scale-95 transition-all cursor-pointer bg-[#FAF7F2] text-stone-600 border-[#E8E2D8] hover:bg-stone-100"
             >
               <KeyRound className="w-3.5 h-3.5 text-amber-700" />
-              <span>Ganti PIN Keamanan (6-Digit)</span>
+              <span>Keamanan PIN & Email</span>
             </button>
           )}
 
