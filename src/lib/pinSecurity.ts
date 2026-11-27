@@ -4,8 +4,9 @@ import { rtdb } from "./firebase";
 import { ref, set, get, onValue, remove } from "firebase/database";
 
 /**
- * Layanan Keamanan PIN 6-Digit & Mode Privasi Saldo
+ * Layanan Keamanan PIN 6-Digit, Pemulihan Email & Mode Privasi Saldo
  * - Sinkronisasi dua arah ke Firebase Realtime Database (/app_security/pin_hash)
+ * - Pemulihan PIN melalui verifikasi Email (/app_security/recovery_email & /app_security/reset_request)
  * - Hash SHA-256 tersimpan di localStorage & Firebase Cloud
  * - Auto-lock saat app blur atau visibilityState berubah ke hidden
  * - Toggle sembunyikan nominal saldo (Mode Mata Tertutup)
@@ -15,7 +16,10 @@ const STORAGE_KEYS = {
   PIN_HASH: "tokyo_neko_pin_hash_v1",
   PIN_ENABLED: "tokyo_neko_pin_enabled_v1",
   HIDE_BALANCE: "tokyo_neko_hide_balance_v1",
+  RECOVERY_EMAIL: "tokyo_neko_recovery_email_v1",
 };
+
+const DEFAULT_RECOVERY_EMAIL = "kevinamay23@gmail.com";
 
 /**
  * Hash PIN menggunakan Web Crypto API SHA-256 dengan salt
@@ -31,16 +35,18 @@ async function hashPin(pin: string): Promise<string> {
 export class PinSecurityService {
   private static sessionUnlocked = false;
   private static cachedFirebaseHash: string | null = null;
+  private static cachedRecoveryEmail: string | null = null;
   private static isInitialized = false;
 
   /**
-   * Menginisialisasi sinkronisasi status PIN dengan Firebase Realtime Database
+   * Menginisialisasi sinkronisasi status PIN & Email Pemulihan dengan Firebase Realtime Database
    */
   public static initSync(onUpdate?: () => void): void {
     if (typeof window === "undefined" || this.isInitialized) return;
     this.isInitialized = true;
 
     try {
+      // 1. Listener PIN Hash
       const pinRef = ref(rtdb, "app_security/pin_hash");
       onValue(
         pinRef,
@@ -56,7 +62,25 @@ export class PinSecurityService {
           }
         },
         (err) => {
-          console.warn("RTDB [app_security] error:", err.message);
+          console.warn("RTDB [app_security/pin_hash] error:", err.message);
+        }
+      );
+
+      // 2. Listener Recovery Email
+      const emailRef = ref(rtdb, "app_security/recovery_email");
+      onValue(
+        emailRef,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const email = snapshot.val();
+            if (typeof email === "string" && email.length > 0) {
+              this.cachedRecoveryEmail = email;
+              localStorage.setItem(STORAGE_KEYS.RECOVERY_EMAIL, email);
+            }
+          }
+        },
+        (err) => {
+          console.warn("RTDB [app_security/recovery_email] error:", err.message);
         }
       );
     } catch (e) {
@@ -108,6 +132,11 @@ export class PinSecurityService {
 
     try {
       await set(ref(rtdb, "app_security/pin_hash"), hash);
+      // Pastikan email pemulihan terpasang default jika belum ada
+      const currentEmail = await this.getRecoveryEmail();
+      if (!currentEmail) {
+        await this.setRecoveryEmail(DEFAULT_RECOVERY_EMAIL);
+      }
     } catch (e) {
       console.warn("Gagal simpan PIN ke Firebase:", e);
     }
@@ -121,7 +150,6 @@ export class PinSecurityService {
     if (typeof window === "undefined") return false;
     let storedHash = this.cachedFirebaseHash || localStorage.getItem(STORAGE_KEYS.PIN_HASH);
 
-    // Jika belum ada di memori lokal, coba ambil sekali dari Firebase
     if (!storedHash) {
       try {
         const snap = await get(ref(rtdb, "app_security/pin_hash"));
@@ -184,6 +212,126 @@ export class PinSecurityService {
       await remove(ref(rtdb, "app_security/pin_hash"));
     } catch (e) {
       console.warn("Gagal reset PIN di Firebase:", e);
+    }
+  }
+
+  // --- PEMULIHAN VIA EMAIL (RECOVERY EMAIL & OTP) ---
+
+  /**
+   * Mengambil alamat email pemulihan yang tersimpan
+   */
+  public static async getRecoveryEmail(): Promise<string> {
+    if (typeof window !== "undefined") {
+      const local = localStorage.getItem(STORAGE_KEYS.RECOVERY_EMAIL);
+      if (local) return local;
+    }
+    if (this.cachedRecoveryEmail) return this.cachedRecoveryEmail;
+
+    try {
+      const snap = await get(ref(rtdb, "app_security/recovery_email"));
+      if (snap.exists() && typeof snap.val() === "string") {
+        this.cachedRecoveryEmail = snap.val();
+        if (typeof window !== "undefined") {
+          localStorage.setItem(STORAGE_KEYS.RECOVERY_EMAIL, snap.val());
+        }
+        return snap.val();
+      }
+    } catch (e) {}
+
+    return DEFAULT_RECOVERY_EMAIL;
+  }
+
+  /**
+   * Mendaftarkan / memperbarui alamat email pemulihan
+   */
+  public static async setRecoveryEmail(email: string): Promise<void> {
+    const cleanEmail = email.trim().toLowerCase();
+    this.cachedRecoveryEmail = cleanEmail;
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEYS.RECOVERY_EMAIL, cleanEmail);
+    }
+    try {
+      await set(ref(rtdb, "app_security/recovery_email"), cleanEmail);
+    } catch (e) {
+      console.warn("Gagal simpan recovery email ke Firebase:", e);
+    }
+  }
+
+  /**
+   * Meminta kode reset PIN via email (Verifikasi kecocokan email & buat kode OTP 6-digit)
+   */
+  public static async requestEmailReset(inputEmail: string): Promise<{ success: boolean; message: string; otp?: string }> {
+    const registeredEmail = await this.getRecoveryEmail();
+    const cleanInput = inputEmail.trim().toLowerCase();
+
+    // Validasi format email
+    if (!cleanInput || !cleanInput.includes("@")) {
+      return { success: false, message: "Format alamat email tidak valid." };
+    }
+
+    // Cek apakah email cocok dengan email pemulihan terdaftar
+    if (registeredEmail && cleanInput !== registeredEmail.toLowerCase()) {
+      return {
+        success: false,
+        message: `Email tidak cocok dengan email pemulihan yang terdaftar (${registeredEmail.slice(0, 3)}***@***).`,
+      };
+    }
+
+    // Buat kode verifikasi OTP 6 digit acak
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 15 * 60 * 1000; // berlaku 15 menit
+
+    try {
+      await set(ref(rtdb, "app_security/reset_request"), {
+        otp,
+        email: cleanInput,
+        expiresAt,
+        createdAt: Date.now(),
+      });
+    } catch (e) {
+      console.warn("Gagal simpan reset_request ke Firebase:", e);
+    }
+
+    return {
+      success: true,
+      message: `Kode pemulihan telah dibuat untuk ${cleanInput}.`,
+      otp,
+    };
+  }
+
+  /**
+   * Memverifikasi kode OTP email untuk membuka izin reset PIN
+   */
+  public static async verifyEmailOtp(inputOtp: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const snap = await get(ref(rtdb, "app_security/reset_request"));
+      if (!snap.exists()) {
+        return { success: false, message: "Tidak ada permintaan reset aktif. Silakan ajukan ulang." };
+      }
+
+      const data = snap.val();
+      if (!data || !data.otp) {
+        return { success: false, message: "Data permintaan reset tidak valid." };
+      }
+
+      if (Date.now() > data.expiresAt) {
+        return { success: false, message: "Kode pemulihan telah kedaluwarsa. Silakan ajukan ulang." };
+      }
+
+      if (inputOtp.trim() !== data.otp) {
+        return { success: false, message: "Kode verifikasi salah. Periksa kembali email Anda." };
+      }
+
+      // Hapus permintaan reset dan hapus PIN lama agar user bisa buat PIN baru
+      await remove(ref(rtdb, "app_security/reset_request"));
+      await this.resetPin();
+
+      return {
+        success: true,
+        message: "Verifikasi email berhasil! Silakan buat PIN baru Anda.",
+      };
+    } catch (e: any) {
+      return { success: false, message: e.message || "Gagal memverifikasi kode pemulihan." };
     }
   }
 
