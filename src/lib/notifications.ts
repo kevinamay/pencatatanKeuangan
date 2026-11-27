@@ -1,5 +1,3 @@
-"use client";
-
 import { IncomeItem, ExpenseItem } from "@/types/finance";
 
 export const NotificationService = {
